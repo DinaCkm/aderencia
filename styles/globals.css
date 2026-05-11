@@ -1,0 +1,114 @@
+:root {
+  color-scheme: light;
+  font-family: system-ui, sans-serif;
+  background: #f8fafc;
+  color: #111827;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+h1,
+h2 {
+  margin: 0 0 16px;
+}
+
+p {
+  margin: 0 0 16px;
+  line-height: 1.6;
+}
+
+.form-card,
+.card-grid {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.form-card label {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.form-card input,
+.form-card textarea,
+.form-card select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.form-card button {
+  margin-top: 16px;
+  padding: 12px 18px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.form-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.checkbox-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.card {
+  display: block;
+  padding: 20px;
+  text-decoration: none;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  background: #fff;
+  color: inherit;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  border-color: #2563eb;
+  transform: translateY(-2px);
+}
+
+.error {
+  color: #b91c1c;
+}
+
+.success {
+  color: #15803d;
+}
