@@ -1,0 +1,8 @@
+[
+  {
+    "email": "admin@aderencia.local",
+    "password": "admin123",
+    "name": "Administrador",
+    "role": "admin"
+  }
+]
