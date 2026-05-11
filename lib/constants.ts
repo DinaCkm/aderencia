@@ -87,8 +87,14 @@ export const CATALOG_ITEMS: CatalogItem[] = [
   { id: 'matricula-12345', label: '12345', group: 'matricula', classification: 'transversal' }
 ];
 
+import adminUsers from '../data/users.json';
+
+const adminRecord = (adminUsers as Array<{ email: string; password: string; name: string; role?: string }>).find(
+  (user) => user.role === 'admin'
+);
+
 export const ADMIN_USER = {
-  email: 'admin@aderencia.local',
-  password: 'admin123',
-  name: 'Administrador'
+  email: adminRecord?.email ?? 'admin@aderencia.local',
+  password: adminRecord?.password ?? 'admin123',
+  name: adminRecord?.name ?? 'Administrador'
 };

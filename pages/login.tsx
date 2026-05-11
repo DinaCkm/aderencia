@@ -15,13 +15,13 @@ export default function Login() {
       router.push('/admin');
       return;
     }
-    if (email.endsWith('@aderencia.local')) {
+    if (email) {
       sessionStorage.setItem('aderenciaRole', 'participant');
       sessionStorage.setItem('aderenciaEmail', email);
       router.push('/participant');
       return;
     }
-    setError('Usuário ou senha inválidos. Use e-mail válido ou admin@aderencia.local.');
+    setError('Usuário inválido. Use um e-mail válido ou admin@aderencia.local.');
   };
 
   return (
@@ -34,13 +34,13 @@ export default function Login() {
         </label>
         <label>
           Senha
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" />
         </label>
         {error && <p className="error">{error}</p>}
         <button type="submit">Entrar</button>
       </form>
       <p>
-        Use <strong>admin@aderencia.local</strong> / <strong>admin123</strong> para admin. Para participante, use um e-mail qualquer que termine em <strong>@aderencia.local</strong>.
+        Use <strong>admin@aderencia.local</strong> / <strong>admin123</strong> para admin. Para participante, use qualquer e-mail válido; a senha não é necessária.
       </p>
     </main>
   );
