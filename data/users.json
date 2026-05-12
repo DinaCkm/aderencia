@@ -3,7 +3,8 @@
     "email": "admin@sebraeto.com.br",
     "name": "Administrador",
     "cpf": "00000000000",
-    "role": "admin"
+    "role": "admin",
+    "password": "admin@sebrae2026"
   },
   {
     "email": "teste01@sebraeto.com.br",
