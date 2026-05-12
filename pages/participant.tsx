@@ -815,7 +815,7 @@ export default function ParticipantForm() {
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>
                   Selecione os titulos que voce concluiu e indique como comprova cada um.
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto', padding: '4px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {postMBAOptions.map((o) => {
                     const selected = profile.postMBAs.includes(o.label);
                     return (
