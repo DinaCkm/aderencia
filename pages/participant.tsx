@@ -115,8 +115,28 @@ export default function ParticipantForm() {
       return;
     }
     setParticipantName(name || '');
-    setProfile((prev) => ({ ...prev, id: email, email, name: name || '' }));
+    // Restaurar rascunho salvo no sessionStorage
+    const draft = sessionStorage.getItem('aderenciaDraft');
+    if (draft) {
+      try {
+        const saved = JSON.parse(draft) as ParticipantProfile;
+        setProfile(saved);
+        const savedStep = sessionStorage.getItem('aderenciaStep');
+        if (savedStep) setStep(parseInt(savedStep, 10));
+      } catch { /* ignora rascunho invalido */ }
+    } else {
+      setProfile((prev) => ({ ...prev, id: email, email, name: name || '' }));
+    }
   }, [router]);
+
+  // Salvar rascunho automaticamente sempre que profile ou step mudar
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (profile.id) {
+      sessionStorage.setItem('aderenciaDraft', JSON.stringify(profile));
+      sessionStorage.setItem('aderenciaStep', String(step));
+    }
+  }, [profile, step]);
 
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
 
@@ -169,6 +189,9 @@ export default function ParticipantForm() {
         body: JSON.stringify(profile),
       });
       if (res.ok) {
+        // Limpar rascunho apos envio bem-sucedido
+        sessionStorage.removeItem('aderenciaDraft');
+        sessionStorage.removeItem('aderenciaStep');
         setSubmitted(true);
         setStatus('');
       } else {
@@ -685,6 +708,18 @@ export default function ParticipantForm() {
                   if (!profile.graduation) { setStatus('Selecione a área da sua graduação.'); return; }
                   if (!(profile as any).graduationCourseName?.trim()) { setStatus('Informe o nome completo do curso de graduação.'); return; }
                   if (profile.graduation === '__outro__' && !(profile as any).graduationException?.trim()) { setStatus('Preencha o campo de exceção com o nome e descrição do seu curso.'); return; }
+                  // Validar comprovacao da graduacao: se escolheu upload, exige arquivo
+                  if (profile.graduation !== '__outro__') {
+                    const mode = profile.proofMode[profile.graduation];
+                    if (!mode) { setStatus('Selecione como vai comprovar sua graduação (A UGP já tem conhecimento ou Enviar documento).'); return; }
+                    if (mode === 'upload' && !profile.proofFiles[profile.graduation]) { setStatus('Você selecionou "Enviar documento" para a graduação — escolha o arquivo antes de continuar.'); return; }
+                  }
+                  // Validar comprovacao dos pos/MBA selecionados
+                  for (const item of profile.postMBAs) {
+                    const mode = profile.proofMode[item];
+                    if (!mode) { setStatus(`Selecione como vai comprovar o título: "${item}".`); return; }
+                    if (mode === 'upload' && !profile.proofFiles[item]) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); return; }
+                  }
                   setStatus(''); setStep(4);
                 }}>Proximo &rarr;</button>
               </div>
@@ -852,7 +887,15 @@ export default function ParticipantForm() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
                 <button type="button" className="btn-outline" onClick={() => setStep(4)}>&larr; Voltar</button>
-                <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => { setStatus(''); setStep(6); }}>Proximo &rarr;</button>
+                <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
+                  // Validar comprovacao dos cursos selecionados
+                  for (const item of profile.selectedCourses) {
+                    const mode = profile.proofMode[item];
+                    if (!mode) { setStatus(`Selecione como vai comprovar o curso: "${item}".`); return; }
+                    if (mode === 'upload' && !profile.proofFiles[item]) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); return; }
+                  }
+                  setStatus(''); setStep(6);
+                }}>Proximo &rarr;</button>
               </div>
             </div>
           )}
@@ -940,7 +983,15 @@ export default function ParticipantForm() {
               {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
                 <button type="button" className="btn-outline" onClick={() => setStep(5)}>&larr; Voltar</button>
-                <button type="submit" className="btn-primary" style={{ minWidth: 180 }}>
+                <button type="button" className="btn-primary" style={{ minWidth: 180 }} onClick={(e) => {
+                  // Validar comprovacao dos projetos selecionados
+                  for (const item of profile.selectedProjects) {
+                    const mode = profile.proofMode[item];
+                    if (!mode) { setStatus(`Selecione como vai comprovar o projeto: "${item}".`); return; }
+                    if (mode === 'upload' && !profile.proofFiles[item]) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); return; }
+                  }
+                  handleSubmit(e as any);
+                }}>
                   &#10003; Enviar formulario
                 </button>
               </div>
