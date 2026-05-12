@@ -427,3 +427,9 @@ tr:hover td { background: #fafafa; }
   white-space: nowrap;
 }
 .btn-outline:hover { background: #f5f0ff; }
+
+/* ── TOOLTIP PULSE ── */
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(16,185,129,0.25); }
+  50% { box-shadow: 0 0 0 6px rgba(16,185,129,0.10); }
+}

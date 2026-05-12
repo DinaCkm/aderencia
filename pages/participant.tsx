@@ -106,11 +106,16 @@ function InfoTooltip({ content }: { content: React.ReactNode }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         style={{
-          width: 18, height: 18, borderRadius: '50%', border: '1.5px solid #6ee7b7',
-          background: open ? '#065f46' : '#f0fdf4', color: open ? 'white' : '#065f46',
-          fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', lineHeight: 1,
+          width: 22, height: 22, borderRadius: '50%',
+          border: open ? '2px solid #065f46' : '2px solid #10b981',
+          background: open ? '#065f46' : 'linear-gradient(135deg, #10b981, #059669)',
+          color: 'white',
+          fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', lineHeight: 1,
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0,
-          flexShrink: 0
+          flexShrink: 0,
+          boxShadow: open ? 'none' : '0 0 0 3px rgba(16,185,129,0.25)',
+          animation: open ? 'none' : 'pulse-green 1.8s ease-in-out infinite',
+          transition: 'all 0.2s',
         }}
         title="Ver critérios de classificação"
       >?</button>
