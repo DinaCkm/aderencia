@@ -288,26 +288,64 @@ export default function ParticipantForm() {
               {/* Card de boas-vindas */}
               <div style={{
                 background: 'linear-gradient(135deg, #5B2D8E 0%, #0891b2 100%)',
-                borderRadius: 12, padding: '24px 28px', marginBottom: 28, color: 'white'
+                borderRadius: 12, padding: '28px 32px', marginBottom: 28, color: 'white'
               }}>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: 8 }}>
-                  &#127919; Banco de Sucessores EcoLider
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: 4, letterSpacing: '0.01em' }}>
+                  &#127919; Programa de Desenvolvimento de Líderes e Sucessores
                 </div>
-                <p style={{ fontSize: '0.82rem', lineHeight: 1.7, margin: '0 0 16px', opacity: 0.95 }}>
-                  O <strong>Banco de Sucessores</strong> e uma iniciativa estrategica do SEBRAE Tocantins para identificar, desenvolver e preparar talentos internos para assumir posicoes de lideranca. Acreditamos que os melhores sucessores ja estao dentro da nossa organizacao — e este programa existe para revelar e valorizar esse potencial.
+                <div style={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.85, marginBottom: 18, letterSpacing: '0.03em', textTransform: 'uppercase' }}>
+                  Etapa de Fechamento do Banco de Sucessores
+                </div>
+
+                <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 12px', opacity: 0.97 }}>
+                  O <strong>Programa de Desenvolvimento de Líderes e Sucessores</strong> é uma iniciativa estratégica do SEBRAE Tocantins voltada à preparação, valorização e desenvolvimento de talentos internos com potencial para assumir futuras posições de liderança.
                 </p>
-                <p style={{ fontSize: '0.82rem', lineHeight: 1.7, margin: '0 0 16px', opacity: 0.95 }}>
-                  Neste formulario, voce indicara ate <strong>3 areas de interesse</strong> onde deseja atuar como sucessor. Para cada area escolhida, o sistema calculara de forma transparente o seu indice de <strong>Aderencia</strong> — uma medida que combina sua formacao academica, experiencia gerencial, cursos, projetos realizados e seu perfil comportamental.
+                <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 12px', opacity: 0.97 }}>
+                  Esta etapa marca o <strong>fechamento do ciclo de desenvolvimento</strong> dos participantes do Banco de Sucessores, contemplando as turmas <strong>BS1, BS2 e BS3</strong>, conforme o cronograma definido para encerramento da temporada atual do programa.
                 </p>
-                <p style={{ fontSize: '0.78rem', lineHeight: 1.6, margin: 0, opacity: 0.85 }}>
-                  A avaliacao de aderencia <strong>nao e eliminatoria</strong>: ela e uma fotografia do seu momento atual e serve para orientar o seu plano de desenvolvimento. O resultado ficara disponivel para voce consultar a qualquer momento, com todo o detalhamento do calculo.
+                <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 12px', opacity: 0.97 }}>
+                  Ao longo da jornada, os participantes vivenciaram ações voltadas ao autoconhecimento, ampliação do repertório de liderança, mentorias, trilhas de aprendizagem, entregas práticas, projetos aplicados e fortalecimento da prontidão para sucessão.
                 </p>
-                <div style={{ display: 'flex', gap: 16, marginTop: 20, flexWrap: 'wrap' }}>
-                  {[['&#127891;','Formacao Academica'],['&#128188;','Experiencia Gerencial'],['&#127775;','Cursos Estrategicos'],['&#127775;','Perfil Comportamental']].map(([icon, label]) => (
-                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', opacity: 0.9 }}>
-                      <span>{icon}</span><span>{label}</span>
-                    </div>
-                  ))}
+                <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 16px', opacity: 0.97 }}>
+                  Neste momento, o objetivo é consolidar os resultados da trajetória realizada até aqui, considerando a performance, o engajamento e os elementos técnicos e comportamentais que compõem a análise de aderência de cada participante às áreas afins.
+                </p>
+
+                {/* Cronograma de fechamento */}
+                <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 8, padding: '14px 18px', marginBottom: 16 }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    &#128197; Cronograma de Fechamento
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                    {[['BS1','30/06/2026'],['BS2','30/05/2026'],['BS3','30/07/2026']].map(([turma, data]) => (
+                      <div key={turma} style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 6, padding: '8px 12px', textAlign: 'center' }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{turma}</div>
+                        <div style={{ fontSize: '0.72rem', opacity: 0.85, marginTop: 2 }}>Fechamento em</div>
+                        <div style={{ fontWeight: 600, fontSize: '0.8rem', marginTop: 1 }}>{data}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <p style={{ fontSize: '0.76rem', margin: '10px 0 0', opacity: 0.85, lineHeight: 1.6 }}>
+                    Após esse fechamento, será calculado o <strong>Índice de Aderência</strong> de cada participante às áreas indicadas.
+                  </p>
+                </div>
+
+                <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 12px', opacity: 0.97 }}>
+                  Neste formulário, você poderá indicar até <strong>três áreas de interesse</strong> nas quais deseja ser considerado como possível sucessor. Para cada área escolhida, será calculado o seu <strong>Índice de Aderência</strong>, considerando critérios como formação acadêmica, experiência profissional, cursos realizados, participação em projetos, perfil comportamental e desempenho no programa de desenvolvimento.
+                </p>
+                <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 20px', opacity: 0.97 }}>
+                  A avaliação de aderência <strong>não possui caráter eliminatório</strong>. Ela representa uma fotografia do momento atual do participante e tem como finalidade apoiar a continuidade do seu desenvolvimento, oferecendo clareza sobre pontos fortes, oportunidades de evolução e caminhos possíveis para futuras posições de liderança. O resultado será disponibilizado com o detalhamento dos critérios utilizados no cálculo, reforçando a transparência do processo e o compromisso do SEBRAE Tocantins com o desenvolvimento de seus líderes e sucessores.
+                </p>
+
+                {/* Assinatura */}
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.25)', paddingTop: 14, display: 'flex', justifyContent: 'flex-end', gap: 24, flexWrap: 'wrap' }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.7rem', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Realização</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700 }}>UGP — SEBRAE Tocantins</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.7rem', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Parceria</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700 }}>Ckm Talents</div>
+                  </div>
                 </div>
               </div>
 
