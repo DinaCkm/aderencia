@@ -39,9 +39,14 @@ function computeTechnicalAdherence(profile: ParticipantProfile, area: string, ap
   const totalExperienceMonths = managerialMonths + interimMonths || profile.experienceMonths || 0;
   const experiencePoints = Math.min(4, Math.floor(totalExperienceMonths / 6));
 
+  const MIN_COURSE_HOURS = 16;
   const strategicCourses = selectedCourses.filter((id) => {
     const item = catalogs.find((entry) => entry.id === id && entry.group === 'course');
-    return item?.classification === 'transversal' || (item?.classification === 'area-specific' && item?.area === area);
+    if (!item) return false;
+    // Verificar carga horária mínima (label usado como chave no mapa courseHours)
+    const hours = profile.courseHours?.[item.label] ?? 0;
+    if (hours > 0 && hours < MIN_COURSE_HOURS) return false; // abaixo do mínimo, nao pontua
+    return item.classification === 'transversal' || (item.classification === 'area-specific' && item.area === area);
   }).length;
   const strategicProjects = selectedProjects.filter((id) => {
     const item = catalogs.find((entry) => entry.id === id && entry.group === 'project');

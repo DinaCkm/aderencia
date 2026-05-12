@@ -41,6 +41,7 @@ export interface ParticipantProfile {
   interimMonths: number;           // meses em cargo interino
   positionsHeld: string[];
   selectedCourses: string[];
+  courseHours: Record<string, number>;  // carga horária informada por curso (chave = label do curso)
   selectedProjects: string[];
   exceptionRequested: boolean;
   exceptionJustification: string;

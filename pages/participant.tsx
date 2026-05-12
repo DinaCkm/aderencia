@@ -22,6 +22,7 @@ const initialProfile: ParticipantProfile = {
   interimMonths: 0,
   positionsHeld: [],
   selectedCourses: [],
+  courseHours: {},
   selectedProjects: [],
   exceptionRequested: false,
   exceptionJustification: '',
@@ -581,21 +582,52 @@ export default function ParticipantForm() {
                   </p>
                 </div>
               </div>
+              {/* Definicao didatica de cursos estrategicos */}
+              <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#92400e' }}>
+                <strong>O que sao cursos estrategicos?</strong> Sao formacoes de desenvolvimento continuado — diferentes de Pos/MBA. Incluem cursos, workshops, treinamentos e certificacoes profissionais. Para pontuar, o curso deve ter <strong>no minimo 16 horas</strong>. A validacao final e feita pelo RH/UGP.
+              </div>
               <div className="form-group">
                 <label className="form-label">Cursos estrategicos concluidos</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '8px', maxHeight: 240, overflowY: 'auto', padding: '4px' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Ao marcar um curso, informe a carga horaria. Cursos com menos de 16h serao sinalizados e nao pontuarao.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: 300, overflowY: 'auto', padding: '4px' }}>
                   {courseOptions.map((o) => {
                     const selected = profile.selectedCourses.includes(o.label);
+                    const hours = profile.courseHours?.[o.label] || 0;
+                    const belowMin = selected && hours > 0 && hours < 16;
                     return (
-                      <label key={o.id} style={{
-                        display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px',
-                        borderRadius: 'var(--radius-sm)', border: `1.5px solid ${selected ? 'var(--purple)' : 'var(--border)'}`,
-                        background: selected ? 'var(--gradient-soft)' : 'white', cursor: 'pointer', transition: 'all 0.2s'
+                      <div key={o.id} style={{
+                        borderRadius: 'var(--radius-sm)',
+                        border: `1.5px solid ${belowMin ? '#fca5a5' : selected ? 'var(--purple)' : 'var(--border)'}`,
+                        background: belowMin ? '#fff1f2' : selected ? 'var(--gradient-soft)' : 'white',
+                        transition: 'all 0.2s', overflow: 'hidden'
                       }}>
-                        <input type="checkbox" checked={selected} onChange={() => toggleMulti('selectedCourses', o.label)}
-                          style={{ accentColor: 'var(--purple)', width: 15, height: 15 }} />
-                        <span style={{ fontSize: '0.82rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>{o.label}</span>
-                      </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={selected}
+                            onChange={() => {
+                              toggleMulti('selectedCourses', o.label);
+                              if (selected) {
+                                setProfile((p) => { const h = { ...p.courseHours }; delete h[o.label]; return { ...p, courseHours: h }; });
+                              }
+                            }}
+                            style={{ accentColor: 'var(--purple)', width: 15, height: 15, flexShrink: 0 }} />
+                          <span style={{ fontSize: '0.82rem', color: belowMin ? '#dc2626' : selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400, flex: 1 }}>{o.label}</span>
+                        </label>
+                        {selected && (
+                          <div style={{ padding: '0 12px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Carga horaria (h):</label>
+                            <input type="number" min={1} max={999}
+                              value={hours || ''}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value) || 0;
+                                setProfile((p) => ({ ...p, courseHours: { ...p.courseHours, [o.label]: v } }));
+                              }}
+                              placeholder="Ex: 40"
+                              style={{ width: 80, padding: '4px 8px', border: `1px solid ${belowMin ? '#fca5a5' : 'var(--border)'}`, borderRadius: 6, fontSize: '0.78rem' }} />
+                            {belowMin && <span style={{ fontSize: '0.72rem', color: '#dc2626' }}>&#9888; Abaixo de 16h — nao pontua</span>}
+                            {selected && hours >= 16 && <span style={{ fontSize: '0.72rem', color: '#16a34a' }}>&#10003; Valido</span>}
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
