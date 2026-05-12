@@ -82,6 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       matricula,
       unit,
       currentRole,
+      currentArea: '' as ParticipantProfile['currentArea'],
       selectedAreas: areaValues,
       graduation,
       postMBAs: parseList(postMBAs),

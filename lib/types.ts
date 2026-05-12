@@ -31,6 +31,7 @@ export interface ParticipantProfile {
   matricula: string;
   unit: string;
   currentRole: string;
+  currentArea: AreaCode | '';
   selectedAreas: AreaCode[];
   graduation: string;
   postMBAs: string[];

@@ -12,6 +12,7 @@ const initialProfile: ParticipantProfile = {
   matricula: '',
   unit: '',
   currentRole: '',
+  currentArea: '',
   selectedAreas: [],
   graduation: '',
   postMBAs: [],
@@ -47,14 +48,12 @@ export default function ParticipantForm() {
       return;
     }
     setParticipantName(name || '');
-    setProfile((prev) => ({ ...prev, id: email, email }));
+    setProfile((prev) => ({ ...prev, id: email, email, name: name || '' }));
   }, [router]);
 
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
 
-  const nameOptions = useMemo(() => getOptions('name'), []);
   const matriculaOptions = useMemo(() => getOptions('matricula'), []);
-  const unitOptions = useMemo(() => getOptions('unit'), []);
   const roleOptions = useMemo(() => getOptions('role'), []);
   const graduationOptions = useMemo(() => getOptions('graduation'), []);
   const postMBAOptions = useMemo(() => getOptions('postMBA'), []);
@@ -164,7 +163,7 @@ export default function ParticipantForm() {
         <div className="topbar-actions">
           {participantName && <span className="topbar-user">&#128100; {participantName}</span>}
           <Link href="/my-results">
-            <button className="btn-outline" style={{ fontSize: '0.8rem', padding: '6px 14px' }}>
+            <button className="btn-outline" style={{ fontSize: '0.78rem', padding: '5px 12px' }}>
               Meus resultados
             </button>
           </Link>
@@ -172,107 +171,132 @@ export default function ParticipantForm() {
         </div>
       </nav>
 
-      <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '16px 0' }}>
+      {/* Barra de progresso */}
+      <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '14px 0' }}>
         <div className="container" style={{ display: 'flex', gap: '6px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
           {stepLabels.map((label, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <div style={{
-                width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.75rem', fontWeight: 700,
+                width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.72rem', fontWeight: 700,
                 background: step > i + 1 ? 'var(--cyan)' : step === i + 1 ? 'var(--purple)' : 'var(--border)',
                 color: step >= i + 1 ? 'white' : 'var(--text-muted)',
-                transition: 'all 0.3s',
-                flexShrink: 0,
+                transition: 'all 0.3s', flexShrink: 0,
               }}>
                 {step > i + 1 ? '\u2713' : i + 1}
               </div>
-              <span style={{
-                fontSize: '0.75rem', fontWeight: step === i + 1 ? 600 : 400,
-                color: step === i + 1 ? 'var(--purple)' : 'var(--text-muted)',
-              }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: step === i + 1 ? 600 : 400, color: step === i + 1 ? 'var(--purple)' : 'var(--text-muted)' }}>
                 {label}
               </span>
-              {i < 4 && <div style={{ width: 20, height: 2, background: step > i + 1 ? 'var(--cyan)' : 'var(--border)', flexShrink: 0 }} />}
+              {i < 4 && <div style={{ width: 18, height: 2, background: step > i + 1 ? 'var(--cyan)' : 'var(--border)', flexShrink: 0 }} />}
             </div>
           ))}
         </div>
       </div>
 
-      <main className="container" style={{ maxWidth: 760, paddingTop: 32, paddingBottom: 60 }}>
+      <main className="container" style={{ maxWidth: 760, paddingTop: 28, paddingBottom: 60 }}>
         <form onSubmit={handleSubmit}>
 
+          {/* ── STEP 1: DADOS BÁSICOS ── */}
           {step === 1 && (
             <div className="section-card">
               <div className="section-title">
                 <span className="section-icon">&#128100;</span>
                 <div>
                   <h2>Dados Basicos</h2>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Suas informacoes pessoais e funcionais</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>Suas informacoes funcionais</p>
                 </div>
               </div>
-              <div className="form-grid">
-                <div className="form-group">
-                  <label className="form-label">Nome completo *</label>
-                  <select className="form-input" value={profile.name}
-                    onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))} required>
-                    <option value="">Selecione seu nome</option>
-                    {nameOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
-                  </select>
+
+              {/* Identificação vinda do login */}
+              <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '10px 16px', marginBottom: 20, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: '1rem' }}>&#128100;</span>
+                <div>
+                  <span style={{ color: 'var(--text-muted)' }}>Identificado como: </span>
+                  <strong style={{ color: 'var(--purple)' }}>{participantName}</strong>
                 </div>
+              </div>
+
+              <div className="form-grid">
                 <div className="form-group">
                   <label className="form-label">Matricula *</label>
                   <select className="form-input" value={profile.matricula}
                     onChange={(e) => setProfile((p) => ({ ...p, matricula: e.target.value }))} required>
-                    <option value="">Selecione</option>
+                    <option value="">Selecione sua matricula</option>
                     {matriculaOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
                   </select>
                 </div>
-              </div>
-              <div className="form-grid">
                 <div className="form-group">
-                  <label className="form-label">Unidade atual *</label>
-                  <select className="form-input" value={profile.unit}
-                    onChange={(e) => setProfile((p) => ({ ...p, unit: e.target.value }))} required>
-                    <option value="">Selecione</option>
-                    {unitOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Cargo atual *</label>
+                  <label className="form-label">Cargo / Funcao atual *</label>
                   <select className="form-input" value={profile.currentRole}
                     onChange={(e) => setProfile((p) => ({ ...p, currentRole: e.target.value }))} required>
-                    <option value="">Selecione</option>
+                    <option value="">Selecione seu cargo</option>
                     {roleOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
                   </select>
                 </div>
               </div>
-              {status && <p style={{ color: '#dc2626', fontSize: '0.85rem' }}>{status}</p>}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-                <button type="button" className="btn-primary" onClick={() => {
-                  if (!profile.name || !profile.matricula || !profile.unit || !profile.currentRole) {
-                    setStatus('Preencha todos os campos obrigatorios.');
+
+              {/* Área de atuação atual */}
+              <div className="form-group">
+                <label className="form-label">Area em que atua atualmente *</label>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginBottom: 10 }}>
+                  Selecione a area onde voce trabalha hoje. Isso permite comparar quantas pessoas da mesma area tiveram aderencia a cada area de destino.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px' }}>
+                  {(OFFICIAL_AREAS as AreaCode[]).map((area) => {
+                    const selected = profile.currentArea === area;
+                    return (
+                      <button key={area} type="button"
+                        onClick={() => setProfile((p) => ({ ...p, currentArea: area }))}
+                        style={{
+                          padding: '10px 8px', borderRadius: 'var(--radius-sm)',
+                          border: `2px solid ${selected ? '#0e7490' : 'var(--border)'}`,
+                          background: selected ? '#e0fafa' : 'white',
+                          color: selected ? '#0e7490' : 'var(--text)',
+                          fontWeight: selected ? 700 : 400, cursor: 'pointer',
+                          transition: 'all 0.2s', fontSize: '0.82rem',
+                        }}>
+                        {selected ? '\u2713 ' : ''}{area}
+                      </button>
+                    );
+                  })}
+                </div>
+                {profile.currentArea && (
+                  <div style={{ marginTop: 8, fontSize: '0.8rem', color: '#0e7490', fontWeight: 600 }}>
+                    &#10003; Area atual selecionada: <strong>{profile.currentArea}</strong>
+                  </div>
+                )}
+              </div>
+
+              {status && <p style={{ color: '#dc2626', fontSize: '0.82rem', marginTop: 8 }}>{status}</p>}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+                <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
+                  if (!profile.matricula || !profile.currentRole || !profile.currentArea) {
+                    setStatus('Preencha todos os campos: matricula, cargo e area de atuacao.');
                     return;
                   }
                   setStatus(''); setStep(2);
-                }}>Proximo</button>
+                }}>Proximo &rarr;</button>
               </div>
             </div>
           )}
 
+          {/* ── STEP 2: ÁREAS DE INTERESSE ── */}
           {step === 2 && (
             <div className="section-card">
               <div className="section-title">
                 <span className="section-icon">&#127919;</span>
                 <div>
                   <h2>Areas de Interesse</h2>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    Escolha entre 1 e 3 areas. Cada area gera uma avaliacao de aderencia independente.
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+                    Escolha entre 1 e 3 areas para onde voce deseja se candidatar. Cada area gera uma avaliacao de aderencia independente.
                   </p>
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px', marginBottom: '20px' }}>
                 {(OFFICIAL_AREAS as AreaCode[]).map((area) => {
                   const selected = profile.selectedAreas.includes(area);
+                  const isCurrentArea = profile.currentArea === area;
                   return (
                     <button key={area} type="button"
                       onClick={() => toggleArea(area as AreaCode)}
@@ -282,117 +306,135 @@ export default function ParticipantForm() {
                         background: selected ? 'var(--gradient-soft)' : 'white',
                         color: selected ? 'var(--purple)' : 'var(--text)',
                         fontWeight: selected ? 700 : 400, cursor: 'pointer',
-                        transition: 'all 0.2s', fontSize: '0.88rem',
+                        transition: 'all 0.2s', fontSize: '0.82rem',
                         opacity: !selected && profile.selectedAreas.length >= 3 ? 0.4 : 1,
+                        position: 'relative',
                       }}>
                       {selected ? '\u2713 ' : ''}{area}
+                      {isCurrentArea && (
+                        <span style={{ display: 'block', fontSize: '0.6rem', color: '#0e7490', fontWeight: 600, marginTop: 2 }}>
+                          (atual)
+                        </span>
+                      )}
                     </button>
                   );
                 })}
               </div>
-              <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: '20px', fontSize: '0.85rem', color: 'var(--purple)' }}>
+              <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '10px 16px', marginBottom: '20px', fontSize: '0.82rem', color: 'var(--purple)' }}>
                 {profile.selectedAreas.length === 0
                   ? 'Selecione pelo menos 1 area de interesse.'
                   : `${profile.selectedAreas.length} area(s) selecionada(s): ${profile.selectedAreas.join(', ')}`}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(1)}>Voltar</button>
-                <button type="button" className="btn-primary" onClick={() => {
+                <button type="button" className="btn-outline" onClick={() => setStep(1)}>&larr; Voltar</button>
+                <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
                   if (profile.selectedAreas.length === 0) { setStatus('Selecione pelo menos 1 area.'); return; }
                   setStatus(''); setStep(3);
-                }}>Proximo</button>
+                }}>Proximo &rarr;</button>
               </div>
             </div>
           )}
 
+          {/* ── STEP 3: FORMAÇÃO ── */}
           {step === 3 && (
             <div className="section-card">
               <div className="section-title">
                 <span className="section-icon">&#127891;</span>
                 <div>
                   <h2>Formacao Academica</h2>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Graduacao e pos-graduacao/MBA concluidos</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+                    Titulos academicos valem ate <span style={{ color: 'var(--purple)', fontWeight: 600 }}>3 pontos</span> na aderencia tecnica
+                  </p>
                 </div>
               </div>
               <div className="form-group">
-                <label className="form-label">Graduacao (apenas registro)</label>
+                <label className="form-label">Graduacao *</label>
                 <select className="form-input" value={profile.graduation}
-                  onChange={(e) => setProfile((p) => ({ ...p, graduation: e.target.value }))}>
-                  <option value="">Selecione</option>
+                  onChange={(e) => setProfile((p) => ({ ...p, graduation: e.target.value }))} required>
+                  <option value="">Selecione sua graduacao</option>
                   {graduationOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">
-                  Pos-graduacao / MBA concluidos{' '}
-                  <span style={{ color: 'var(--cyan)', fontWeight: 600 }}>(vale ate 3 pontos na aderencia tecnica)</span>
-                </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '8px', maxHeight: 280, overflowY: 'auto', padding: '4px' }}>
+                <label className="form-label">Pos-graduacao / MBA concluidos</label>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginBottom: 8 }}>
+                  Selecione os que voce concluiu. Pos/MBA especificos da area de interesse valem mais pontos.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '8px', maxHeight: 260, overflowY: 'auto', padding: '4px' }}>
                   {postMBAOptions.map((o) => {
                     const selected = profile.postMBAs.includes(o.label);
                     return (
                       <label key={o.id} style={{
-                        display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px',
+                        display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px',
                         borderRadius: 'var(--radius-sm)', border: `1.5px solid ${selected ? 'var(--purple)' : 'var(--border)'}`,
                         background: selected ? 'var(--gradient-soft)' : 'white', cursor: 'pointer', transition: 'all 0.2s'
                       }}>
                         <input type="checkbox" checked={selected} onChange={() => toggleMulti('postMBAs', o.label)}
-                          style={{ accentColor: 'var(--purple)', width: 16, height: 16 }} />
-                        <span style={{ fontSize: '0.85rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>{o.label}</span>
+                          style={{ accentColor: 'var(--purple)', width: 15, height: 15 }} />
+                        <span style={{ fontSize: '0.82rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>
+                          {o.label}
+                          {o.area && <span style={{ fontSize: '0.68rem', color: 'var(--cyan)', marginLeft: 4 }}>({o.area})</span>}
+                        </span>
                       </label>
                     );
                   })}
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(2)}>Voltar</button>
-                <button type="button" className="btn-primary" onClick={() => { setStatus(''); setStep(4); }}>Proximo</button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
+                <button type="button" className="btn-outline" onClick={() => setStep(2)}>&larr; Voltar</button>
+                <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
+                  if (!profile.graduation) { setStatus('Selecione sua graduacao.'); return; }
+                  setStatus(''); setStep(4);
+                }}>Proximo &rarr;</button>
               </div>
             </div>
           )}
 
+          {/* ── STEP 4: EXPERIÊNCIA ── */}
           {step === 4 && (
             <div className="section-card">
               <div className="section-title">
                 <span className="section-icon">&#128188;</span>
                 <div>
-                  <h2>Experiencia Gerencial / Interina</h2>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    Tempo em funcoes de gestao ou interinidade{' '}
-                    <span style={{ color: 'var(--cyan)', fontWeight: 600 }}>(vale ate 4 pontos)</span>
+                  <h2>Experiencia Gerencial</h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+                    Experiencia em cargos de gestao vale ate <span style={{ color: 'var(--purple)', fontWeight: 600 }}>4 pontos</span> na aderencia tecnica
                   </p>
                 </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Tempo total de experiencia gerencial/interina (em meses)</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                  <input type="number" className="form-input" style={{ maxWidth: 160 }} min={0} max={240}
-                    value={profile.experienceMonths}
-                    onChange={(e) => setProfile((p) => ({ ...p, experienceMonths: Number(e.target.value) }))} />
-                  <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: '0.85rem', color: 'var(--purple)', fontWeight: 600 }}>
-                    = {Math.min(4, Math.floor(profile.experienceMonths / 6))} ponto(s) de 4 possiveis
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 6 }}>
-                  1 ponto a cada 6 meses completos, maximo 4 pontos (24 meses).
-                </p>
+              <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: 20, fontSize: '0.8rem', color: 'var(--purple)' }}>
+                <strong>Como e calculado:</strong> 1 ponto a cada 6 meses completos em cargo gerencial ou interino, maximo de 4 pontos (24 meses).
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(3)}>Voltar</button>
-                <button type="button" className="btn-primary" onClick={() => { setStatus(''); setStep(5); }}>Proximo</button>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Meses em cargo gerencial ou interino</label>
+                  <input type="number" className="form-input" min={0} max={120}
+                    value={profile.experienceMonths || ''}
+                    onChange={(e) => setProfile((p) => ({ ...p, experienceMonths: parseInt(e.target.value) || 0 }))}
+                    placeholder="Ex: 18" />
+                  {profile.experienceMonths > 0 && (
+                    <p style={{ fontSize: '0.78rem', color: 'var(--cyan)', marginTop: 6, fontWeight: 600 }}>
+                      = {Math.min(Math.floor(profile.experienceMonths / 6), 4)} ponto(s) ({profile.experienceMonths} meses &divide; 6 = {(profile.experienceMonths / 6).toFixed(1)} periodos, max 4)
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
+                <button type="button" className="btn-outline" onClick={() => setStep(3)}>&larr; Voltar</button>
+                <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => { setStatus(''); setStep(5); }}>Proximo &rarr;</button>
               </div>
             </div>
           )}
 
+          {/* ── STEP 5: CURSOS E PROJETOS ── */}
           {step === 5 && (
             <div className="section-card">
               <div className="section-title">
-                <span className="section-icon">&#128218;</span>
+                <span className="section-icon">&#127775;</span>
                 <div>
-                  <h2>Cursos e Projetos Estrategicos</h2>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    Selecione os que voce concluiu{' '}
-                    <span style={{ color: 'var(--cyan)', fontWeight: 600 }}>(vale ate 3 pontos)</span>
+                  <h2>Cursos e Projetos</h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+                    Cursos e projetos estrategicos valem ate <span style={{ color: 'var(--purple)', fontWeight: 600 }}>3 pontos</span> na aderencia tecnica
                   </p>
                 </div>
               </div>
@@ -403,13 +445,13 @@ export default function ParticipantForm() {
                     const selected = profile.selectedCourses.includes(o.label);
                     return (
                       <label key={o.id} style={{
-                        display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px',
+                        display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px',
                         borderRadius: 'var(--radius-sm)', border: `1.5px solid ${selected ? 'var(--purple)' : 'var(--border)'}`,
                         background: selected ? 'var(--gradient-soft)' : 'white', cursor: 'pointer', transition: 'all 0.2s'
                       }}>
                         <input type="checkbox" checked={selected} onChange={() => toggleMulti('selectedCourses', o.label)}
-                          style={{ accentColor: 'var(--purple)', width: 16, height: 16 }} />
-                        <span style={{ fontSize: '0.85rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>{o.label}</span>
+                          style={{ accentColor: 'var(--purple)', width: 15, height: 15 }} />
+                        <span style={{ fontSize: '0.82rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>{o.label}</span>
                       </label>
                     );
                   })}
@@ -422,13 +464,16 @@ export default function ParticipantForm() {
                     const selected = profile.selectedProjects.includes(o.label);
                     return (
                       <label key={o.id} style={{
-                        display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px',
+                        display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px',
                         borderRadius: 'var(--radius-sm)', border: `1.5px solid ${selected ? 'var(--purple)' : 'var(--border)'}`,
                         background: selected ? 'var(--gradient-soft)' : 'white', cursor: 'pointer', transition: 'all 0.2s'
                       }}>
                         <input type="checkbox" checked={selected} onChange={() => toggleMulti('selectedProjects', o.label)}
-                          style={{ accentColor: 'var(--purple)', width: 16, height: 16 }} />
-                        <span style={{ fontSize: '0.85rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>{o.label}</span>
+                          style={{ accentColor: 'var(--purple)', width: 15, height: 15 }} />
+                        <span style={{ fontSize: '0.82rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>
+                          {o.label}
+                          {o.area && <span style={{ fontSize: '0.68rem', color: 'var(--cyan)', marginLeft: 4 }}>({o.area})</span>}
+                        </span>
                       </label>
                     );
                   })}
@@ -438,9 +483,9 @@ export default function ParticipantForm() {
                 <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: 12 }}>
                   <input type="checkbox" checked={profile.exceptionRequested}
                     onChange={(e) => setProfile((p) => ({ ...p, exceptionRequested: e.target.checked }))}
-                    style={{ accentColor: 'var(--purple)', width: 16, height: 16 }} />
-                  <span style={{ fontWeight: 600, color: 'var(--text)' }}>
-                    Solicitar excecao - tenho formacao/experiencia nao listada acima
+                    style={{ accentColor: 'var(--purple)', width: 15, height: 15 }} />
+                  <span style={{ fontWeight: 600, color: 'var(--text)', fontSize: '0.85rem' }}>
+                    Solicitar excecao — tenho formacao ou experiencia nao listada acima
                   </span>
                 </label>
                 {profile.exceptionRequested && (
@@ -448,23 +493,22 @@ export default function ParticipantForm() {
                     placeholder="Descreva a formacao ou experiencia que nao esta na lista e justifique por que deve ser considerada..."
                     value={profile.exceptionJustification}
                     onChange={(e) => setProfile((p) => ({ ...p, exceptionJustification: e.target.value }))}
-                    style={{ resize: 'vertical' }} />
+                    style={{ resize: 'vertical', fontSize: '0.82rem' }} />
                 )}
               </div>
               {status && (
-                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.85rem', marginTop: 12 }}>
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>
                   {status}
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(4)}>Voltar</button>
+                <button type="button" className="btn-outline" onClick={() => setStep(4)}>&larr; Voltar</button>
                 <button type="submit" className="btn-primary" style={{ minWidth: 180 }}>
-                  Enviar formulario
+                  &#10003; Enviar formulario
                 </button>
               </div>
             </div>
           )}
-
         </form>
       </main>
     </>
