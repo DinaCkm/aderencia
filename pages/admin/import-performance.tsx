@@ -1,59 +1,108 @@
-import { ChangeEvent, FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
-const TEMPLATE = `participantId,area,score100,date\n` +
-  `jdoe,UGE,87,2026-05-01`;
+const TEMPLATE = `participantId,area,score100,date\njdoe,UGE,85,2026-05-01`;
 
 export default function AdminImportPerformance() {
+  const router = useRouter();
   const [csv, setCsv] = useState('');
   const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false);
+
+  const logout = () => { sessionStorage.clear(); router.push('/login'); };
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const role = sessionStorage.getItem('aderenciaRole');
+    if (role !== 'admin') { router.push('/login'); return; }
+  }, [router]);
 
   const downloadTemplate = () => {
     const blob = new Blob([TEMPLATE], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = url;
-    link.download = 'import-performance-template.csv';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    link.href = url; link.download = 'import-performance-template.csv';
+    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
   };
 
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
-    const text = await file.text();
-    setCsv(text);
+    setCsv(await file.text());
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const response = await fetch('/api/admin/import-performance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/csv' },
-      body: csv
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setMessage('Importando...');
+    const res = await fetch('/api/admin/import-performance', {
+      method: 'POST', headers: { 'Content-Type': 'text/csv' }, body: csv,
     });
-    const result = await response.json();
-    setMessage(result.message || 'Importação concluída.');
+    const data = await res.json();
+    setIsError(!res.ok);
+    setMessage(data.message || (res.ok ? 'Importacao concluida.' : 'Erro na importacao.'));
   };
 
   return (
-    <main className="container">
-      <h1>Importar performance</h1>
-      <p>Formato CSV: participantId,area,score100,date (YYYY-MM-DD)</p>
-      <button type="button" onClick={downloadTemplate}>Baixar modelo de planilha de performance</button>
-      <form onSubmit={handleSubmit} className="form-card">
-        <label>
-          Arquivo CSV
-          <input type="file" accept=".csv" onChange={handleFileChange} />
-        </label>
-        <label>
-          Conteúdo CSV
-          <textarea value={csv} onChange={(e) => setCsv(e.target.value)} rows={10} />
-        </label>
-        <button type="submit">Importar</button>
-        {message && <p className="success">{message}</p>}
-      </form>
-    </main>
+    <>
+      <Head><title>Importar Performance | Admin</title></Head>
+      <nav className="topbar">
+        <div className="topbar-brand">
+          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <div>
+            <div className="topbar-title">Banco de Sucessores Aderencia</div>
+            <div className="topbar-subtitle">Painel Administrativo</div>
+          </div>
+        </div>
+        <div className="topbar-actions">
+          <Link href="/admin"><button className="btn-outline" style={{ fontSize: '0.78rem', padding: '5px 12px' }}>Dashboard</button></Link>
+          <button className="btn-logout" onClick={logout}>Sair</button>
+        </div>
+      </nav>
+
+      <main className="container" style={{ maxWidth: 720, paddingTop: 28 }}>
+        <div className="section-card">
+          <div className="section-title">
+            <span className="section-icon">&#128202;</span>
+            <div>
+              <h2>Importar Performance</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                CSV com indicador de engajamento por colaborador e area (escala 0-100)
+              </p>
+            </div>
+          </div>
+
+          <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: 20, fontSize: '0.8rem', color: 'var(--purple)' }}>
+            <strong>Formato:</strong> <code>participantId,area,score100,date</code><br />
+            <strong>Exemplo:</strong> <code>joao.silva@sebraeto.com.br,UGE,85,2026-05-01</code>
+          </div>
+
+          <button type="button" className="btn-outline" style={{ marginBottom: 20, fontSize: '0.8rem' }} onClick={downloadTemplate}>
+            Baixar modelo CSV
+          </button>
+
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label className="form-label">Arquivo CSV</label>
+              <input type="file" accept=".csv" className="form-input" onChange={handleFileChange} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Conteudo CSV (cole ou edite)</label>
+              <textarea className="form-input" rows={8} value={csv}
+                onChange={(e) => setCsv(e.target.value)}
+                placeholder="participantId,area,score100,date&#10;joao.silva@sebraeto.com.br,UGE,85,2026-05-01"
+                style={{ fontFamily: 'monospace', fontSize: '0.78rem', resize: 'vertical' }} />
+            </div>
+            {message && (
+              <div style={{ background: isError ? '#fef2f2' : '#f0fdf4', border: `1px solid ${isError ? '#fecaca' : '#86efac'}`, borderRadius: 'var(--radius-sm)', padding: '10px 14px', color: isError ? '#dc2626' : '#15803d', fontSize: '0.82rem', marginBottom: 16 }}>
+                {message}
+              </div>
+            )}
+            <button type="submit" className="btn-primary">Importar performance</button>
+          </form>
+        </div>
+      </main>
+    </>
   );
 }

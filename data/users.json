@@ -304,5 +304,35 @@
     "cpf": "03319840592",
     "name": "Wesley Cardoso Batista",
     "role": "participant"
+  },
+  {
+    "email": "teste01@sebraeto.com.br",
+    "name": "Usuário Teste 01",
+    "cpf": "00000000001",
+    "role": "participant"
+  },
+  {
+    "email": "teste02@sebraeto.com.br",
+    "name": "Usuário Teste 02",
+    "cpf": "00000000002",
+    "role": "participant"
+  },
+  {
+    "email": "teste03@sebraeto.com.br",
+    "name": "Usuário Teste 03",
+    "cpf": "00000000003",
+    "role": "participant"
+  },
+  {
+    "email": "teste04@sebraeto.com.br",
+    "name": "Usuário Teste 04",
+    "cpf": "00000000004",
+    "role": "participant"
+  },
+  {
+    "email": "teste05@sebraeto.com.br",
+    "name": "Usuário Teste 05",
+    "cpf": "00000000005",
+    "role": "participant"
   }
 ]

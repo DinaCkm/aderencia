@@ -248,6 +248,93 @@ export default function AdminNineBox() {
               </div>
             </>
           )}
+
+              {/* Tutorial de cálculo */}
+              <div style={{ marginTop: 32, borderTop: '2px solid var(--border)', paddingTop: 24 }}>
+                <h3 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--purple)', marginBottom: 16 }}>
+                  Como o Nine Box e calculado?
+                </h3>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, marginBottom: 20 }}>
+
+                  {/* Aderência Técnica */}
+                  <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '16px 20px', border: '1px solid var(--border)' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--purple)', fontSize: '0.88rem', marginBottom: 10 }}>
+                      Eixo X — Aderencia Tecnica (0 a 10 pts)
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text)', lineHeight: 1.7 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginBottom: 4 }}>
+                        <span>Pos-graduacao / MBA concluido</span>
+                        <strong style={{ color: 'var(--purple)' }}>ate 3 pts</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginBottom: 4 }}>
+                        <span>Experiencia gerencial/interina</span>
+                        <strong style={{ color: 'var(--purple)' }}>ate 4 pts</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginBottom: 4 }}>
+                        <span>Cursos e projetos estrategicos</span>
+                        <strong style={{ color: 'var(--purple)' }}>ate 3 pts</strong>
+                      </div>
+                      <div style={{ marginTop: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                        Experiencia: 1 pt a cada 6 meses completos (max 24 meses = 4 pts).<br />
+                        Cursos/projetos: 1,2 pt por item estrategico da area, max 3 pts.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Aderência Comportamental */}
+                  <div style={{ background: '#e0f2fe', borderRadius: 'var(--radius-sm)', padding: '16px 20px', border: '1px solid #bae6fd' }}>
+                    <div style={{ fontWeight: 700, color: '#0369a1', fontSize: '0.88rem', marginBottom: 10 }}>
+                      Eixo Y — Aderencia Comportamental (0 a 10 pts)
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text)', lineHeight: 1.7 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #bae6fd', paddingBottom: 4, marginBottom: 4 }}>
+                        <span>Nota DISC (0-10)</span>
+                        <strong style={{ color: '#0369a1' }}>50%</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #bae6fd', paddingBottom: 4, marginBottom: 4 }}>
+                        <span>Indicador de Performance (0-100 → 0-10)</span>
+                        <strong style={{ color: '#0369a1' }}>50%</strong>
+                      </div>
+                      <div style={{ marginTop: 8, padding: '8px 10px', background: 'white', borderRadius: 6, fontSize: '0.75rem', fontFamily: 'monospace', color: '#0369a1' }}>
+                        Comportamental = (DISC + Performance/10) / 2
+                      </div>
+                      <div style={{ marginTop: 6, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                        Requer importacao de DISC e Performance para ser calculado.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quadrantes */}
+                <div style={{ background: '#fafafa', borderRadius: 'var(--radius-sm)', padding: '16px 20px', border: '1px solid var(--border)' }}>
+                  <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '0.85rem', marginBottom: 12 }}>
+                    Classificacao dos Quadrantes
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8 }}>
+                    {[
+                      { label: 'Alta Prontidao', desc: 'Tecnica alta + Comportamental alta', color: '#15803d', bg: '#dcfce7' },
+                      { label: 'Pronto em Desenvolvimento', desc: 'Tecnica media + Comportamental alta', color: '#7c3aed', bg: '#ede9fe' },
+                      { label: 'Potencial de Curto Prazo', desc: 'Tecnica baixa + Comportamental alta', color: '#0369a1', bg: '#e0f2fe' },
+                      { label: 'Destaque Tecnico', desc: 'Tecnica alta + Comportamental media', color: '#0f766e', bg: '#ccfbf1' },
+                      { label: 'Potencial de Medio Prazo', desc: 'Tecnica media + Comportamental media', color: '#5B2D8E', bg: '#f3e8ff' },
+                      { label: 'Desenvolvimento Direcionado', desc: 'Tecnica baixa + Comportamental media', color: '#92400e', bg: '#fef3c7' },
+                      { label: 'Risco de Lideranca', desc: 'Tecnica alta + Comportamental baixa', color: '#b45309', bg: '#fef9c3' },
+                      { label: 'Especialista sem Lideranca', desc: 'Tecnica media + Comportamental baixa', color: '#c2410c', bg: '#ffedd5' },
+                      { label: 'Baixa Aderencia', desc: 'Tecnica baixa + Comportamental baixa', color: '#9f1239', bg: '#ffe4e6' },
+                    ].map((q) => (
+                      <div key={q.label} style={{ background: q.bg, borderRadius: 6, padding: '8px 12px', border: `1px solid ${q.color}30` }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.75rem', color: q.color, marginBottom: 2 }}>{q.label}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{q.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 12, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                    Faixas: Baixo = 0-3 pts &nbsp;|&nbsp; Medio = 4-6 pts &nbsp;|&nbsp; Alto = 7-10 pts
+                  </div>
+                </div>
+              </div>
+
         </div>
       </main>
     </>

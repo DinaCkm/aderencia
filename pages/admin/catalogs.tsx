@@ -1,155 +1,207 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { OFFICIAL_AREAS } from '../../lib/constants';
 import type { CatalogItem } from '../../lib/types';
 
-const groups = ['postMBA', 'course', 'project', 'certification', 'unit', 'role', 'graduation', 'name', 'matricula'] as const;
-const classifications = ['transversal', 'area-specific', 'non-related'] as const;
+const GROUPS = ['postMBA', 'course', 'project', 'certification', 'unit', 'role', 'graduation', 'name', 'matricula'];
+const CLASSIFICATIONS = ['transversal', 'area-specific', 'non-related'];
 
 export default function AdminCatalogs() {
+  const router = useRouter();
   const [catalogs, setCatalogs] = useState<CatalogItem[]>([]);
-  const [item, setItem] = useState({ id: '', label: '', group: 'course', classification: 'transversal', area: '' });
   const [csv, setCsv] = useState('');
+  const [item, setItem] = useState({ id: '', label: '', group: 'course', classification: 'transversal', area: '' });
   const [message, setMessage] = useState('');
   const [importMessage, setImportMessage] = useState('');
+  const [filter, setFilter] = useState('');
 
-  useEffect(() => {
-    fetch('/api/admin/catalogs')
-      .then((res) => res.json())
-      .then((data) => setCatalogs(data.catalogs || []));
-  }, []);
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const response = await fetch('/api/admin/catalogs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(item)
-    });
-    const data = await response.json();
-    if (response.ok) {
-      setCatalogs(data.catalogs);
-      setMessage('Item adicionado com sucesso.');
-      setItem({ id: '', label: '', group: 'course', classification: 'transversal', area: '' });
-    }
-  };
-
-  const downloadTemplate = () => {
-    const template = `id,label,group,classification,area\n` +
-      `mba-strategic,MBA Estratégia Corporativa,postMBA,transversal,\n` +
-      `curso-lideranca,Curso de Liderança Estratégica,course,transversal,\n` +
-      `projeto-transformacao,Projeto de Transformação Digital,project,transversal,\n` +
-      `certificacao-pmp,Certificação PMP,certification,transversal,\n`;
-    const blob = new Blob([template], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'import-catalogs-template.csv';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleCatalogFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const text = await file.text();
-    setCsv(text);
-  };
+  const logout = () => { sessionStorage.clear(); router.push('/login'); };
 
   const fetchCatalogs = async () => {
-    const response = await fetch('/api/admin/catalogs');
-    const data = await response.json();
+    const res = await fetch('/api/admin/catalogs');
+    const data = await res.json();
     setCatalogs(data.catalogs || []);
   };
 
-  const handleImportCatalogs = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const response = await fetch('/api/admin/import-catalogs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/csv' },
-      body: csv
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const role = sessionStorage.getItem('aderenciaRole');
+    if (role !== 'admin') { router.push('/login'); return; }
+    fetchCatalogs();
+  }, [router]);
+
+  const downloadTemplate = () => {
+    const template = `id,label,group,classification,area\nmba-strategic,MBA Estrategia Corporativa,postMBA,transversal,\ncurso-lideranca,Curso de Lideranca Estrategica,course,transversal,\nprojeto-transformacao,Projeto de Transformacao Digital,project,transversal,\n`;
+    const blob = new Blob([template], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url; link.download = 'import-catalogs-template.csv';
+    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+  };
+
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCsv(await file.text());
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    const res = await fetch('/api/admin/catalogs', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item),
     });
-    const data = await response.json();
-    if (response.ok) {
-      setImportMessage(data.message || 'Importação concluída.');
-      fetchCatalogs();
+    const data = await res.json();
+    if (res.ok) {
+      setCatalogs(data.catalogs);
+      setMessage('Item adicionado com sucesso.');
+      setItem({ id: '', label: '', group: 'course', classification: 'transversal', area: '' });
+    } else {
+      setMessage(data.message || 'Erro ao adicionar item.');
     }
   };
 
+  const handleImport = async (e: FormEvent) => {
+    e.preventDefault();
+    const res = await fetch('/api/admin/import-catalogs', {
+      method: 'POST', headers: { 'Content-Type': 'text/csv' }, body: csv,
+    });
+    const data = await res.json();
+    setImportMessage(data.message || (res.ok ? 'Importacao concluida.' : 'Erro na importacao.'));
+    if (res.ok) fetchCatalogs();
+  };
+
+  const filtered = catalogs.filter((c) =>
+    !filter || c.group === filter
+  );
+
   return (
-    <main className="container">
-      <h1>Gestão de catálogos</h1>
-      <p>Cadastre cursos, projetos e pós/MBA dentro das listas fechadas do sistema.</p>
-      <form onSubmit={handleSubmit} className="form-card">
-        <label>
-          ID único
-          <input value={item.id} onChange={(e) => setItem({ ...item, id: e.target.value })} required />
-        </label>
-        <label>
-          Rótulo
-          <input value={item.label} onChange={(e) => setItem({ ...item, label: e.target.value })} required />
-        </label>
-        <label>
-          Grupo
-          <select value={item.group} onChange={(e) => setItem({ ...item, group: e.target.value })}>
-            {groups.map((group) => (
-              <option key={group} value={group}>
-                {group}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Classificação
-          <select value={item.classification} onChange={(e) => setItem({ ...item, classification: e.target.value })}>
-            {classifications.map((classification) => (
-              <option key={classification} value={classification}>
-                {classification}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Área (apenas para itens específicos)
-          <select value={item.area} onChange={(e) => setItem({ ...item, area: e.target.value })}>
-            <option value="">Nenhuma</option>
-            {OFFICIAL_AREAS.map((area) => (
-              <option key={area} value={area}>
-                {area}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit">Adicionar item</button>
-        {message && <p className="success">{message}</p>}
-      </form>
-      <section className="form-card">
-        <h2>Importar catálogo</h2>
-        <button type="button" onClick={downloadTemplate}>Baixar modelo de planilha de catálogo</button>
-        <form onSubmit={handleImportCatalogs} className="form-card">
-          <label>
-            Arquivo CSV
-            <input type="file" accept=".csv" onChange={handleCatalogFileChange} />
-          </label>
-          <label>
-            Conteúdo CSV
-            <textarea value={csv} onChange={(e) => setCsv(e.target.value)} rows={8} />
-          </label>
-          <button type="submit">Importar catálogo</button>
-          {importMessage && <p className="success">{importMessage}</p>}
-        </form>
-      </section>
-      <section className="form-card">
-        <h2>Catálogo atual</h2>
-        <ul>
-          {catalogs.map((item) => (
-            <li key={item.id}>
-              {item.label} — {item.group} — {item.classification} {item.area ? `— ${item.area}` : ''}
-            </li>
-          ))}
-        </ul>
-      </section>
-    </main>
+    <>
+      <Head><title>Catalogos | Admin</title></Head>
+      <nav className="topbar">
+        <div className="topbar-brand">
+          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <div>
+            <div className="topbar-title">Banco de Sucessores Aderencia</div>
+            <div className="topbar-subtitle">Painel Administrativo</div>
+          </div>
+        </div>
+        <div className="topbar-actions">
+          <Link href="/admin"><button className="btn-outline" style={{ fontSize: '0.78rem', padding: '5px 12px' }}>Dashboard</button></Link>
+          <button className="btn-logout" onClick={logout}>Sair</button>
+        </div>
+      </nav>
+
+      <main className="container" style={{ maxWidth: 900, paddingTop: 28 }}>
+
+        {/* Add item */}
+        <div className="section-card">
+          <div className="section-title">
+            <span className="section-icon">&#43;</span>
+            <div>
+              <h2>Adicionar Item ao Catalogo</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Cadastre cursos, projetos e pos/MBA nas listas fechadas</p>
+            </div>
+          </div>
+          <form onSubmit={handleSubmit}>
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-label">ID unico *</label>
+                <input className="form-input" value={item.id} onChange={(e) => setItem({ ...item, id: e.target.value })} required placeholder="ex: curso-lideranca" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Rotulo *</label>
+                <input className="form-input" value={item.label} onChange={(e) => setItem({ ...item, label: e.target.value })} required placeholder="ex: Curso de Lideranca" />
+              </div>
+            </div>
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-label">Grupo *</label>
+                <select className="form-input" value={item.group} onChange={(e) => setItem({ ...item, group: e.target.value })}>
+                  {GROUPS.map((g) => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Classificacao *</label>
+                <select className="form-input" value={item.classification} onChange={(e) => setItem({ ...item, classification: e.target.value })}>
+                  {CLASSIFICATIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Area (apenas para itens especificos)</label>
+              <select className="form-input" value={item.area} onChange={(e) => setItem({ ...item, area: e.target.value })}>
+                <option value="">Nenhuma (transversal)</option>
+                {OFFICIAL_AREAS.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+            {message && <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 'var(--radius-sm)', padding: '8px 14px', color: '#15803d', fontSize: '0.8rem', marginBottom: 12 }}>{message}</div>}
+            <button type="submit" className="btn-primary">Adicionar item</button>
+          </form>
+        </div>
+
+        {/* Import CSV */}
+        <div className="section-card">
+          <div className="section-title">
+            <span className="section-icon">&#128196;</span>
+            <div>
+              <h2>Importar Catalogo via CSV</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Formato: id,label,group,classification,area</p>
+            </div>
+          </div>
+          <button type="button" className="btn-outline" style={{ marginBottom: 16, fontSize: '0.78rem' }} onClick={downloadTemplate}>Baixar modelo CSV</button>
+          <form onSubmit={handleImport}>
+            <div className="form-group">
+              <label className="form-label">Arquivo CSV</label>
+              <input type="file" accept=".csv" className="form-input" onChange={handleFileChange} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Conteudo CSV</label>
+              <textarea className="form-input" rows={6} value={csv} onChange={(e) => setCsv(e.target.value)}
+                style={{ fontFamily: 'monospace', fontSize: '0.75rem', resize: 'vertical' }} />
+            </div>
+            {importMessage && <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 'var(--radius-sm)', padding: '8px 14px', color: '#15803d', fontSize: '0.8rem', marginBottom: 12 }}>{importMessage}</div>}
+            <button type="submit" className="btn-primary">Importar catalogo</button>
+          </form>
+        </div>
+
+        {/* Current catalog */}
+        <div className="section-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+            <h2 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--purple)' }}>Catalogo Atual ({catalogs.length} itens)</h2>
+            <select className="form-input" style={{ maxWidth: 180, fontSize: '0.78rem' }} value={filter} onChange={(e) => setFilter(e.target.value)}>
+              <option value="">Todos os grupos</option>
+              {GROUPS.map((g) => <option key={g} value={g}>{g}</option>)}
+            </select>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
+              <thead>
+                <tr style={{ background: 'var(--gradient-soft)' }}>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>ID</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Rotulo</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Grupo</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Classificacao</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Area</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((c, i) => (
+                  <tr key={c.id} style={{ background: i % 2 === 0 ? 'white' : 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
+                    <td style={{ padding: '7px 12px', fontFamily: 'monospace', color: 'var(--text-muted)' }}>{c.id}</td>
+                    <td style={{ padding: '7px 12px', fontWeight: 500 }}>{c.label}</td>
+                    <td style={{ padding: '7px 12px' }}><span style={{ background: 'var(--gradient-soft)', color: 'var(--purple)', borderRadius: 4, padding: '2px 8px', fontSize: '0.72rem', fontWeight: 600 }}>{c.group}</span></td>
+                    <td style={{ padding: '7px 12px', color: 'var(--text-muted)' }}>{c.classification}</td>
+                    <td style={{ padding: '7px 12px', color: 'var(--text-muted)' }}>{c.area || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </>
   );
 }
