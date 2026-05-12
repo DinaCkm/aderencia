@@ -1,19 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { readJson, writeJson } from '../../../lib/db';
+import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import type { PerformanceRecord } from '../../../lib/types';
 
-export const config = {
-  api: {
-    bodyParser: false
-  }
-};
+export const config = { api: { bodyParser: false } };
 
 function parseCsv(csv: string) {
-  return csv
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => line.split(',').map((cell) => cell.trim()));
+  return csv.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => line.split(',').map((cell) => cell.trim()));
 }
 
 async function readRawBody(request: NextApiRequest) {
@@ -25,20 +17,17 @@ async function readRawBody(request: NextApiRequest) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const text = await readRawBody(req);
   if (!text) return res.status(400).json({ error: 'Request body must be CSV text.' });
-
   const rows = parseCsv(text);
-  const performance = readJson<PerformanceRecord[]>('performance', []);
+  const performance = await readJsonAsync<PerformanceRecord[]>('performance', []);
   for (const row of rows) {
     const [participantId, area, scoreString, date] = row;
     const score100 = Number(scoreString);
     if (!participantId || !area || Number.isNaN(score100) || !date) continue;
     performance.push({ id: `${participantId}-${area}-${date}`, participantId, area: area as any, score100, date });
   }
-  writeJson('performance', performance);
+  await writeJsonAsync('performance', performance);
   return res.status(200).json({ message: `Importados ${rows.length} registros.` });
 }

@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { readJson, writeJson } from '../../../lib/db';
+import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import type { ParticipantProfile } from '../../../lib/types';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const participants = readJson<ParticipantProfile[]>('participants', []);
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const participants = await readJsonAsync<ParticipantProfile[]>('participants', []);
 
   if (req.method === 'GET') {
     const pending = participants.filter((item) => item.exceptionStatus === 'pending');
@@ -16,7 +16,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     const index = participants.findIndex((item) => item.id === id);
     if (index < 0) return res.status(404).json({ error: 'Participante não encontrado.' });
     participants[index].exceptionStatus = action === 'approve' ? 'approved' : 'rejected';
-    writeJson('participants', participants);
+    await writeJsonAsync('participants', participants);
     return res.status(200).json({ success: true });
   }
 

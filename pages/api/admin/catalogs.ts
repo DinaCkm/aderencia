@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { readJson, writeJson } from '../../../lib/db';
+import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import type { CatalogItem } from '../../../lib/types';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const catalogs = readJson<CatalogItem[]>('catalogs', []);
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const catalogs = await readJsonAsync<CatalogItem[]>('catalogs', []);
 
   if (req.method === 'GET') {
     return res.status(200).json({ catalogs });
@@ -15,7 +15,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ error: 'Dados do catálogo incompletos.' });
     }
     catalogs.push(item);
-    writeJson('catalogs', catalogs);
+    await writeJsonAsync('catalogs', catalogs);
     return res.status(200).json({ catalogs });
   }
 

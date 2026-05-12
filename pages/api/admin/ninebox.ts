@@ -1,33 +1,35 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { readJson, writeJson } from '../../../lib/db';
-import { OFFICIAL_AREAS } from '../../../lib/constants';
+import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import { buildAreaAssessment } from '../../../lib/business';
 import type { AuditReport, ParticipantProfile, AreaAssessment, DiscReport, PerformanceRecord } from '../../../lib/types';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const participants = readJson<ParticipantProfile[]>('participants', []);
-  const performance = readJson<PerformanceRecord[]>('performance', []);
-  const discs = readJson<DiscReport[]>('discReports', []);
-  const audits = readJson<AuditReport[]>('audits', []);
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const participants = await readJsonAsync<ParticipantProfile[]>('participants', []);
+  const performance = await readJsonAsync<PerformanceRecord[]>('performance', []);
+  const discs = await readJsonAsync<DiscReport[]>('discReports', []);
+  const audits = await readJsonAsync<AuditReport[]>('audits', []);
 
   const report: Record<string, AreaAssessment[]> = {};
 
   for (const participant of participants) {
-    const approvedExceptions = participant.exceptionStatus === 'approved' ? participant.postMBAs.concat(participant.selectedCourses, participant.selectedProjects) : [];
-    const assessments = participant.selectedAreas.map((area) => buildAreaAssessment(participant, area, performance, discs, approvedExceptions));
+    const approvedExceptions =
+      participant.exceptionStatus === 'approved'
+        ? participant.postMBAs.concat(participant.selectedCourses, participant.selectedProjects)
+        : [];
+    const assessments = participant.selectedAreas.map((area) =>
+      buildAreaAssessment(participant, area, performance, discs, approvedExceptions)
+    );
     assessments.forEach((assessment) => {
       report[assessment.area] = report[assessment.area] || [];
       report[assessment.area].push(assessment);
     });
 
-    // Collect detailed audit information
     const discDates = participant.selectedAreas.map((area) => {
       const discRecord = discs
         .filter((d) => d.participantId === participant.id && d.area === area)
         .sort((a, b) => b.date.localeCompare(a.date))[0];
       return `${area}: ${discRecord?.date ?? 'sem relatório'}`;
     });
-
     const performanceDates = participant.selectedAreas.map((area) => {
       const perfRecord = performance
         .filter((p) => p.participantId === participant.id && p.area === area)
@@ -41,7 +43,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       createdAt: new Date().toISOString(),
       areaAssessments: assessments,
       inputSnapshot: participant,
-      filesUsed: ['performance.json', 'discReports.json', 'catalogs.json'],
+      filesUsed: ['kv_store (PostgreSQL)'],
       rulesApplied: [
         'Entrada de performance em escala 0-100, convertida internamente para 0-10',
         'Relatório DISC em escala 0-10 (Nota DISC da área)',
@@ -54,6 +56,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         `Performance importada por área: ${performanceDates.join('; ')}`
       ]
     };
+
     const existingAudit = audits.findIndex((item) => item.id === audit.id);
     if (existingAudit >= 0) {
       audits[existingAudit] = audit;
@@ -62,6 +65,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     }
   }
 
-  writeJson('audits', audits);
+  await writeJsonAsync('audits', audits);
   return res.status(200).json({ report });
 }

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { readJson, writeJson } from '../../../lib/db';
+import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 
 interface Employee {
   email: string;
@@ -8,13 +8,8 @@ interface Employee {
   role: 'participant' | 'admin';
 }
 
-function isAdmin(req: NextApiRequest): boolean {
-  // Verificação simples via header ou query (o front envia o email do admin logado)
-  return true; // proteção real é feita no front com sessionStorage
-}
-
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const users = readJson<Employee[]>('users', []);
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const users = await readJsonAsync<Employee[]>('users', []);
 
   // GET — listar todos os participantes (não admins)
   if (req.method === 'GET') {
@@ -32,15 +27,25 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     if (users.find((u) => u.email === email)) {
       return res.status(409).json({ error: 'Já existe um usuário com este e-mail.' });
     }
-    const newUser: Employee = { email: email.trim().toLowerCase(), name: name.trim(), cpf: cpfNorm, role: 'participant' };
+    const newUser: Employee = {
+      email: email.trim().toLowerCase(),
+      name: name.trim(),
+      cpf: cpfNorm,
+      role: 'participant'
+    };
     users.push(newUser);
-    writeJson('users', users);
+    await writeJsonAsync('users', users);
     return res.status(201).json({ success: true, employee: newUser });
   }
 
   // PUT — editar empregado existente
   if (req.method === 'PUT') {
-    const { email, name, cpf, newEmail } = req.body as { email: string; name?: string; cpf?: string; newEmail?: string };
+    const { email, name, cpf, newEmail } = req.body as {
+      email: string;
+      name?: string;
+      cpf?: string;
+      newEmail?: string;
+    };
     if (!email) return res.status(400).json({ error: 'E-mail obrigatório para identificar o empregado.' });
     const idx = users.findIndex((u) => u.email === email && u.role !== 'admin');
     if (idx === -1) return res.status(404).json({ error: 'Empregado não encontrado.' });
@@ -52,7 +57,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       }
       users[idx].email = newEmail.trim().toLowerCase();
     }
-    writeJson('users', users);
+    await writeJsonAsync('users', users);
     return res.status(200).json({ success: true, employee: users[idx] });
   }
 
@@ -63,7 +68,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     const idx = users.findIndex((u) => u.email === email && u.role !== 'admin');
     if (idx === -1) return res.status(404).json({ error: 'Empregado não encontrado.' });
     users.splice(idx, 1);
-    writeJson('users', users);
+    await writeJsonAsync('users', users);
     return res.status(200).json({ success: true });
   }
 
