@@ -33,7 +33,11 @@ function computeTechnicalAdherence(profile: ParticipantProfile, area: string, ap
   const selectedProjects = profile.selectedProjects.filter((id) => approvedExceptions.includes(id) || catalogs.some((item) => item.id === id && item.group === 'project'));
 
   const postPoints = selectedPost.length > 0 ? 3 : 0;
-  const experiencePoints = Math.min(4, profile.experienceMonths / 6);
+  // Meses separados: gerencial efetivo e interino (mesmo peso por ora, fácil de diferenciar futuramente)
+  const managerialMonths = profile.managerialMonths ?? 0;
+  const interimMonths = profile.interimMonths ?? 0;
+  const totalExperienceMonths = managerialMonths + interimMonths || profile.experienceMonths || 0;
+  const experiencePoints = Math.min(4, Math.floor(totalExperienceMonths / 6));
 
   const strategicCourses = selectedCourses.filter((id) => {
     const item = catalogs.find((entry) => entry.id === id && entry.group === 'course');
@@ -51,7 +55,7 @@ function computeTechnicalAdherence(profile: ParticipantProfile, area: string, ap
     technicalAdherence: Math.round(total * 10) / 10,
     calculationSteps: [
       { name: 'Pós/MBA selecionado', value: postPoints, detail: `${selectedPost.length} item(s) reconhecido(s)` },
-      { name: 'Experiência gerencial/interina', value: Math.round(experiencePoints * 10) / 10, detail: `${profile.experienceMonths} meses` },
+      { name: 'Experiência gerencial/interina', value: Math.round(experiencePoints * 10) / 10, detail: `Gerencial: ${managerialMonths}m + Interino: ${interimMonths}m = ${totalExperienceMonths}m totais` },
       { name: 'Cursos e projetos estratégicos', value: Math.round(strategicPoints * 10) / 10, detail: `${strategicCourses} cursos + ${strategicProjects} projetos` }
     ] as const
   };

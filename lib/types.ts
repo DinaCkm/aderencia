@@ -36,7 +36,9 @@ export interface ParticipantProfile {
   graduation: string;
   postMBAs: string[];
   certifications: string[];
-  experienceMonths: number;
+  experienceMonths: number;       // legado — soma de gerencial + interino
+  managerialMonths: number;        // meses em cargo gerencial efetivo
+  interimMonths: number;           // meses em cargo interino
   positionsHeld: string[];
   selectedCourses: string[];
   selectedProjects: string[];

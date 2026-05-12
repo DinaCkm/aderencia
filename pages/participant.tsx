@@ -18,6 +18,8 @@ const initialProfile: ParticipantProfile = {
   postMBAs: [],
   certifications: [],
   experienceMonths: 0,
+  managerialMonths: 0,
+  interimMonths: 0,
   positionsHeld: [],
   selectedCourses: [],
   selectedProjects: [],
@@ -470,28 +472,76 @@ export default function ParticipantForm() {
                 <div>
                   <h2>Experiencia Gerencial</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                    Experiencia em cargos de gestao vale ate <span style={{ color: 'var(--purple)', fontWeight: 600 }}>4 pontos</span> na aderencia tecnica
+                    Experiencia em cargos de gestao e interinos vale ate <span style={{ color: 'var(--purple)', fontWeight: 600 }}>4 pontos</span> na aderencia tecnica
                   </p>
                 </div>
               </div>
-              <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: 20, fontSize: '0.8rem', color: 'var(--purple)' }}>
-                <strong>Como e calculado:</strong> 1 ponto a cada 6 meses completos em cargo gerencial ou interino, maximo de 4 pontos (24 meses).
-              </div>
-              <div className="form-grid">
-                <div className="form-group">
-                  <label className="form-label">Meses em cargo gerencial ou interino</label>
-                  <input type="number" className="form-input" min={0} max={120}
-                    value={profile.experienceMonths || ''}
-                    onChange={(e) => setProfile((p) => ({ ...p, experienceMonths: parseInt(e.target.value) || 0 }))}
-                    placeholder="Ex: 18" />
-                  {profile.experienceMonths > 0 && (
-                    <p style={{ fontSize: '0.78rem', color: 'var(--cyan)', marginTop: 6, fontWeight: 600 }}>
-                      = {Math.min(Math.floor(profile.experienceMonths / 6), 4)} ponto(s) ({profile.experienceMonths} meses &divide; 6 = {(profile.experienceMonths / 6).toFixed(1)} periodos, max 4)
-                    </p>
-                  )}
+
+              {/* Explicacao dos tipos de cargo */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+                <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '14px 16px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#5B2D8E', marginBottom: 6 }}>&#128084; Cargo Gerencial Efetivo</div>
+                  <p style={{ fontSize: '0.78rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
+                    Cargo de gestao formal, com equipe sob responsabilidade direta e atribuicoes permanentes de lideranca.
+                  </p>
+                  <p style={{ fontSize: '0.72rem', color: '#7c3aed', marginTop: 6, fontStyle: 'italic' }}>
+                    Exemplos: Gerente de Unidade, Coordenador, Chefe de Departamento.
+                  </p>
+                </div>
+                <div style={{ background: '#f0f9ff', border: '1.5px solid #7dd3fc', borderRadius: 10, padding: '14px 16px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#0369a1', marginBottom: 6 }}>&#128336; Cargo Interino</div>
+                  <p style={{ fontSize: '0.78rem', color: '#0284c7', lineHeight: 1.6, margin: 0 }}>
+                    Substituicao temporaria de um cargo gerencial, com exercicio das mesmas atribuicoes por periodo determinado.
+                  </p>
+                  <p style={{ fontSize: '0.72rem', color: '#0ea5e9', marginTop: 6, fontStyle: 'italic' }}>
+                    Exemplos: Gerente Interino, Coordenador Substituto.
+                  </p>
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
+
+              <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: 20, fontSize: '0.8rem', color: 'var(--purple)' }}>
+                <strong>Como e calculado:</strong> 1 ponto a cada 6 meses completos (gerencial + interino somados), maximo de 4 pontos (24 meses). Os campos sao separados para permitir ponderacoes futuras.
+              </div>
+
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Meses em cargo gerencial efetivo</label>
+                  <input type="number" className="form-input" min={0} max={240}
+                    value={profile.managerialMonths || ''}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value) || 0;
+                      setProfile((p) => ({ ...p, managerialMonths: v, experienceMonths: v + (p.interimMonths || 0) }));
+                    }}
+                    placeholder="Ex: 24" />
+                  <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>Informe 0 se nunca exerceu cargo gerencial efetivo.</p>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Meses em cargo interino</label>
+                  <input type="number" className="form-input" min={0} max={240}
+                    value={profile.interimMonths || ''}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value) || 0;
+                      setProfile((p) => ({ ...p, interimMonths: v, experienceMonths: (p.managerialMonths || 0) + v }));
+                    }}
+                    placeholder="Ex: 6" />
+                  <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>Informe 0 se nunca exerceu cargo interino.</p>
+                </div>
+              </div>
+
+              {/* Preview do calculo */}
+              {((profile.managerialMonths || 0) + (profile.interimMonths || 0)) > 0 && (
+                <div style={{ background: '#f0fdf4', border: '1px solid #6ee7b7', borderRadius: 8, padding: '12px 16px', marginTop: 4, fontSize: '0.8rem' }}>
+                  <strong style={{ color: '#065f46' }}>Preview do calculo:</strong>
+                  <div style={{ color: '#047857', marginTop: 4 }}>
+                    Gerencial: {profile.managerialMonths || 0} meses &nbsp;+&nbsp; Interino: {profile.interimMonths || 0} meses
+                    &nbsp;=&nbsp; <strong>{(profile.managerialMonths || 0) + (profile.interimMonths || 0)} meses totais</strong>
+                    &nbsp;&rarr;&nbsp; <strong>{Math.min(Math.floor(((profile.managerialMonths || 0) + (profile.interimMonths || 0)) / 6), 4)} ponto(s)</strong>
+                    &nbsp;(max 4)
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
                 <button type="button" className="btn-outline" onClick={() => setStep(3)}>&larr; Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => { setStatus(''); setStep(5); }}>Proximo &rarr;</button>
               </div>
