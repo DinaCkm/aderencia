@@ -407,10 +407,31 @@ export default function ParticipantForm() {
                   {graduationOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
                 </select>
               </div>
+              {/* Bloco didático: transversal vs específico */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+                <div style={{ background: '#f0fdf4', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '14px 16px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#065f46', marginBottom: 6 }}>&#127758; Titulo Transversal</div>
+                  <p style={{ fontSize: '0.78rem', color: '#047857', lineHeight: 1.6, margin: 0 }}>
+                    Vale para <strong>qualquer area</strong> de interesse. Sao titulos de gestao, lideranca e competencias gerais que fortalecem a aderencia em todas as areas que voce escolheu.
+                  </p>
+                  <p style={{ fontSize: '0.72rem', color: '#059669', marginTop: 6, margin: '6px 0 0', fontStyle: 'italic' }}>
+                    Exemplos: MBA em Gestao de Pessoas, Lideranca, Gestao de Projetos, Inovacao.
+                  </p>
+                </div>
+                <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '14px 16px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#5B2D8E', marginBottom: 6 }}>&#127919; Titulo Especifico da Area</div>
+                  <p style={{ fontSize: '0.78rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
+                    Vale <strong>somente para a area correspondente</strong>. Sao titulos diretamente ligados ao conhecimento tecnico daquela unidade — e por isso recebem <strong>pontuacao maior</strong> na aderencia tecnica.
+                  </p>
+                  <p style={{ fontSize: '0.72rem', color: '#7c3aed', marginTop: 6, margin: '6px 0 0', fontStyle: 'italic' }}>
+                    Exemplos: MBA em Auditoria (UAUD), Direito Publico (AJUR), TI e Seguranca (UTIC).
+                  </p>
+                </div>
+              </div>
               <div className="form-group">
                 <label className="form-label">Pos-graduacao / MBA concluidos</label>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginBottom: 8 }}>
-                  Selecione os que voce concluiu. Pos/MBA especificos da area de interesse valem mais pontos.
+                  Selecione os titulos que voce concluiu. Titulos especificos da area de interesse recebem pontuacao maior.
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '8px', maxHeight: 260, overflowY: 'auto', padding: '4px' }}>
                   {postMBAOptions.map((o) => {
@@ -486,6 +507,27 @@ export default function ParticipantForm() {
                   <h2>Cursos e Projetos</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
                     Cursos e projetos estrategicos valem ate <span style={{ color: 'var(--purple)', fontWeight: 600 }}>3 pontos</span> na aderencia tecnica
+                  </p>
+                </div>
+              </div>
+              {/* Bloco didático: transversal vs específico para cursos */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+                <div style={{ background: '#f0fdf4', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '14px 16px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#065f46', marginBottom: 6 }}>&#127758; Curso Transversal</div>
+                  <p style={{ fontSize: '0.78rem', color: '#047857', lineHeight: 1.6, margin: 0 }}>
+                    Cursos de competencias gerenciais e comportamentais que contribuem para a aderencia em <strong>qualquer area</strong> escolhida.
+                  </p>
+                  <p style={{ fontSize: '0.72rem', color: '#059669', marginTop: 6, margin: '6px 0 0', fontStyle: 'italic' }}>
+                    Exemplos: Lideranca Situacional, Gestao do Tempo, Comunicacao Assertiva.
+                  </p>
+                </div>
+                <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '14px 16px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#5B2D8E', marginBottom: 6 }}>&#127919; Curso Especifico da Area</div>
+                  <p style={{ fontSize: '0.78rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
+                    Cursos tecnicos diretamente ligados ao conhecimento de uma unidade especifica. Pontuam <strong>somente na area correspondente</strong> e com peso maior.
+                  </p>
+                  <p style={{ fontSize: '0.72rem', color: '#7c3aed', marginTop: 6, margin: '6px 0 0', fontStyle: 'italic' }}>
+                    Exemplos: Auditoria de Riscos (UAUD), Transformacao Digital (UTIC), Orcamento Publico (UGOC).
                   </p>
                 </div>
               </div>
