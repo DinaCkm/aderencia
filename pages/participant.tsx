@@ -316,7 +316,7 @@ export default function ParticipantForm() {
       </nav>
 
       {/* Stepper de navegação clicável */}
-      <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '10px 0', position: 'fixed', top: 64, left: 0, right: 0, zIndex: 999, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+      <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '5px 0', position: 'fixed', top: 64, left: 0, right: 0, zIndex: 999, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
         <div className="container" style={{ display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', maxWidth: 900 }}>
           {stepLabels.map((label, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -351,7 +351,7 @@ export default function ParticipantForm() {
         </div>
       </div>
 
-      <main className="container" style={{ maxWidth: 760, paddingTop: 120, paddingBottom: 48 }}>
+      <main className="container" style={{ maxWidth: 760, paddingTop: 108, paddingBottom: 48 }}>
         <form onSubmit={handleSubmit}>
 
           {/* ── STEP 1: DADOS BASICOS ── */}
