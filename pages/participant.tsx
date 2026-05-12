@@ -197,6 +197,60 @@ export default function ParticipantForm() {
       <main className="container" style={{ maxWidth: 760, paddingTop: 28, paddingBottom: 60 }}>
         <form onSubmit={handleSubmit}>
 
+          {/* ── CARD DE BOAS-VINDAS ── */}
+          {step === 1 && (
+            <div style={{
+              background: 'linear-gradient(135deg, #5B2D8E 0%, #00C9C8 100%)',
+              borderRadius: 'var(--radius)',
+              padding: '32px 36px',
+              marginBottom: 24,
+              color: 'white',
+              position: 'relative',
+              overflow: 'hidden',
+            }}>
+              {/* Elemento decorativo */}
+              <div style={{ position: 'absolute', top: -30, right: -30, width: 140, height: 140, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
+              <div style={{ position: 'absolute', bottom: -20, right: 60, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                <div style={{ fontSize: '2rem' }}>&#127942;</div>
+                <div>
+                  <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: 'white' }}>
+                    Banco de Sucessores — EcoLider
+                  </h2>
+                  <p style={{ fontSize: '0.78rem', margin: 0, opacity: 0.85 }}>SEBRAE Tocantins · Programa de Desenvolvimento de Talentos</p>
+                </div>
+              </div>
+
+              <p style={{ fontSize: '0.88rem', lineHeight: 1.7, marginBottom: 14, opacity: 0.97 }}>
+                O <strong>Banco de Sucessores</strong> é uma iniciativa estratégica do SEBRAE Tocantins para identificar, desenvolver e preparar talentos internos para assumir posições de liderança. Acreditamos que os melhores sucessores já estão dentro da nossa organização — e este programa existe para revelar e valorizar esse potencial.
+              </p>
+
+              <p style={{ fontSize: '0.88rem', lineHeight: 1.7, marginBottom: 14, opacity: 0.97 }}>
+                Neste formulário, você indicará até <strong>3 áreas de interesse</strong> onde deseja atuar como sucessor. Para cada área escolhida, o sistema calculará de forma transparente o seu índice de <strong>Aderência</strong> — uma medida que combina sua formação acadêmica, experiência gerencial, cursos, projetos realizados e seu perfil comportamental (DISC e performance).
+              </p>
+
+              <p style={{ fontSize: '0.88rem', lineHeight: 1.7, marginBottom: 20, opacity: 0.97 }}>
+                A avaliação de aderência <strong>não é eliminatória</strong>: ela é uma fotografia do seu momento atual e serve para orientar o seu plano de desenvolvimento. Quanto maior a aderência, mais preparado você está para assumir aquela área — e o resultado ficará disponível para você consultar a qualquer momento, com todo o detalhamento do cálculo.
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+                {[
+                  { icon: '&#127891;', label: 'Formação Acadêmica', desc: 'Graduação, pós e MBA' },
+                  { icon: '&#128188;', label: 'Experiência Gerencial', desc: 'Cargos e tempo de liderança' },
+                  { icon: '&#128196;', label: 'Cursos e Projetos', desc: 'Capacitações e entregas' },
+                  { icon: '&#129504;', label: 'Perfil Comportamental', desc: 'DISC e performance' },
+                ].map((item) => (
+                  <div key={item.label} style={{ background: 'rgba(255,255,255,0.13)', borderRadius: 10, padding: '12px 14px', backdropFilter: 'blur(4px)' }}>
+                    <div style={{ fontSize: '1.3rem', marginBottom: 4 }} dangerouslySetInnerHTML={{ __html: item.icon }} />
+                    <div style={{ fontWeight: 700, fontSize: '0.8rem', marginBottom: 2 }}>{item.label}</div>
+                    <div style={{ fontSize: '0.72rem', opacity: 0.8 }}>{item.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* ── STEP 1: DADOS BÁSICOS ── */}
           {step === 1 && (
             <div className="section-card">
