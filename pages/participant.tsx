@@ -931,7 +931,7 @@ export default function ParticipantForm() {
               <div className="form-group">
                 <label className="form-label">Cursos extracurriculares concluídos</label>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Ao marcar um curso, informe a carga horária e como vai comprová-lo.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 380, overflowY: 'auto', padding: '4px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {courseOptions.map((o) => {
                     const selected = profile.selectedCourses.includes(o.label);
                     const hours = profile.courseHours?.[o.label] || 0;
@@ -1122,7 +1122,7 @@ export default function ParticipantForm() {
               <div className="form-group">
                 <label className="form-label">Cursos estrategicos concluidos</label>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Ao marcar um curso, informe a carga horaria e como vai comprova-lo.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 380, overflowY: 'auto', padding: '4px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {courseOptions.map((o) => {
                     const selected = profile.selectedCourses.includes(o.label);
                     const hours = profile.courseHours?.[o.label] || 0;
@@ -1214,7 +1214,7 @@ export default function ParticipantForm() {
               <div className="form-group">
                 <label className="form-label">Projetos estrategicos participados</label>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Selecione os projetos em que participou e indique como vai comprova-los.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 380, overflowY: 'auto', padding: '4px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {projectOptions.map((o) => {
                     const selected = profile.selectedProjects.includes(o.label);
                     return (
