@@ -315,30 +315,7 @@ export default function ParticipantForm() {
         </div>
       </nav>
 
-      {/* Barra de progresso */}
-      <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '14px 0' }}>
-        <div className="container" style={{ display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-          {stepLabels.map((label, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <div style={{
-                width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.68rem', fontWeight: 700,
-                background: step > i + 1 ? 'var(--cyan)' : step === i + 1 ? 'var(--purple)' : 'var(--border)',
-                color: step >= i + 1 ? 'white' : 'var(--text-muted)',
-                transition: 'all 0.3s', flexShrink: 0,
-              }}>
-                {step > i + 1 ? '\u2713' : i + 1}
-              </div>
-              <span style={{ fontSize: '0.68rem', fontWeight: step === i + 1 ? 600 : 400, color: step === i + 1 ? 'var(--purple)' : 'var(--text-muted)' }}>
-                {label}
-              </span>
-              {i < TOTAL_STEPS - 1 && <div style={{ width: 14, height: 2, background: step > i + 1 ? 'var(--cyan)' : 'var(--border)', flexShrink: 0 }} />}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <main className="container" style={{ maxWidth: 760, paddingTop: 96, paddingBottom: 48 }}>
+      <main className="container" style={{ maxWidth: 760, paddingTop: 80, paddingBottom: 48 }}>
         <form onSubmit={handleSubmit}>
 
           {/* ── STEP 1: DADOS BASICOS ── */}
