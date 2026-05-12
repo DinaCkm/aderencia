@@ -97,6 +97,42 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, onChange }: {
   );
 }
 
+// Componente de tooltip/popover informativo
+function InfoTooltip({ content }: { content: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span style={{ position: 'relative', display: 'inline-block', verticalAlign: 'middle', marginLeft: 6 }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          width: 18, height: 18, borderRadius: '50%', border: '1.5px solid #6ee7b7',
+          background: open ? '#065f46' : '#f0fdf4', color: open ? 'white' : '#065f46',
+          fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', lineHeight: 1,
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+          flexShrink: 0
+        }}
+        title="Ver critérios de classificação"
+      >?</button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 24, left: 0, zIndex: 200,
+          background: 'white', border: '1.5px solid #6ee7b7',
+          borderRadius: 10, padding: '14px 16px', width: 340,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.15)', fontSize: '0.75rem', color: '#1a1a2e', lineHeight: 1.65
+        }}>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            style={{ float: 'right', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#6b7280', lineHeight: 1, marginLeft: 8 }}
+          >×</button>
+          {content}
+        </div>
+      )}
+    </span>
+  );
+}
+
 export default function ParticipantForm() {
   const router = useRouter();
   const [profile, setProfile] = useState<ParticipantProfile>(initialProfile);
@@ -668,7 +704,26 @@ export default function ParticipantForm() {
               {/* Bloco didatico: transversal vs especifico */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16, marginTop: 8 }}>
                 <div style={{ background: '#f0fdf4', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '12px 14px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#065f46', marginBottom: 4 }}>&#127758; Titulo Transversal</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#065f46', marginBottom: 4, display: 'flex', alignItems: 'center' }}>
+                    &#127758; Titulo Transversal
+                    <InfoTooltip content={
+                      <div>
+                        <p style={{ fontWeight: 700, marginBottom: 6, color: '#065f46' }}>Critérios para Título Transversal</p>
+                        <p style={{ marginBottom: 8 }}>Será considerado Título Transversal apenas o curso de pós-graduação, MBA, especialização ou formação executiva cujo nome indique claramente foco principal em:</p>
+                        <ul style={{ paddingLeft: 16, marginBottom: 8, lineHeight: 1.8 }}>
+                          <li>Liderança ou gestão de pessoas</li>
+                          <li>Desenvolvimento humano e organizacional</li>
+                          <li>Estratégia organizacional</li>
+                          <li>Gestão de projetos ou processos</li>
+                          <li>Inovação ou transformação digital aplicada à gestão</li>
+                          <li>Governança corporativa ou gestão da mudança</li>
+                        </ul>
+                        <p style={{ marginBottom: 6 }}><strong>Exemplos:</strong> MBA em Gestão de Pessoas, Pós em Liderança, MBA em Gestão Estratégica de Pessoas, Especialização em Desenvolvimento Organizacional, MBA em Gestão de Projetos, MBA em Planejamento Estratégico, Pós em Governança Corporativa.</p>
+                        <p style={{ color: '#dc2626', marginBottom: 6 }}><strong>Não serão classificados como Transversal</strong> formações técnicas ou funcionais de área específica, como Marketing, Finanças, Controladoria, Auditoria, Direito, Comunicação, Logística, Vendas ou Gestão Comercial — ainda que contenham disciplinas de gestão ou liderança.</p>
+                        <p style={{ color: '#7c3aed' }}>Nesses casos, a formação poderá ser considerada <strong>Título Específico da Área</strong> quando houver relação direta com a área de interesse escolhida.</p>
+                      </div>
+                    } />
+                  </div>
                   <p style={{ fontSize: '0.75rem', color: '#047857', lineHeight: 1.6, margin: 0 }}>
                     Vale para <strong>qualquer area</strong> de interesse. Titulos de gestao, lideranca e competencias gerais.
                   </p>
@@ -851,7 +906,25 @@ export default function ParticipantForm() {
               {/* Transversal vs especifico */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
                 <div style={{ background: '#f0fdf4', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '12px 14px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#065f46', marginBottom: 4 }}>&#127758; Curso Transversal</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#065f46', marginBottom: 4, display: 'flex', alignItems: 'center' }}>
+                    &#127758; Curso Transversal
+                    <InfoTooltip content={
+                      <div>
+                        <p style={{ fontWeight: 700, marginBottom: 6, color: '#065f46' }}>Critérios para Curso Transversal</p>
+                        <p style={{ marginBottom: 8 }}>Será considerado Curso Transversal apenas o curso cujo nome indique claramente foco principal em:</p>
+                        <ul style={{ paddingLeft: 16, marginBottom: 8, lineHeight: 1.8 }}>
+                          <li>Liderança ou gestão de pessoas</li>
+                          <li>Desenvolvimento humano e organizacional</li>
+                          <li>Estratégia organizacional</li>
+                          <li>Gestão de projetos ou processos</li>
+                          <li>Inovação ou transformação digital aplicada à gestão</li>
+                          <li>Governança corporativa ou gestão da mudança</li>
+                        </ul>
+                        <p style={{ color: '#dc2626', marginBottom: 6 }}><strong>Não serão classificados como Transversal</strong> cursos técnicos ou funcionais de área específica, como Marketing, Finanças, Controladoria, Auditoria, Direito, Comunicação, Logística, Vendas ou Gestão Comercial — ainda que contenham conteúdo de gestão ou liderança.</p>
+                        <p style={{ color: '#7c3aed' }}>Nesses casos, o curso poderá ser considerado <strong>Curso Específico da Área</strong> quando houver relação direta com a área de interesse escolhida.</p>
+                      </div>
+                    } />
+                  </div>
                   <p style={{ fontSize: '0.75rem', color: '#047857', lineHeight: 1.6, margin: 0 }}>
                     Competencias gerenciais e comportamentais que contribuem para <strong>qualquer area</strong> escolhida.
                   </p>
