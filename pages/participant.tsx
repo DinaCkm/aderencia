@@ -220,11 +220,9 @@ export default function ParticipantForm() {
               <div className="form-grid">
                 <div className="form-group">
                   <label className="form-label">Matricula *</label>
-                  <select className="form-input" value={profile.matricula}
-                    onChange={(e) => setProfile((p) => ({ ...p, matricula: e.target.value }))} required>
-                    <option value="">Selecione sua matricula</option>
-                    {matriculaOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
-                  </select>
+                  <input className="form-input" type="text" value={profile.matricula}
+                    onChange={(e) => setProfile((p) => ({ ...p, matricula: e.target.value }))}
+                    required placeholder="Ex: 12345" autoComplete="off" />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Cargo / Funcao atual *</label>
