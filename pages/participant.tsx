@@ -315,7 +315,43 @@ export default function ParticipantForm() {
         </div>
       </nav>
 
-      <main className="container" style={{ maxWidth: 760, paddingTop: 80, paddingBottom: 48 }}>
+      {/* Stepper de navegação clicável */}
+      <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '10px 0', position: 'fixed', top: 64, left: 0, right: 0, zIndex: 999, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div className="container" style={{ display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', maxWidth: 900 }}>
+          {stepLabels.map((label, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <button
+                type="button"
+                onClick={() => setStep(i + 1)}
+                title={`Ir para: ${label}`}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none',
+                  cursor: 'pointer', padding: '4px 6px', borderRadius: 8,
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(91,45,142,0.08)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+              >
+                <div style={{
+                  width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.68rem', fontWeight: 700, flexShrink: 0,
+                  background: step > i + 1 ? 'var(--cyan)' : step === i + 1 ? 'var(--purple)' : 'var(--border)',
+                  color: step >= i + 1 ? 'white' : 'var(--text-muted)',
+                  transition: 'all 0.3s',
+                }}>
+                  {step > i + 1 ? '\u2713' : i + 1}
+                </div>
+                <span style={{ fontSize: '0.68rem', fontWeight: step === i + 1 ? 700 : 400, color: step === i + 1 ? 'var(--purple)' : 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                  {label}
+                </span>
+              </button>
+              {i < TOTAL_STEPS - 1 && <div style={{ width: 12, height: 2, background: step > i + 1 ? 'var(--cyan)' : 'var(--border)', flexShrink: 0 }} />}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <main className="container" style={{ maxWidth: 760, paddingTop: 120, paddingBottom: 48 }}>
         <form onSubmit={handleSubmit}>
 
           {/* ── STEP 1: DADOS BASICOS ── */}
