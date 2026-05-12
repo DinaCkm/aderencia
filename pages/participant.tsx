@@ -486,14 +486,29 @@ export default function ParticipantForm() {
                 </div>
               </div>
 
-              {/* Graduacao com comprovacao */}
+              {/* Aviso de validade */}
+              <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 8, padding: '10px 14px', marginBottom: 16, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '1rem', flexShrink: 0 }}>&#9888;&#65039;</span>
+                <p style={{ fontSize: '0.78rem', color: '#92400e', margin: 0, lineHeight: 1.6 }}>
+                  <strong>Atenção:</strong> Somente graduações <strong>concluídas até 31/12/2025</strong> serão consideradas válidas para pontuação. Graduações em andamento não pontuam.
+                  Se você possui mais de uma graduação, o sistema considerará automaticamente a de <strong>maior relevância</strong> para cada área de interesse escolhida.
+                </p>
+              </div>
+
+              {/* Graduacao principal com comprovacao */}
               <div className="form-group">
-                <label className="form-label">Graduacao *</label>
-                <select className="form-input" value={profile.graduation}
-                  onChange={(e) => setProfile((p) => ({ ...p, graduation: e.target.value }))} required>
-                  <option value="">Selecione sua graduacao</option>
-                  {graduationOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
-                </select>
+                <label className="form-label">Selecione a área da sua graduação *</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
+                  <select className="form-input" value={profile.graduation}
+                    onChange={(e) => setProfile((p) => ({ ...p, graduation: e.target.value }))} required>
+                    <option value="">Selecione a área da sua graduação</option>
+                    {graduationOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
+                  </select>
+                  <input className="form-input" type="number" min="1980" max="2025" placeholder="Ano de conclusão"
+                    value={(profile as any).graduationYear || ''}
+                    onChange={(e) => setProfile((p) => ({ ...p, graduationYear: e.target.value } as any))}
+                    style={{ textAlign: 'center' }} />
+                </div>
                 {profile.graduation && (
                   <div style={{ marginTop: 8, border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
                     <ProofSelector
@@ -502,6 +517,33 @@ export default function ParticipantForm() {
                       proofFiles={profile.proofFiles}
                       onChange={(mode, fileName) => setProof(profile.graduation, mode, fileName)}
                     />
+                  </div>
+                )}
+              </div>
+
+              {/* Segunda graduacao (opcional) */}
+              <div className="form-group">
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input type="checkbox"
+                    checked={!!(profile as any).graduation2}
+                    onChange={(e) => {
+                      if (!e.target.checked) setProfile((p) => { const np = { ...p } as any; delete np.graduation2; delete np.graduation2Year; return np; });
+                      else setProfile((p) => ({ ...p, graduation2: '' } as any));
+                    }}
+                    style={{ accentColor: 'var(--purple)', width: 15, height: 15 }} />
+                  <span>Possuo uma segunda graduação concluída até 2025</span>
+                </label>
+                {(profile as any).graduation2 !== undefined && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, marginTop: 8 }}>
+                    <select className="form-input" value={(profile as any).graduation2 || ''}
+                      onChange={(e) => setProfile((p) => ({ ...p, graduation2: e.target.value } as any))}>
+                      <option value="">Selecione a área da 2ª graduação</option>
+                      {graduationOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
+                    </select>
+                    <input className="form-input" type="number" min="1980" max="2025" placeholder="Ano de conclusão"
+                      value={(profile as any).graduation2Year || ''}
+                      onChange={(e) => setProfile((p) => ({ ...p, graduation2Year: e.target.value } as any))}
+                      style={{ textAlign: 'center' }} />
                   </div>
                 )}
               </div>
