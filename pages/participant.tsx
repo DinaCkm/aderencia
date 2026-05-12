@@ -425,7 +425,6 @@ export default function ParticipantForm() {
                           style={{ accentColor: 'var(--purple)', width: 15, height: 15 }} />
                         <span style={{ fontSize: '0.82rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>
                           {o.label}
-                          {o.area && <span style={{ fontSize: '0.68rem', color: 'var(--cyan)', marginLeft: 4 }}>({o.area})</span>}
                         </span>
                       </label>
                     );
@@ -524,7 +523,6 @@ export default function ParticipantForm() {
                           style={{ accentColor: 'var(--purple)', width: 15, height: 15 }} />
                         <span style={{ fontSize: '0.82rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>
                           {o.label}
-                          {o.area && <span style={{ fontSize: '0.68rem', color: 'var(--cyan)', marginLeft: 4 }}>({o.area})</span>}
                         </span>
                       </label>
                     );
