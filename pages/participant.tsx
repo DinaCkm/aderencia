@@ -376,12 +376,6 @@ export default function ParticipantForm() {
                     value={profile.currentRole}
                     onChange={(e) => setProfile((p) => ({ ...p, currentRole: e.target.value }))} required />
                 </div>
-                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                  <label className="form-label">Unidade / Setor *</label>
-                  <input className="form-input" type="text" placeholder="Ex: UGP — Unidade de Gestao de Pessoas"
-                    value={profile.unit}
-                    onChange={(e) => setProfile((p) => ({ ...p, unit: e.target.value }))} required />
-                </div>
               </div>
               <div className="form-group" style={{ marginTop: 8 }}>
                 <label className="form-label">Area em que atua atualmente *</label>
@@ -411,7 +405,6 @@ export default function ParticipantForm() {
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
                   if (!profile.matricula) { setStatus('Informe sua matricula.'); return; }
                   if (!profile.currentRole) { setStatus('Informe seu cargo/funcao.'); return; }
-                  if (!profile.unit) { setStatus('Informe sua unidade.'); return; }
                   if (!profile.currentArea) { setStatus('Selecione a area em que atua atualmente.'); return; }
                   setStatus(''); setStep(2);
                 }}>Proximo &rarr;</button>
