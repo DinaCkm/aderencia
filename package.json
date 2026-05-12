@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node -r ts-node/register/transpile-only server.ts",
+    "start": "node scripts/seed-db.js && node_modules/.bin/next start -p $PORT",
     "lint": "next lint",
     "start:next": "next start -p $PORT"
   },
