@@ -1,21 +1,13 @@
-import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 export default function Home() {
-  return (
-    <main className="container">
-      <h1>Banco de Sucessores - MVP</h1>
-      <p>Bem-vindo ao sistema de avaliação por área com regras oficiais e cálculo automático.</p>
-      <nav className="card-grid">
-        <Link className="card" href="/login">
-          Login
-        </Link>
-        <Link className="card" href="/participant">
-          Participante
-        </Link>
-        <Link className="card" href="/admin">
-          Administrador
-        </Link>
-      </nav>
-    </main>
-  );
+  const router = useRouter();
+  useEffect(() => {
+    const role = sessionStorage.getItem('aderenciaRole');
+    if (role === 'admin') router.push('/admin');
+    else if (role === 'participant') router.push('/participant');
+    else router.push('/login');
+  }, [router]);
+  return null;
 }
