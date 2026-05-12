@@ -1,8 +1,33 @@
 [
   {
-    "email": "admin@aderencia.local",
-    "password": "admin123",
+    "email": "admin@sebraeto.com.br",
+    "password": "admin@sebrae2026",
     "name": "Administrador",
     "role": "admin"
+  },
+  {
+    "email": "teste01@sebraeto.com.br",
+    "name": "Ana Paula Alves Santos",
+    "role": "participant"
+  },
+  {
+    "email": "teste02@sebraeto.com.br",
+    "name": "Bruno Martins Vieira",
+    "role": "participant"
+  },
+  {
+    "email": "teste03@sebraeto.com.br",
+    "name": "Luciana Carvalho de Aguiar",
+    "role": "participant"
+  },
+  {
+    "email": "teste04@sebraeto.com.br",
+    "name": "Thiago Dias Da Silva",
+    "role": "participant"
+  },
+  {
+    "email": "teste05@sebraeto.com.br",
+    "name": "Mirelle Soares Milhomens",
+    "role": "participant"
   }
 ]
