@@ -434,11 +434,22 @@ export default function ParticipantForm() {
               <div className="section-title">
                 <span className="section-icon">&#127919;</span>
                 <div>
-                  <h2>Areas de Interesse</h2>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                    Escolha entre 1 e 3 areas para onde voce deseja se candidatar. Cada area gera uma avaliacao de aderencia independente.
-                  </p>
+                  <h2>Áreas de Interesse</h2>
                 </div>
+              </div>
+              <div style={{ background: 'linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%)', border: '1.5px solid #ddd6fe', borderRadius: 10, padding: '14px 18px', marginBottom: 20 }}>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text)', lineHeight: 1.8, margin: 0 }}>
+                  Escolha de <strong>1 a 3 áreas</strong> nas quais você deseja ser considerado como possível sucessor no <strong>Programa de Desenvolvimento de Líderes e Sucessores</strong>.
+                </p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text)', lineHeight: 1.8, margin: '8px 0 0' }}>
+                  Cada área selecionada gerará uma <strong>análise de aderência independente</strong>, considerando sua trajetória, formação, experiências profissionais, participação em projetos, perfil comportamental e performance no programa.
+                </p>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text)', lineHeight: 1.8, margin: '8px 0 0' }}>
+                  A escolha das áreas deve refletir onde você acredita ter maior <strong>interesse</strong>, <strong>potencial de contribuição</strong> e <strong>disposição para se desenvolver</strong>.
+                </p>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.6, margin: '10px 0 0', fontStyle: 'italic' }}>
+                  Após selecionar as áreas desejadas, clique em <strong>Próximo</strong> para continuar.
+                </p>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10, marginBottom: 16 }}>
                 {OFFICIAL_AREAS.map((area) => {
