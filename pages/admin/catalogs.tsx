@@ -94,7 +94,7 @@ export default function AdminCatalogs() {
         </div>
       </nav>
 
-      <main className="container" style={{ maxWidth: 900, paddingTop: 28 }}>
+      <main className="container" style={{ maxWidth: 900, paddingTop: 92 }}>
 
         {/* Add item */}
         <div className="section-card">

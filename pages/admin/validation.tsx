@@ -88,7 +88,7 @@ export default function AdminValidation() {
         </div>
       </nav>
 
-      <main className="container" style={{ maxWidth: 900, paddingTop: 28 }}>
+      <main className="container" style={{ maxWidth: 900, paddingTop: 92 }}>
 
         {/* Resumo */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>

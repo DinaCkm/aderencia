@@ -61,7 +61,7 @@ export default function AdminImportParticipants() {
         </div>
       </nav>
 
-      <main className="container" style={{ maxWidth: 720, paddingTop: 28 }}>
+      <main className="container" style={{ maxWidth: 720, paddingTop: 92 }}>
         <div className="section-card">
           <div className="section-title">
             <span className="section-icon">&#128101;</span>

@@ -55,7 +55,7 @@ export default function AdminExceptions() {
         </div>
       </nav>
 
-      <main className="container" style={{ maxWidth: 800, paddingTop: 28 }}>
+      <main className="container" style={{ maxWidth: 800, paddingTop: 92 }}>
         <div className="section-card">
           <div className="section-title">
             <span className="section-icon">&#9888;</span>

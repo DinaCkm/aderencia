@@ -57,7 +57,7 @@ export default function AdminParticipants() {
         ))}
       </div>
 
-      <main className="container-wide">
+      <main className="container-wide" style={{ paddingTop: 96 }}>
         <div className="page-header" style={{ marginTop: '28px' }}>
           <h1>👥 Participantes</h1>
           <p>Lista de todos os colaboradores inscritos no Banco de Sucessores.</p>

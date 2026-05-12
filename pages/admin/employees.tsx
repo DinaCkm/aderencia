@@ -145,7 +145,7 @@ export default function AdminEmployees() {
         </div>
       </nav>
 
-      <main className="container" style={{ maxWidth: 900, paddingTop: 28, paddingBottom: 60 }}>
+      <main className="container" style={{ maxWidth: 900, paddingTop: 92, paddingBottom: 60 }}>
 
         {/* Cabeçalho */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>

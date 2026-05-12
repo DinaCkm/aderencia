@@ -68,7 +68,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <main className="container-wide">
+      <main className="container-wide" style={{ paddingTop: 96 }}>
         <div className="page-header" style={{ marginTop: '28px' }}>
           <h1>Dashboard</h1>
           <p>Visão geral do Banco de Sucessores Aderência — SEBRAE Tocantins</p>

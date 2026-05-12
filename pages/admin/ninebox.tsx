@@ -87,7 +87,7 @@ export default function AdminNineBox() {
         </div>
       </nav>
 
-      <main className="container" style={{ maxWidth: 1100, paddingTop: 32, paddingBottom: 60 }}>
+      <main className="container" style={{ maxWidth: 1100, paddingTop: 96, paddingBottom: 60 }}>
         <div className="section-card">
           <div className="section-title">
             <span className="section-icon">&#127919;</span>

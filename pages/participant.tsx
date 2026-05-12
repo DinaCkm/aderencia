@@ -200,7 +200,7 @@ export default function ParticipantForm() {
             <button className="btn-logout" onClick={logout}>Sair</button>
           </div>
         </nav>
-        <main className="container" style={{ maxWidth: 600, textAlign: 'center', paddingTop: 80 }}>
+        <main className="container" style={{ maxWidth: 600, textAlign: 'center', paddingTop: 96 }}>
           <div className="section-card" style={{ padding: '48px 40px' }}>
             {/* Banner provisorio */}
             <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '14px 18px', marginBottom: 24, textAlign: 'left' }}>
@@ -279,7 +279,7 @@ export default function ParticipantForm() {
         </div>
       </div>
 
-      <main className="container" style={{ maxWidth: 760, paddingTop: 32, paddingBottom: 48 }}>
+      <main className="container" style={{ maxWidth: 760, paddingTop: 96, paddingBottom: 48 }}>
         <form onSubmit={handleSubmit}>
 
           {/* ── STEP 1: DADOS BASICOS ── */}

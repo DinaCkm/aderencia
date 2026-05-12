@@ -100,7 +100,7 @@ export default function MyResults() {
         </div>
       </nav>
 
-      <main className="container" style={{ maxWidth: 800, paddingTop: 32, paddingBottom: 60 }}>
+      <main className="container" style={{ maxWidth: 800, paddingTop: 96, paddingBottom: 60 }}>
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--purple)', marginBottom: 6 }}>
             &#127919; Meus Resultados de Aderencia
