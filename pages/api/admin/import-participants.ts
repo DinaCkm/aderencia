@@ -88,6 +88,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       postMBAs: parseList(postMBAs),
       certifications: parseList(certifications),
       experienceMonths: Number(experienceMonths) || 0,
+      managerialMonths: 0,
+      interimMonths: 0,
       positionsHeld: parseList(positionsHeld),
       selectedCourses: parseList(selectedCourses),
       selectedProjects: parseList(selectedProjects),
