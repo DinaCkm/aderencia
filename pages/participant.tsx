@@ -609,25 +609,58 @@ export default function ParticipantForm() {
               <div className="form-group">
                 <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <input type="checkbox"
-                    checked={!!(profile as any).graduation2}
+                    checked={!!(profile as any).graduation2HasField}
                     onChange={(e) => {
-                      if (!e.target.checked) setProfile((p) => { const np = { ...p } as any; delete np.graduation2; delete np.graduation2Year; return np; });
-                      else setProfile((p) => ({ ...p, graduation2: '' } as any));
+                      if (!e.target.checked) setProfile((p) => { const np = { ...p } as any; delete np.graduation2; delete np.graduation2Year; delete np.graduation2CourseName; delete np.graduation2Exception; np.graduation2HasField = false; return np; });
+                      else setProfile((p) => ({ ...p, graduation2: '', graduation2HasField: true } as any));
                     }}
                     style={{ accentColor: 'var(--purple)', width: 15, height: 15 }} />
                   <span>Possuo uma segunda graduação concluída até 2025</span>
                 </label>
-                {(profile as any).graduation2 !== undefined && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, marginTop: 8 }}>
-                    <select className="form-input" value={(profile as any).graduation2 || ''}
-                      onChange={(e) => setProfile((p) => ({ ...p, graduation2: e.target.value } as any))}>
-                      <option value="">Selecione a área da 2ª graduação</option>
-                      {graduationOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
-                    </select>
-                    <input className="form-input" type="number" min="1980" max="2025" placeholder="Ano de conclusão"
-                      value={(profile as any).graduation2Year || ''}
-                      onChange={(e) => setProfile((p) => ({ ...p, graduation2Year: e.target.value } as any))}
-                      style={{ textAlign: 'center' }} />
+                {(profile as any).graduation2HasField && (
+                  <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {/* Área + Ano */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
+                      <select className="form-input" value={(profile as any).graduation2 || ''}
+                        onChange={(e) => setProfile((p) => ({ ...p, graduation2: e.target.value, graduation2CourseName: '', graduation2Exception: '' } as any))}>
+                        <option value="">Selecione a área da 2ª graduação</option>
+                        {graduationOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
+                        <option value="__outro2__">Outro curso / Área não identificada</option>
+                      </select>
+                      <input className="form-input" type="number" min="1980" max="2025" placeholder="Ano de conclusão"
+                        value={(profile as any).graduation2Year || ''}
+                        onChange={(e) => setProfile((p) => ({ ...p, graduation2Year: e.target.value } as any))}
+                        style={{ textAlign: 'center' }} />
+                    </div>
+                    {/* Nome do curso da 2ª graduação */}
+                    <div>
+                      <label className="form-label" style={{ fontSize: '0.78rem', marginBottom: 4 }}>Nome do curso da 2ª graduação *</label>
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.73rem', marginBottom: 6 }}>Digite o nome completo do curso conforme consta no diploma, certificado ou histórico acadêmico.</p>
+                      <input
+                        className="form-input"
+                        type="text"
+                        placeholder="Ex.: Licenciatura em Matemática, Bacharelado em Ciências Sociais"
+                        value={(profile as any).graduation2CourseName || ''}
+                        onChange={(e) => setProfile((p) => ({ ...p, graduation2CourseName: e.target.value } as any))}
+                      />
+                    </div>
+                    {/* Campo condicional de excecao da 2ª graduacao */}
+                    {(profile as any).graduation2 === '__outro2__' && (
+                      <div style={{ background: '#fef9ec', border: '1.5px solid #fbbf24', borderRadius: 10, padding: '14px 16px' }}>
+                        <label className="form-label" style={{ color: '#92400e', marginBottom: 6 }}>Curso não encontrado / Exceção — 2ª Graduação *</label>
+                        <p style={{ color: '#b45309', fontSize: '0.75rem', marginBottom: 8, lineHeight: 1.6 }}>
+                          Preencha este campo apenas se sua área ou curso não estiver contemplado nas opções disponíveis. Sua informação será analisada pela equipe responsável.
+                        </p>
+                        <textarea
+                          className="form-input form-textarea"
+                          placeholder="Informe o nome completo do curso e descreva brevemente a área de formação para análise."
+                          value={(profile as any).graduation2Exception || ''}
+                          onChange={(e) => setProfile((p) => ({ ...p, graduation2Exception: e.target.value } as any))}
+                          rows={3}
+                          style={{ minHeight: 80 }}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -713,6 +746,12 @@ export default function ParticipantForm() {
                     const mode = profile.proofMode[profile.graduation];
                     if (!mode) { setStatus('Selecione como vai comprovar sua graduação (A UGP já tem conhecimento ou Enviar documento).'); return; }
                     if (mode === 'upload' && !profile.proofFiles[profile.graduation]) { setStatus('Você selecionou "Enviar documento" para a graduação — escolha o arquivo antes de continuar.'); return; }
+                  }
+                  // Validar 2a graduacao (se preenchida)
+                  if ((profile as any).graduation2HasField) {
+                    if (!(profile as any).graduation2) { setStatus('Selecione a área da 2ª graduação.'); return; }
+                    if (!(profile as any).graduation2CourseName?.trim()) { setStatus('Informe o nome completo do curso da 2ª graduação.'); return; }
+                    if ((profile as any).graduation2 === '__outro2__' && !(profile as any).graduation2Exception?.trim()) { setStatus('Preencha o campo de exceção da 2ª graduação.'); return; }
                   }
                   // Validar comprovacao dos pos/MBA selecionados
                   for (const item of profile.postMBAs) {
