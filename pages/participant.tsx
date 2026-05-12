@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useState, useEffect, useMemo, FormEvent } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -23,15 +23,79 @@ const initialProfile: ParticipantProfile = {
   positionsHeld: [],
   selectedCourses: [],
   courseHours: {},
+  proofMode: {},
+  proofFiles: {},
   selectedProjects: [],
   exceptionRequested: false,
   exceptionJustification: '',
   attachments: [],
   exceptionStatus: 'pending',
+  validationStatus: 'provisional',
 };
 
 const getOptions = (group: CatalogItem['group']) =>
   CATALOG_ITEMS.filter((item) => item.group === group);
+
+// Componente reutilizavel de comprovacao por item
+function ProofSelector({ itemLabel, proofMode, proofFiles, onChange }: {
+  itemLabel: string;
+  proofMode: Record<string, 'ugp-knows' | 'upload'>;
+  proofFiles: Record<string, string>;
+  onChange: (mode: 'ugp-knows' | 'upload', fileName?: string) => void;
+}) {
+  const mode = proofMode[itemLabel];
+  return (
+    <div style={{ padding: '8px 12px 10px', background: '#f8fafc', borderTop: '1px solid var(--border)' }}>
+      <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>Como comprovar este item:</p>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <label style={{
+          display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
+          padding: '5px 10px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 500,
+          border: `1.5px solid ${mode === 'ugp-knows' ? 'var(--cyan)' : 'var(--border)'}`,
+          background: mode === 'ugp-knows' ? '#ecfeff' : 'white', color: mode === 'ugp-knows' ? '#0891b2' : 'var(--text)'
+        }}>
+          <input type="radio" name={`proof-${itemLabel}`} value="ugp-knows"
+            checked={mode === 'ugp-knows'}
+            onChange={() => onChange('ugp-knows')}
+            style={{ accentColor: 'var(--cyan)', width: 13, height: 13 }} />
+          &#10003; A UGP ja tem conhecimento
+        </label>
+        <label style={{
+          display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
+          padding: '5px 10px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 500,
+          border: `1.5px solid ${mode === 'upload' ? 'var(--purple)' : 'var(--border)'}`,
+          background: mode === 'upload' ? 'var(--gradient-soft)' : 'white', color: mode === 'upload' ? 'var(--purple)' : 'var(--text)'
+        }}>
+          <input type="radio" name={`proof-${itemLabel}`} value="upload"
+            checked={mode === 'upload'}
+            onChange={() => onChange('upload')}
+            style={{ accentColor: 'var(--purple)', width: 13, height: 13 }} />
+          &#128206; Enviar documento
+        </label>
+      </div>
+      {mode === 'upload' && (
+        <div style={{ marginTop: 8 }}>
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) onChange('upload', file.name);
+            }}
+            style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }} />
+          {proofFiles[itemLabel] && (
+            <span style={{ fontSize: '0.72rem', color: '#16a34a', marginLeft: 8 }}>
+              &#10003; {proofFiles[itemLabel]}
+            </span>
+          )}
+        </div>
+      )}
+      {!mode && (
+        <p style={{ fontSize: '0.7rem', color: '#f59e0b', marginTop: 4 }}>
+          &#9888; Selecione como vai comprovar este item
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default function ParticipantForm() {
   const router = useRouter();
@@ -56,8 +120,6 @@ export default function ParticipantForm() {
 
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
 
-  const matriculaOptions = useMemo(() => getOptions('matricula'), []);
-  const roleOptions = useMemo(() => getOptions('role'), []);
   const graduationOptions = useMemo(() => getOptions('graduation'), []);
   const postMBAOptions = useMemo(() => getOptions('postMBA'), []);
   const courseOptions = useMemo(() => getOptions('course'), []);
@@ -89,6 +151,14 @@ export default function ParticipantForm() {
     });
   };
 
+  const setProof = (itemLabel: string, mode: 'ugp-knows' | 'upload', fileName?: string) => {
+    setProfile((p) => ({
+      ...p,
+      proofMode: { ...p.proofMode, [itemLabel]: mode },
+      proofFiles: fileName ? { ...p.proofFiles, [itemLabel]: fileName } : p.proofFiles,
+    }));
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setStatus('Enviando...');
@@ -110,7 +180,8 @@ export default function ParticipantForm() {
     }
   };
 
-  const stepLabels = ['Dados Basicos', 'Areas de Interesse', 'Formacao', 'Experiencia', 'Cursos e Projetos'];
+  const TOTAL_STEPS = 6;
+  const stepLabels = ['Dados Basicos', 'Areas de Interesse', 'Formacao', 'Experiencia', 'Cursos', 'Projetos'];
 
   if (submitted) {
     return (
@@ -131,6 +202,17 @@ export default function ParticipantForm() {
         </nav>
         <main className="container" style={{ maxWidth: 600, textAlign: 'center', paddingTop: 80 }}>
           <div className="section-card" style={{ padding: '48px 40px' }}>
+            {/* Banner provisorio */}
+            <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '14px 18px', marginBottom: 24, textAlign: 'left' }}>
+              <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#92400e', marginBottom: 6 }}>
+                &#9888; Pontuacao Provisoria
+              </div>
+              <p style={{ fontSize: '0.78rem', color: '#78350f', lineHeight: 1.6, margin: 0 }}>
+                Sua pontuacao e posicao no Nine Box estao disponiveis agora, mas sao <strong>provisorias</strong>.
+                A confirmacao definitiva ocorrera apos a <strong>checagem dos documentos</strong> enviados ou validacao pela UGP.
+                Voce sera notificado quando sua pontuacao for confirmada.
+              </p>
+            </div>
             <div style={{ fontSize: '3rem', marginBottom: '16px' }}>&#10003;</div>
             <h2 style={{ color: 'var(--purple)', marginBottom: '12px' }}>Formulario enviado com sucesso!</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '28px' }}>
@@ -176,167 +258,130 @@ export default function ParticipantForm() {
 
       {/* Barra de progresso */}
       <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '14px 0' }}>
-        <div className="container" style={{ display: 'flex', gap: '6px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div className="container" style={{ display: 'flex', gap: '4px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
           {stepLabels.map((label, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <div style={{
-                width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.72rem', fontWeight: 700,
+                width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.68rem', fontWeight: 700,
                 background: step > i + 1 ? 'var(--cyan)' : step === i + 1 ? 'var(--purple)' : 'var(--border)',
                 color: step >= i + 1 ? 'white' : 'var(--text-muted)',
                 transition: 'all 0.3s', flexShrink: 0,
               }}>
                 {step > i + 1 ? '\u2713' : i + 1}
               </div>
-              <span style={{ fontSize: '0.72rem', fontWeight: step === i + 1 ? 600 : 400, color: step === i + 1 ? 'var(--purple)' : 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.68rem', fontWeight: step === i + 1 ? 600 : 400, color: step === i + 1 ? 'var(--purple)' : 'var(--text-muted)' }}>
                 {label}
               </span>
-              {i < 4 && <div style={{ width: 18, height: 2, background: step > i + 1 ? 'var(--cyan)' : 'var(--border)', flexShrink: 0 }} />}
+              {i < TOTAL_STEPS - 1 && <div style={{ width: 14, height: 2, background: step > i + 1 ? 'var(--cyan)' : 'var(--border)', flexShrink: 0 }} />}
             </div>
           ))}
         </div>
       </div>
 
-      <main className="container" style={{ maxWidth: 760, paddingTop: 28, paddingBottom: 60 }}>
+      <main className="container" style={{ maxWidth: 760, paddingTop: 32, paddingBottom: 48 }}>
         <form onSubmit={handleSubmit}>
 
-          {/* ── CARD DE BOAS-VINDAS ── */}
-          {step === 1 && (
-            <div style={{
-              background: 'linear-gradient(135deg, #5B2D8E 0%, #00C9C8 100%)',
-              borderRadius: 'var(--radius)',
-              padding: '32px 36px',
-              marginBottom: 24,
-              color: 'white',
-              position: 'relative',
-              overflow: 'hidden',
-            }}>
-              {/* Elemento decorativo */}
-              <div style={{ position: 'absolute', top: -30, right: -30, width: 140, height: 140, borderRadius: '50%', background: 'rgba(255,255,255,0.07)' }} />
-              <div style={{ position: 'absolute', bottom: -20, right: 60, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                <div style={{ fontSize: '2rem' }}>&#127942;</div>
-                <div>
-                  <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: 'white' }}>
-                    Banco de Sucessores — EcoLider
-                  </h2>
-                  <p style={{ fontSize: '0.78rem', margin: 0, opacity: 0.85 }}>SEBRAE Tocantins · Programa de Desenvolvimento de Talentos</p>
-                </div>
-              </div>
-
-              <p style={{ fontSize: '0.88rem', lineHeight: 1.7, marginBottom: 14, opacity: 0.97 }}>
-                O <strong>Banco de Sucessores</strong> é uma iniciativa estratégica do SEBRAE Tocantins para identificar, desenvolver e preparar talentos internos para assumir posições de liderança. Acreditamos que os melhores sucessores já estão dentro da nossa organização — e este programa existe para revelar e valorizar esse potencial.
-              </p>
-
-              <p style={{ fontSize: '0.88rem', lineHeight: 1.7, marginBottom: 14, opacity: 0.97 }}>
-                Neste formulário, você indicará até <strong>3 áreas de interesse</strong> onde deseja atuar como sucessor. Para cada área escolhida, o sistema calculará de forma transparente o seu índice de <strong>Aderência</strong> — uma medida que combina sua formação acadêmica, experiência gerencial, cursos, projetos realizados e seu perfil comportamental (DISC e performance).
-              </p>
-
-              <p style={{ fontSize: '0.88rem', lineHeight: 1.7, marginBottom: 20, opacity: 0.97 }}>
-                A avaliação de aderência <strong>não é eliminatória</strong>: ela é uma fotografia do seu momento atual e serve para orientar o seu plano de desenvolvimento. Quanto maior a aderência, mais preparado você está para assumir aquela área — e o resultado ficará disponível para você consultar a qualquer momento, com todo o detalhamento do cálculo.
-              </p>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
-                {[
-                  { icon: '&#127891;', label: 'Formação Acadêmica', desc: 'Graduação, pós e MBA' },
-                  { icon: '&#128188;', label: 'Experiência Gerencial', desc: 'Cargos e tempo de liderança' },
-                  { icon: '&#128196;', label: 'Cursos e Projetos', desc: 'Capacitações e entregas' },
-                  { icon: '&#129504;', label: 'Perfil Comportamental', desc: 'DISC e performance' },
-                ].map((item) => (
-                  <div key={item.label} style={{ background: 'rgba(255,255,255,0.13)', borderRadius: 10, padding: '12px 14px', backdropFilter: 'blur(4px)' }}>
-                    <div style={{ fontSize: '1.3rem', marginBottom: 4 }} dangerouslySetInnerHTML={{ __html: item.icon }} />
-                    <div style={{ fontWeight: 700, fontSize: '0.8rem', marginBottom: 2 }}>{item.label}</div>
-                    <div style={{ fontSize: '0.72rem', opacity: 0.8 }}>{item.desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── STEP 1: DADOS BÁSICOS ── */}
+          {/* ── STEP 1: DADOS BASICOS ── */}
           {step === 1 && (
             <div className="section-card">
+              {/* Card de boas-vindas */}
+              <div style={{
+                background: 'linear-gradient(135deg, #5B2D8E 0%, #0891b2 100%)',
+                borderRadius: 12, padding: '24px 28px', marginBottom: 28, color: 'white'
+              }}>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: 8 }}>
+                  &#127919; Banco de Sucessores EcoLider
+                </div>
+                <p style={{ fontSize: '0.82rem', lineHeight: 1.7, margin: '0 0 16px', opacity: 0.95 }}>
+                  O <strong>Banco de Sucessores</strong> e uma iniciativa estrategica do SEBRAE Tocantins para identificar, desenvolver e preparar talentos internos para assumir posicoes de lideranca. Acreditamos que os melhores sucessores ja estao dentro da nossa organizacao — e este programa existe para revelar e valorizar esse potencial.
+                </p>
+                <p style={{ fontSize: '0.82rem', lineHeight: 1.7, margin: '0 0 16px', opacity: 0.95 }}>
+                  Neste formulario, voce indicara ate <strong>3 areas de interesse</strong> onde deseja atuar como sucessor. Para cada area escolhida, o sistema calculara de forma transparente o seu indice de <strong>Aderencia</strong> — uma medida que combina sua formacao academica, experiencia gerencial, cursos, projetos realizados e seu perfil comportamental.
+                </p>
+                <p style={{ fontSize: '0.78rem', lineHeight: 1.6, margin: 0, opacity: 0.85 }}>
+                  A avaliacao de aderencia <strong>nao e eliminatoria</strong>: ela e uma fotografia do seu momento atual e serve para orientar o seu plano de desenvolvimento. O resultado ficara disponivel para voce consultar a qualquer momento, com todo o detalhamento do calculo.
+                </p>
+                <div style={{ display: 'flex', gap: 16, marginTop: 20, flexWrap: 'wrap' }}>
+                  {[['&#127891;','Formacao Academica'],['&#128188;','Experiencia Gerencial'],['&#127775;','Cursos Estrategicos'],['&#127775;','Perfil Comportamental']].map(([icon, label]) => (
+                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.75rem', opacity: 0.9 }}>
+                      <span>{icon}</span><span>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="section-title">
                 <span className="section-icon">&#128100;</span>
-                <div>
-                  <h2>Dados Basicos</h2>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>Suas informacoes funcionais</p>
-                </div>
+                <div><h2>Dados Basicos</h2></div>
               </div>
-
-              {/* Identificação vinda do login */}
-              <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '10px 16px', marginBottom: 20, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: '1rem' }}>&#128100;</span>
-                <div>
-                  <span style={{ color: 'var(--text-muted)' }}>Identificado como: </span>
-                  <strong style={{ color: 'var(--purple)' }}>{participantName}</strong>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="form-group">
+                  <label className="form-label">Nome completo</label>
+                  <input className="form-input" value={profile.name} disabled
+                    style={{ background: '#f1f5f9', color: 'var(--text-muted)' }} />
                 </div>
-              </div>
-
-              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">E-mail</label>
+                  <input className="form-input" value={profile.email} disabled
+                    style={{ background: '#f1f5f9', color: 'var(--text-muted)' }} />
+                </div>
                 <div className="form-group">
                   <label className="form-label">Matricula *</label>
-                  <input className="form-input" type="text" value={profile.matricula}
-                    onChange={(e) => setProfile((p) => ({ ...p, matricula: e.target.value }))}
-                    required placeholder="Ex: 12345" autoComplete="off" />
+                  <input className="form-input" type="text" placeholder="Ex: 123456"
+                    value={profile.matricula}
+                    onChange={(e) => setProfile((p) => ({ ...p, matricula: e.target.value }))} required />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Cargo / Funcao atual *</label>
-                  <select className="form-input" value={profile.currentRole}
-                    onChange={(e) => setProfile((p) => ({ ...p, currentRole: e.target.value }))} required>
-                    <option value="">Selecione seu cargo</option>
-                    {roleOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
-                  </select>
+                  <input className="form-input" type="text" placeholder="Ex: Analista de Gestao"
+                    value={profile.currentRole}
+                    onChange={(e) => setProfile((p) => ({ ...p, currentRole: e.target.value }))} required />
+                </div>
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                  <label className="form-label">Unidade / Setor *</label>
+                  <input className="form-input" type="text" placeholder="Ex: UGP — Unidade de Gestao de Pessoas"
+                    value={profile.unit}
+                    onChange={(e) => setProfile((p) => ({ ...p, unit: e.target.value }))} required />
                 </div>
               </div>
-
-              {/* Área de atuação atual */}
-              <div className="form-group">
+              <div className="form-group" style={{ marginTop: 8 }}>
                 <label className="form-label">Area em que atua atualmente *</label>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginBottom: 10 }}>
-                  Selecione a area onde voce trabalha hoje. Isso permite comparar quantas pessoas da mesma area tiveram aderencia a cada area de destino.
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 10 }}>
+                  Selecione a area onde voce trabalha hoje. Isso nos ajuda a entender quantas pessoas da mesma area tem aderencia a cada destino.
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px' }}>
-                  {(OFFICIAL_AREAS as AreaCode[]).map((area) => {
-                    const selected = profile.currentArea === area;
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {OFFICIAL_AREAS.map((area) => {
+                    const isCurrent = profile.currentArea === area;
                     return (
                       <button key={area} type="button"
                         onClick={() => setProfile((p) => ({ ...p, currentArea: area }))}
                         style={{
-                          padding: '10px 8px', borderRadius: 'var(--radius-sm)',
-                          border: `2px solid ${selected ? '#0e7490' : 'var(--border)'}`,
-                          background: selected ? '#e0fafa' : 'white',
-                          color: selected ? '#0e7490' : 'var(--text)',
-                          fontWeight: selected ? 700 : 400, cursor: 'pointer',
-                          transition: 'all 0.2s', fontSize: '0.82rem',
+                          padding: '6px 14px', borderRadius: 20, fontSize: '0.78rem', fontWeight: isCurrent ? 700 : 400, cursor: 'pointer',
+                          border: `2px solid ${isCurrent ? 'var(--cyan)' : 'var(--border)'}`,
+                          background: isCurrent ? 'var(--cyan)' : 'white',
+                          color: isCurrent ? 'white' : 'var(--text)', transition: 'all 0.2s'
                         }}>
-                        {selected ? '\u2713 ' : ''}{area}
+                        {area}{isCurrent ? ' (atual)' : ''}
                       </button>
                     );
                   })}
                 </div>
-                {profile.currentArea && (
-                  <div style={{ marginTop: 8, fontSize: '0.8rem', color: '#0e7490', fontWeight: 600 }}>
-                    &#10003; Area atual selecionada: <strong>{profile.currentArea}</strong>
-                  </div>
-                )}
               </div>
-
-              {status && <p style={{ color: '#dc2626', fontSize: '0.82rem', marginTop: 8 }}>{status}</p>}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+              {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
-                  if (!profile.matricula || !profile.currentRole || !profile.currentArea) {
-                    setStatus('Preencha todos os campos: matricula, cargo e area de atuacao.');
-                    return;
-                  }
+                  if (!profile.matricula) { setStatus('Informe sua matricula.'); return; }
+                  if (!profile.currentRole) { setStatus('Informe seu cargo/funcao.'); return; }
+                  if (!profile.unit) { setStatus('Informe sua unidade.'); return; }
+                  if (!profile.currentArea) { setStatus('Selecione a area em que atua atualmente.'); return; }
                   setStatus(''); setStep(2);
                 }}>Proximo &rarr;</button>
               </div>
             </div>
           )}
 
-          {/* ── STEP 2: ÁREAS DE INTERESSE ── */}
+          {/* ── STEP 2: AREAS DE INTERESSE ── */}
           {step === 2 && (
             <div className="section-card">
               <div className="section-title">
@@ -348,49 +393,40 @@ export default function ParticipantForm() {
                   </p>
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px', marginBottom: '20px' }}>
-                {(OFFICIAL_AREAS as AreaCode[]).map((area) => {
-                  const selected = profile.selectedAreas.includes(area);
-                  const isCurrentArea = profile.currentArea === area;
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10, marginBottom: 16 }}>
+                {OFFICIAL_AREAS.map((area) => {
+                  const selected = profile.selectedAreas.includes(area as AreaCode);
+                  const isCurrent = profile.currentArea === area;
                   return (
                     <button key={area} type="button"
                       onClick={() => toggleArea(area as AreaCode)}
                       style={{
-                        padding: '12px 8px', borderRadius: 'var(--radius-sm)',
+                        padding: '12px 8px', borderRadius: 10, fontSize: '0.8rem', fontWeight: selected ? 700 : 400, cursor: 'pointer',
                         border: `2px solid ${selected ? 'var(--purple)' : 'var(--border)'}`,
                         background: selected ? 'var(--gradient-soft)' : 'white',
-                        color: selected ? 'var(--purple)' : 'var(--text)',
-                        fontWeight: selected ? 700 : 400, cursor: 'pointer',
-                        transition: 'all 0.2s', fontSize: '0.82rem',
-                        opacity: !selected && profile.selectedAreas.length >= 3 ? 0.4 : 1,
-                        position: 'relative',
+                        color: selected ? 'var(--purple)' : 'var(--text)', transition: 'all 0.2s', textAlign: 'center'
                       }}>
-                      {selected ? '\u2713 ' : ''}{area}
-                      {isCurrentArea && (
-                        <span style={{ display: 'block', fontSize: '0.6rem', color: '#0e7490', fontWeight: 600, marginTop: 2 }}>
-                          (atual)
-                        </span>
-                      )}
+                      {area}{isCurrent ? '\n(atual)' : ''}
                     </button>
                   );
                 })}
               </div>
-              <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '10px 16px', marginBottom: '20px', fontSize: '0.82rem', color: 'var(--purple)' }}>
-                {profile.selectedAreas.length === 0
-                  ? 'Selecione pelo menos 1 area de interesse.'
-                  : `${profile.selectedAreas.length} area(s) selecionada(s): ${profile.selectedAreas.join(', ')}`}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                Selecionadas: <strong style={{ color: 'var(--purple)' }}>{profile.selectedAreas.length}/3</strong>
+                {profile.selectedAreas.length > 0 && ` — ${profile.selectedAreas.join(', ')}`}
+              </p>
+              {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
                 <button type="button" className="btn-outline" onClick={() => setStep(1)}>&larr; Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
-                  if (profile.selectedAreas.length === 0) { setStatus('Selecione pelo menos 1 area.'); return; }
+                  if (profile.selectedAreas.length === 0) { setStatus('Selecione ao menos 1 area de interesse.'); return; }
                   setStatus(''); setStep(3);
                 }}>Proximo &rarr;</button>
               </div>
             </div>
           )}
 
-          {/* ── STEP 3: FORMAÇÃO ── */}
+          {/* ── STEP 3: FORMACAO ── */}
           {step === 3 && (
             <div className="section-card">
               <div className="section-title">
@@ -402,6 +438,8 @@ export default function ParticipantForm() {
                   </p>
                 </div>
               </div>
+
+              {/* Graduacao com comprovacao */}
               <div className="form-group">
                 <label className="form-label">Graduacao *</label>
                 <select className="form-input" value={profile.graduation}
@@ -409,52 +447,88 @@ export default function ParticipantForm() {
                   <option value="">Selecione sua graduacao</option>
                   {graduationOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
                 </select>
+                {profile.graduation && (
+                  <div style={{ marginTop: 8, border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+                    <ProofSelector
+                      itemLabel={profile.graduation}
+                      proofMode={profile.proofMode}
+                      proofFiles={profile.proofFiles}
+                      onChange={(mode, fileName) => setProof(profile.graduation, mode, fileName)}
+                    />
+                  </div>
+                )}
               </div>
-              {/* Bloco didático: transversal vs específico */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
-                <div style={{ background: '#f0fdf4', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '14px 16px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#065f46', marginBottom: 6 }}>&#127758; Titulo Transversal</div>
-                  <p style={{ fontSize: '0.78rem', color: '#047857', lineHeight: 1.6, margin: 0 }}>
-                    Vale para <strong>qualquer area</strong> de interesse. Sao titulos de gestao, lideranca e competencias gerais que fortalecem a aderencia em todas as areas que voce escolheu.
+
+              {/* Bloco didatico: transversal vs especifico */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16, marginTop: 8 }}>
+                <div style={{ background: '#f0fdf4', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '12px 14px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#065f46', marginBottom: 4 }}>&#127758; Titulo Transversal</div>
+                  <p style={{ fontSize: '0.75rem', color: '#047857', lineHeight: 1.6, margin: 0 }}>
+                    Vale para <strong>qualquer area</strong> de interesse. Titulos de gestao, lideranca e competencias gerais.
                   </p>
-                  <p style={{ fontSize: '0.72rem', color: '#059669', marginTop: 6, margin: '6px 0 0', fontStyle: 'italic' }}>
-                    Exemplos: MBA em Gestao de Pessoas, Lideranca, Gestao de Projetos, Inovacao.
+                  <p style={{ fontSize: '0.7rem', color: '#059669', marginTop: 4, fontStyle: 'italic' }}>
+                    Ex: MBA em Gestao de Pessoas, Lideranca, Inovacao.
                   </p>
                 </div>
-                <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '14px 16px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#5B2D8E', marginBottom: 6 }}>&#127919; Titulo Especifico da Area</div>
-                  <p style={{ fontSize: '0.78rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
-                    Vale <strong>somente para a area correspondente</strong>. Sao titulos diretamente ligados ao conhecimento tecnico daquela unidade — e por isso recebem <strong>pontuacao maior</strong> na aderencia tecnica.
+                <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '12px 14px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#5B2D8E', marginBottom: 4 }}>&#127919; Titulo Especifico da Area</div>
+                  <p style={{ fontSize: '0.75rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
+                    Vale <strong>somente para a area correspondente</strong> e com pontuacao maior.
                   </p>
-                  <p style={{ fontSize: '0.72rem', color: '#7c3aed', marginTop: 6, margin: '6px 0 0', fontStyle: 'italic' }}>
-                    Exemplos: MBA em Auditoria (UAUD), Direito Publico (AJUR), TI e Seguranca (UTIC).
+                  <p style={{ fontSize: '0.7rem', color: '#7c3aed', marginTop: 4, fontStyle: 'italic' }}>
+                    Ex: MBA em Auditoria (UAUD), Direito Publico (AJUR).
                   </p>
                 </div>
               </div>
+
+              {/* Pos/MBA com comprovacao por item */}
               <div className="form-group">
                 <label className="form-label">Pos-graduacao / MBA concluidos</label>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', marginBottom: 8 }}>
-                  Selecione os titulos que voce concluiu. Titulos especificos da area de interesse recebem pontuacao maior.
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>
+                  Selecione os titulos que voce concluiu e indique como comprova cada um.
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '8px', maxHeight: 260, overflowY: 'auto', padding: '4px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 320, overflowY: 'auto', padding: '4px' }}>
                   {postMBAOptions.map((o) => {
                     const selected = profile.postMBAs.includes(o.label);
                     return (
-                      <label key={o.id} style={{
-                        display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px',
-                        borderRadius: 'var(--radius-sm)', border: `1.5px solid ${selected ? 'var(--purple)' : 'var(--border)'}`,
-                        background: selected ? 'var(--gradient-soft)' : 'white', cursor: 'pointer', transition: 'all 0.2s'
+                      <div key={o.id} style={{
+                        borderRadius: 'var(--radius-sm)',
+                        border: `1.5px solid ${selected ? 'var(--purple)' : 'var(--border)'}`,
+                        background: selected ? 'var(--gradient-soft)' : 'white',
+                        overflow: 'hidden', transition: 'all 0.2s'
                       }}>
-                        <input type="checkbox" checked={selected} onChange={() => toggleMulti('postMBAs', o.label)}
-                          style={{ accentColor: 'var(--purple)', width: 15, height: 15 }} />
-                        <span style={{ fontSize: '0.82rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>
-                          {o.label}
-                        </span>
-                      </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={selected}
+                            onChange={() => {
+                              toggleMulti('postMBAs', o.label);
+                              if (selected) {
+                                setProfile((p) => {
+                                  const m = { ...p.proofMode }; delete m[o.label];
+                                  const f = { ...p.proofFiles }; delete f[o.label];
+                                  return { ...p, proofMode: m, proofFiles: f };
+                                });
+                              }
+                            }}
+                            style={{ accentColor: 'var(--purple)', width: 15, height: 15, flexShrink: 0 }} />
+                          <span style={{ fontSize: '0.82rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>
+                            {o.label}
+                          </span>
+                        </label>
+                        {selected && (
+                          <ProofSelector
+                            itemLabel={o.label}
+                            proofMode={profile.proofMode}
+                            proofFiles={profile.proofFiles}
+                            onChange={(mode, fileName) => setProof(o.label, mode, fileName)}
+                          />
+                        )}
+                      </div>
                     );
                   })}
                 </div>
               </div>
+
+              {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
                 <button type="button" className="btn-outline" onClick={() => setStep(2)}>&larr; Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
@@ -465,7 +539,7 @@ export default function ParticipantForm() {
             </div>
           )}
 
-          {/* ── STEP 4: EXPERIÊNCIA ── */}
+          {/* ── STEP 4: EXPERIENCIA ── */}
           {step === 4 && (
             <div className="section-card">
               <div className="section-title">
@@ -473,72 +547,53 @@ export default function ParticipantForm() {
                 <div>
                   <h2>Experiencia Gerencial</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                    Experiencia em cargos de gestao e interinos vale ate <span style={{ color: 'var(--purple)', fontWeight: 600 }}>4 pontos</span> na aderencia tecnica
+                    Experiencia em cargos de gestao vale ate <span style={{ color: 'var(--purple)', fontWeight: 600 }}>4 pontos</span> na aderencia tecnica
                   </p>
                 </div>
               </div>
-
-              {/* Explicacao dos tipos de cargo */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
-                <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '14px 16px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#5B2D8E', marginBottom: 6 }}>&#128084; Cargo Gerencial Efetivo</div>
-                  <p style={{ fontSize: '0.78rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
-                    Cargo de gestao formal, com equipe sob responsabilidade direta e atribuicoes permanentes de lideranca.
-                  </p>
-                  <p style={{ fontSize: '0.72rem', color: '#7c3aed', marginTop: 6, fontStyle: 'italic' }}>
-                    Exemplos: Gerente de Unidade, Coordenador, Chefe de Departamento.
-                  </p>
-                </div>
-                <div style={{ background: '#f0f9ff', border: '1.5px solid #7dd3fc', borderRadius: 10, padding: '14px 16px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#0369a1', marginBottom: 6 }}>&#128336; Cargo Interino</div>
-                  <p style={{ fontSize: '0.78rem', color: '#0284c7', lineHeight: 1.6, margin: 0 }}>
-                    Substituicao temporaria de um cargo gerencial, com exercicio das mesmas atribuicoes por periodo determinado.
-                  </p>
-                  <p style={{ fontSize: '0.72rem', color: '#0ea5e9', marginTop: 6, fontStyle: 'italic' }}>
-                    Exemplos: Gerente Interino, Coordenador Substituto.
-                  </p>
-                </div>
+              <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: '0.78rem', color: '#0369a1' }}>
+                <strong>Como e calculado:</strong> 1 ponto a cada 6 meses completos em cargo gerencial ou interino, maximo de 4 pontos (24 meses).
               </div>
 
-              <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: 20, fontSize: '0.8rem', color: 'var(--purple)' }}>
-                <strong>Como e calculado:</strong> 1 ponto a cada 6 meses completos (gerencial + interino somados), maximo de 4 pontos (24 meses). Os campos sao separados para permitir ponderacoes futuras.
-              </div>
-
-              <div className="form-grid">
-                <div className="form-group">
-                  <label className="form-label">Meses em cargo gerencial efetivo</label>
-                  <input type="number" className="form-input" min={0} max={240}
+              {/* Gerencial efetivo */}
+              <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '16px', marginBottom: 16 }}>
+                <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#5B2D8E', marginBottom: 8 }}>
+                  &#128081; Cargo Gerencial Efetivo
+                </div>
+                <p style={{ fontSize: '0.75rem', color: '#6d28d9', marginBottom: 12 }}>
+                  Cargo formal com equipe e atribuicoes permanentes. Ex: Gerente de Unidade, Coordenador, Superintendente.
+                </p>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Meses em cargo gerencial efetivo</label>
+                  <input className="form-input" type="number" min={0} max={600}
                     value={profile.managerialMonths || ''}
-                    onChange={(e) => {
-                      const v = parseInt(e.target.value) || 0;
-                      setProfile((p) => ({ ...p, managerialMonths: v, experienceMonths: v + (p.interimMonths || 0) }));
-                    }}
-                    placeholder="Ex: 24" />
-                  <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>Informe 0 se nunca exerceu cargo gerencial efetivo.</p>
+                    onChange={(e) => setProfile((p) => ({ ...p, managerialMonths: parseInt(e.target.value) || 0 }))}
+                    placeholder="0" style={{ maxWidth: 120 }} />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Meses em cargo interino</label>
-                  <input type="number" className="form-input" min={0} max={240}
+              </div>
+
+              {/* Interino */}
+              <div style={{ background: '#f0f9ff', border: '1.5px solid #7dd3fc', borderRadius: 10, padding: '16px', marginBottom: 16 }}>
+                <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#0369a1', marginBottom: 8 }}>
+                  &#128203; Cargo Interino
+                </div>
+                <p style={{ fontSize: '0.75rem', color: '#0284c7', marginBottom: 12 }}>
+                  Substituicao temporaria com as mesmas atribuicoes do cargo gerencial por periodo determinado.
+                </p>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.78rem' }}>Meses em cargo interino</label>
+                  <input className="form-input" type="number" min={0} max={600}
                     value={profile.interimMonths || ''}
-                    onChange={(e) => {
-                      const v = parseInt(e.target.value) || 0;
-                      setProfile((p) => ({ ...p, interimMonths: v, experienceMonths: (p.managerialMonths || 0) + v }));
-                    }}
-                    placeholder="Ex: 6" />
-                  <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 4 }}>Informe 0 se nunca exerceu cargo interino.</p>
+                    onChange={(e) => setProfile((p) => ({ ...p, interimMonths: parseInt(e.target.value) || 0 }))}
+                    placeholder="0" style={{ maxWidth: 120 }} />
                 </div>
               </div>
 
               {/* Preview do calculo */}
-              {((profile.managerialMonths || 0) + (profile.interimMonths || 0)) > 0 && (
-                <div style={{ background: '#f0fdf4', border: '1px solid #6ee7b7', borderRadius: 8, padding: '12px 16px', marginTop: 4, fontSize: '0.8rem' }}>
-                  <strong style={{ color: '#065f46' }}>Preview do calculo:</strong>
-                  <div style={{ color: '#047857', marginTop: 4 }}>
-                    Gerencial: {profile.managerialMonths || 0} meses &nbsp;+&nbsp; Interino: {profile.interimMonths || 0} meses
-                    &nbsp;=&nbsp; <strong>{(profile.managerialMonths || 0) + (profile.interimMonths || 0)} meses totais</strong>
-                    &nbsp;&rarr;&nbsp; <strong>{Math.min(Math.floor(((profile.managerialMonths || 0) + (profile.interimMonths || 0)) / 6), 4)} ponto(s)</strong>
-                    &nbsp;(max 4)
-                  </div>
+              {(profile.managerialMonths > 0 || profile.interimMonths > 0) && (
+                <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8, padding: '10px 14px', fontSize: '0.78rem', color: '#166534' }}>
+                  Gerencial: <strong>{profile.managerialMonths}m</strong> + Interino: <strong>{profile.interimMonths}m</strong> = <strong>{profile.managerialMonths + profile.interimMonths}m</strong> totais
+                  &nbsp;&rarr;&nbsp; <strong style={{ color: 'var(--purple)' }}>{Math.min(4, Math.floor((profile.managerialMonths + profile.interimMonths) / 6))} ponto(s)</strong> (max 4)
                 </div>
               )}
 
@@ -549,47 +604,44 @@ export default function ParticipantForm() {
             </div>
           )}
 
-          {/* ── STEP 5: CURSOS E PROJETOS ── */}
+          {/* ── STEP 5: CURSOS ESTRATEGICOS ── */}
           {step === 5 && (
             <div className="section-card">
               <div className="section-title">
                 <span className="section-icon">&#127775;</span>
                 <div>
-                  <h2>Cursos e Projetos</h2>
+                  <h2>Cursos Estrategicos</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                    Cursos e projetos estrategicos valem ate <span style={{ color: 'var(--purple)', fontWeight: 600 }}>3 pontos</span> na aderencia tecnica
+                    Cursos estrategicos concluidos valem ate <span style={{ color: 'var(--purple)', fontWeight: 600 }}>3 pontos</span> na aderencia tecnica
                   </p>
                 </div>
               </div>
-              {/* Bloco didático: transversal vs específico para cursos */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
-                <div style={{ background: '#f0fdf4', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '14px 16px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#065f46', marginBottom: 6 }}>&#127758; Curso Transversal</div>
-                  <p style={{ fontSize: '0.78rem', color: '#047857', lineHeight: 1.6, margin: 0 }}>
-                    Cursos de competencias gerenciais e comportamentais que contribuem para a aderencia em <strong>qualquer area</strong> escolhida.
-                  </p>
-                  <p style={{ fontSize: '0.72rem', color: '#059669', marginTop: 6, margin: '6px 0 0', fontStyle: 'italic' }}>
-                    Exemplos: Lideranca Situacional, Gestao do Tempo, Comunicacao Assertiva.
-                  </p>
-                </div>
-                <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '14px 16px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#5B2D8E', marginBottom: 6 }}>&#127919; Curso Especifico da Area</div>
-                  <p style={{ fontSize: '0.78rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
-                    Cursos tecnicos diretamente ligados ao conhecimento de uma unidade especifica. Pontuam <strong>somente na area correspondente</strong> e com peso maior.
-                  </p>
-                  <p style={{ fontSize: '0.72rem', color: '#7c3aed', marginTop: 6, margin: '6px 0 0', fontStyle: 'italic' }}>
-                    Exemplos: Auditoria de Riscos (UAUD), Transformacao Digital (UTIC), Orcamento Publico (UGOC).
-                  </p>
-                </div>
-              </div>
-              {/* Definicao didatica de cursos estrategicos */}
-              <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#92400e' }}>
+
+              {/* Definicao didatica */}
+              <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.78rem', color: '#92400e' }}>
                 <strong>O que sao cursos estrategicos?</strong> Sao formacoes de desenvolvimento continuado — diferentes de Pos/MBA. Incluem cursos, workshops, treinamentos e certificacoes profissionais. Para pontuar, o curso deve ter <strong>no minimo 16 horas</strong>. A validacao final e feita pelo RH/UGP.
               </div>
+
+              {/* Transversal vs especifico */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                <div style={{ background: '#f0fdf4', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '12px 14px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#065f46', marginBottom: 4 }}>&#127758; Curso Transversal</div>
+                  <p style={{ fontSize: '0.75rem', color: '#047857', lineHeight: 1.6, margin: 0 }}>
+                    Competencias gerenciais e comportamentais que contribuem para <strong>qualquer area</strong> escolhida.
+                  </p>
+                </div>
+                <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '12px 14px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#5B2D8E', marginBottom: 4 }}>&#127919; Curso Especifico da Area</div>
+                  <p style={{ fontSize: '0.75rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
+                    Cursos tecnicos ligados a uma unidade especifica. Pontuam <strong>somente na area correspondente</strong>.
+                  </p>
+                </div>
+              </div>
+
               <div className="form-group">
                 <label className="form-label">Cursos estrategicos concluidos</label>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Ao marcar um curso, informe a carga horaria. Cursos com menos de 16h serao sinalizados e nao pontuarao.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: 300, overflowY: 'auto', padding: '4px' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Ao marcar um curso, informe a carga horaria e como vai comprova-lo.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 380, overflowY: 'auto', padding: '4px' }}>
                   {courseOptions.map((o) => {
                     const selected = profile.selectedCourses.includes(o.label);
                     const hours = profile.courseHours?.[o.label] || 0;
@@ -599,60 +651,122 @@ export default function ParticipantForm() {
                         borderRadius: 'var(--radius-sm)',
                         border: `1.5px solid ${belowMin ? '#fca5a5' : selected ? 'var(--purple)' : 'var(--border)'}`,
                         background: belowMin ? '#fff1f2' : selected ? 'var(--gradient-soft)' : 'white',
-                        transition: 'all 0.2s', overflow: 'hidden'
+                        overflow: 'hidden', transition: 'all 0.2s'
                       }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: 'pointer' }}>
                           <input type="checkbox" checked={selected}
                             onChange={() => {
                               toggleMulti('selectedCourses', o.label);
                               if (selected) {
-                                setProfile((p) => { const h = { ...p.courseHours }; delete h[o.label]; return { ...p, courseHours: h }; });
+                                setProfile((p) => {
+                                  const h = { ...p.courseHours }; delete h[o.label];
+                                  const m = { ...p.proofMode }; delete m[o.label];
+                                  const f = { ...p.proofFiles }; delete f[o.label];
+                                  return { ...p, courseHours: h, proofMode: m, proofFiles: f };
+                                });
                               }
                             }}
                             style={{ accentColor: 'var(--purple)', width: 15, height: 15, flexShrink: 0 }} />
                           <span style={{ fontSize: '0.82rem', color: belowMin ? '#dc2626' : selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400, flex: 1 }}>{o.label}</span>
                         </label>
                         {selected && (
-                          <div style={{ padding: '0 12px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Carga horaria (h):</label>
-                            <input type="number" min={1} max={999}
-                              value={hours || ''}
-                              onChange={(e) => {
-                                const v = parseInt(e.target.value) || 0;
-                                setProfile((p) => ({ ...p, courseHours: { ...p.courseHours, [o.label]: v } }));
-                              }}
-                              placeholder="Ex: 40"
-                              style={{ width: 80, padding: '4px 8px', border: `1px solid ${belowMin ? '#fca5a5' : 'var(--border)'}`, borderRadius: 6, fontSize: '0.78rem' }} />
-                            {belowMin && <span style={{ fontSize: '0.72rem', color: '#dc2626' }}>&#9888; Abaixo de 16h — nao pontua</span>}
-                            {selected && hours >= 16 && <span style={{ fontSize: '0.72rem', color: '#16a34a' }}>&#10003; Valido</span>}
-                          </div>
+                          <>
+                            <div style={{ padding: '0 12px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Carga horaria (h):</label>
+                              <input type="number" min={1} max={999}
+                                value={hours || ''}
+                                onChange={(e) => {
+                                  const v = parseInt(e.target.value) || 0;
+                                  setProfile((p) => ({ ...p, courseHours: { ...p.courseHours, [o.label]: v } }));
+                                }}
+                                placeholder="Ex: 40"
+                                style={{ width: 80, padding: '4px 8px', border: `1px solid ${belowMin ? '#fca5a5' : 'var(--border)'}`, borderRadius: 6, fontSize: '0.78rem' }} />
+                              {belowMin && <span style={{ fontSize: '0.72rem', color: '#dc2626' }}>&#9888; Abaixo de 16h — nao pontua</span>}
+                              {selected && hours >= 16 && <span style={{ fontSize: '0.72rem', color: '#16a34a' }}>&#10003; Valido</span>}
+                            </div>
+                            <ProofSelector
+                              itemLabel={o.label}
+                              proofMode={profile.proofMode}
+                              proofFiles={profile.proofFiles}
+                              onChange={(mode, fileName) => setProof(o.label, mode, fileName)}
+                            />
+                          </>
                         )}
                       </div>
                     );
                   })}
                 </div>
               </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
+                <button type="button" className="btn-outline" onClick={() => setStep(4)}>&larr; Voltar</button>
+                <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => { setStatus(''); setStep(6); }}>Proximo &rarr;</button>
+              </div>
+            </div>
+          )}
+
+          {/* ── STEP 6: PROJETOS ESTRATEGICOS ── */}
+          {step === 6 && (
+            <div className="section-card">
+              <div className="section-title">
+                <span className="section-icon">&#128203;</span>
+                <div>
+                  <h2>Projetos Estrategicos</h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+                    Participacao em projetos estrategicos da organizacao contribui para a aderencia tecnica
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ background: '#f0f9ff', border: '1.5px solid #7dd3fc', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.78rem', color: '#0369a1' }}>
+                <strong>O que sao projetos estrategicos?</strong> Sao iniciativas institucionais formais da organizacao nas quais voce participou como membro, lider ou colaborador. Projetos especificos de uma area pontuam com peso maior naquela area.
+              </div>
+
               <div className="form-group">
                 <label className="form-label">Projetos estrategicos participados</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '8px', maxHeight: 240, overflowY: 'auto', padding: '4px' }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Selecione os projetos em que participou e indique como vai comprova-los.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 380, overflowY: 'auto', padding: '4px' }}>
                   {projectOptions.map((o) => {
                     const selected = profile.selectedProjects.includes(o.label);
                     return (
-                      <label key={o.id} style={{
-                        display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px',
-                        borderRadius: 'var(--radius-sm)', border: `1.5px solid ${selected ? 'var(--purple)' : 'var(--border)'}`,
-                        background: selected ? 'var(--gradient-soft)' : 'white', cursor: 'pointer', transition: 'all 0.2s'
+                      <div key={o.id} style={{
+                        borderRadius: 'var(--radius-sm)',
+                        border: `1.5px solid ${selected ? 'var(--purple)' : 'var(--border)'}`,
+                        background: selected ? 'var(--gradient-soft)' : 'white',
+                        overflow: 'hidden', transition: 'all 0.2s'
                       }}>
-                        <input type="checkbox" checked={selected} onChange={() => toggleMulti('selectedProjects', o.label)}
-                          style={{ accentColor: 'var(--purple)', width: 15, height: 15 }} />
-                        <span style={{ fontSize: '0.82rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>
-                          {o.label}
-                        </span>
-                      </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={selected}
+                            onChange={() => {
+                              toggleMulti('selectedProjects', o.label);
+                              if (selected) {
+                                setProfile((p) => {
+                                  const m = { ...p.proofMode }; delete m[o.label];
+                                  const f = { ...p.proofFiles }; delete f[o.label];
+                                  return { ...p, proofMode: m, proofFiles: f };
+                                });
+                              }
+                            }}
+                            style={{ accentColor: 'var(--purple)', width: 15, height: 15, flexShrink: 0 }} />
+                          <span style={{ fontSize: '0.82rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>
+                            {o.label}
+                          </span>
+                        </label>
+                        {selected && (
+                          <ProofSelector
+                            itemLabel={o.label}
+                            proofMode={profile.proofMode}
+                            proofFiles={profile.proofFiles}
+                            onChange={(mode, fileName) => setProof(o.label, mode, fileName)}
+                          />
+                        )}
+                      </div>
                     );
                   })}
                 </div>
               </div>
+
+              {/* Excecao */}
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20, marginTop: 8 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', marginBottom: 12 }}>
                   <input type="checkbox" checked={profile.exceptionRequested}
@@ -670,19 +784,17 @@ export default function ParticipantForm() {
                     style={{ resize: 'vertical', fontSize: '0.82rem' }} />
                 )}
               </div>
-              {status && (
-                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>
-                  {status}
-                </div>
-              )}
+
+              {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(4)}>&larr; Voltar</button>
+                <button type="button" className="btn-outline" onClick={() => setStep(5)}>&larr; Voltar</button>
                 <button type="submit" className="btn-primary" style={{ minWidth: 180 }}>
                   &#10003; Enviar formulario
                 </button>
               </div>
             </div>
           )}
+
         </form>
       </main>
     </>

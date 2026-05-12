@@ -133,6 +133,21 @@ export default function MyResults() {
           </div>
         </div>
 
+        {/* Banner de pontuacao provisoria */}
+        {!loading && results.length > 0 && (
+          <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '14px 18px', marginBottom: 24, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+            <div style={{ fontSize: '1.4rem', flexShrink: 0 }}>&#9888;</div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#92400e', marginBottom: 4 }}>Pontuacao Provisoria</div>
+              <p style={{ fontSize: '0.78rem', color: '#78350f', lineHeight: 1.6, margin: 0 }}>
+                Sua pontuacao e posicao no Nine Box sao <strong>provisorias</strong> e estao sujeitas a confirmacao pelo RH/UGP apos a checagem dos documentos comprobatorios enviados.
+                Itens marcados como <em>"A UGP ja tem conhecimento"</em> serao validados diretamente pela equipe. Itens com upload de documento aguardam analise.
+                Voce sera informado quando sua pontuacao for <strong>confirmada definitivamente</strong>.
+              </p>
+            </div>
+          </div>
+        )}
+
         {loading && (
           <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)' }}>
             <div style={{ fontSize: '2rem', marginBottom: 12 }}>&#8987;</div>

@@ -42,11 +42,16 @@ export interface ParticipantProfile {
   positionsHeld: string[];
   selectedCourses: string[];
   courseHours: Record<string, number>;  // carga horária informada por curso (chave = label do curso)
+  proofMode: Record<string, 'ugp-knows' | 'upload'>;  // modo de comprovação por item (label como chave)
+  proofFiles: Record<string, string>;                  // nome do arquivo enviado por item
   selectedProjects: string[];
   exceptionRequested: boolean;
   exceptionJustification: string;
   attachments: string[];
   exceptionStatus: 'pending' | 'approved' | 'rejected';
+  validationStatus: 'provisional' | 'validated' | 'adjusted'; // provisório ate RH/UGP confirmar documentos
+  validationNote?: string;   // observação do admin ao validar
+  validatedAt?: string;      // data da validação
   submittedAt?: string;
 }
 
