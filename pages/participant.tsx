@@ -497,6 +497,19 @@ export default function ParticipantForm() {
                 </div>
               </div>
 
+              {/* Texto de orientacao da etapa */}
+              <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: 10, padding: '14px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
+                <p style={{ margin: 0, marginBottom: 8 }}>
+                  Informe a área e o nome completo do seu curso de graduação, conforme consta no diploma, certificado ou histórico acadêmico.
+                </p>
+                <p style={{ margin: 0, marginBottom: 8 }}>
+                  Caso não identifique sua área de formação ou o nome do seu curso nas opções disponíveis, selecione <strong>"Outro curso / Área não identificada"</strong> e registre as informações no campo de exceção para análise da equipe responsável.
+                </p>
+                <p style={{ margin: 0 }}>
+                  As informações declaradas poderão ser verificadas posteriormente e serão utilizadas para o cálculo do Índice de Aderência às áreas escolhidas.
+                </p>
+              </div>
+
               {/* Aviso de validade */}
               <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 8, padding: '10px 14px', marginBottom: 16, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '1rem', flexShrink: 0 }}>&#9888;&#65039;</span>
@@ -508,19 +521,21 @@ export default function ParticipantForm() {
 
               {/* Graduacao principal com comprovacao */}
               <div className="form-group">
-                <label className="form-label">Selecione a área da sua graduação *</label>
+                <label className="form-label">Área da graduação *</label>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 6 }}>Selecione a área mais próxima da sua formação.</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
                   <select className="form-input" value={profile.graduation}
-                    onChange={(e) => setProfile((p) => ({ ...p, graduation: e.target.value }))} required>
+                    onChange={(e) => setProfile((p) => ({ ...p, graduation: e.target.value, graduationCourseName: '', graduationException: '' } as any))} required>
                     <option value="">Selecione a área da sua graduação</option>
                     {graduationOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
+                    <option value="__outro__">Outro curso / Área não identificada</option>
                   </select>
                   <input className="form-input" type="number" min="1980" max="2025" placeholder="Ano de conclusão"
                     value={(profile as any).graduationYear || ''}
                     onChange={(e) => setProfile((p) => ({ ...p, graduationYear: e.target.value } as any))}
                     style={{ textAlign: 'center' }} />
                 </div>
-                {profile.graduation && (
+                {profile.graduation && profile.graduation !== '__outro__' && (
                   <div style={{ marginTop: 8, border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
                     <ProofSelector
                       itemLabel={profile.graduation}
@@ -531,6 +546,41 @@ export default function ParticipantForm() {
                   </div>
                 )}
               </div>
+
+              {/* Nome completo do curso de graduacao */}
+              <div className="form-group">
+                <label className="form-label">Nome do curso de graduação *</label>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 6 }}>Digite o nome completo do curso conforme consta no diploma, certificado ou histórico acadêmico.</p>
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder="Ex.: Bacharelado em Administração, Ciências Contábeis, Psicologia, Comunicação Social – Publicidade e Propaganda"
+                  value={(profile as any).graduationCourseName || ''}
+                  onChange={(e) => setProfile((p) => ({ ...p, graduationCourseName: e.target.value } as any))}
+                  required
+                />
+              </div>
+
+              {/* Campo condicional de excecao */}
+              {profile.graduation === '__outro__' && (
+                <div className="form-group">
+                  <div style={{ background: '#fef9ec', border: '1.5px solid #fbbf24', borderRadius: 10, padding: '14px 16px' }}>
+                    <label className="form-label" style={{ color: '#92400e', marginBottom: 6 }}>Curso não encontrado / Exceção *</label>
+                    <p style={{ color: '#b45309', fontSize: '0.75rem', marginBottom: 8, lineHeight: 1.6 }}>
+                      Preencha este campo apenas se sua área ou curso não estiver contemplado nas opções disponíveis. Sua informação será analisada pela equipe responsável.
+                    </p>
+                    <textarea
+                      className="form-input form-textarea"
+                      placeholder="Informe o nome completo do curso e descreva brevemente a área de formação para análise."
+                      value={(profile as any).graduationException || ''}
+                      onChange={(e) => setProfile((p) => ({ ...p, graduationException: e.target.value } as any))}
+                      rows={3}
+                      required
+                      style={{ minHeight: 80 }}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Segunda graduacao (opcional) */}
               <div className="form-group">
@@ -632,7 +682,9 @@ export default function ParticipantForm() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
                 <button type="button" className="btn-outline" onClick={() => setStep(2)}>&larr; Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
-                  if (!profile.graduation) { setStatus('Selecione sua graduacao.'); return; }
+                  if (!profile.graduation) { setStatus('Selecione a área da sua graduação.'); return; }
+                  if (!(profile as any).graduationCourseName?.trim()) { setStatus('Informe o nome completo do curso de graduação.'); return; }
+                  if (profile.graduation === '__outro__' && !(profile as any).graduationException?.trim()) { setStatus('Preencha o campo de exceção com o nome e descrição do seu curso.'); return; }
                   setStatus(''); setStep(4);
                 }}>Proximo &rarr;</button>
               </div>

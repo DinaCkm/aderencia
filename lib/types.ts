@@ -34,6 +34,8 @@ export interface ParticipantProfile {
   currentArea: AreaCode | '';
   selectedAreas: AreaCode[];
   graduation: string;
+  graduationCourseName?: string;   // nome completo do curso de graduacao informado pelo participante
+  graduationException?: string;    // descricao quando area nao identificada (campo de excecao)
   postMBAs: string[];
   certifications: string[];
   experienceMonths: number;       // legado — soma de gerencial + interino
