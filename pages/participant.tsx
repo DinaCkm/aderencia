@@ -371,10 +371,26 @@ export default function ParticipantForm() {
                     onChange={(e) => setProfile((p) => ({ ...p, matricula: e.target.value }))} required />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Cargo / Funcao atual *</label>
-                  <input className="form-input" type="text" placeholder="Ex: Analista de Gestao"
-                    value={profile.currentRole}
-                    onChange={(e) => setProfile((p) => ({ ...p, currentRole: e.target.value }))} required />
+                  <label className="form-label">Cargo / Função atual *</label>
+                  <select className="form-input" value={profile.currentRole}
+                    onChange={(e) => setProfile((p) => ({ ...p, currentRole: e.target.value }))} required>
+                    <option value="">Selecione seu cargo...</option>
+                    <optgroup label="Cargos Técnicos">
+                      <option>Analista Técnico I</option>
+                      <option>Analista Técnico II</option>
+                      <option>Analista Técnico III</option>
+                      <option>Assistente I</option>
+                      <option>Assistente II</option>
+                    </optgroup>
+                    <optgroup label="Cargos de Gestão">
+                      <option>Gerente</option>
+                      <option>Diretor</option>
+                    </optgroup>
+                    <optgroup label="Outros">
+                      <option>Estagiário</option>
+                      <option>Secretaria DIREX</option>
+                    </optgroup>
+                  </select>
                 </div>
               </div>
               <div className="form-group" style={{ marginTop: 8 }}>
