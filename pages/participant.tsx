@@ -239,8 +239,8 @@ export default function ParticipantForm() {
     }
   };
 
-  const TOTAL_STEPS = 6;
-  const stepLabels = ['Dados Basicos', 'Areas de Interesse', 'Formacao', 'Experiencia', 'Cursos', 'Projetos'];
+  const TOTAL_STEPS = 7;
+  const stepLabels = ['Dados Basicos', 'Areas de Interesse', 'Graduacao', 'Pos/MBA', 'Cursos Extracurriculares', 'Experiencia', 'Projetos'];
 
   if (submitted) {
     return (
@@ -701,6 +701,54 @@ export default function ParticipantForm() {
                 )}
               </div>
 
+              {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
+                <button type="button" className="btn-outline" onClick={() => setStep(2)}>&larr; Voltar</button>
+                <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
+                  if (!profile.graduation) { setStatus('Selecione a área da sua graduação.'); return; }
+                  if (!(profile as any).graduationCourseName?.trim()) { setStatus('Informe o nome completo do curso de graduação.'); return; }
+                  if (profile.graduation === '__outro__' && !(profile as any).graduationException?.trim()) { setStatus('Preencha o campo de exceção com o nome e descrição do seu curso.'); return; }
+                  if (profile.graduation !== '__outro__') {
+                    const mode = profile.proofMode[profile.graduation];
+                    if (!mode) { setStatus('Selecione como vai comprovar sua graduação (A UGP já tem conhecimento ou Enviar documento).'); return; }
+                    if (mode === 'upload' && !profile.proofFiles[profile.graduation]) { setStatus('Você selecionou "Enviar documento" para a graduação — escolha o arquivo antes de continuar.'); return; }
+                  }
+                  if ((profile as any).graduation2HasField) {
+                    if (!(profile as any).graduation2) { setStatus('Selecione a área da 2ª graduação.'); return; }
+                    if (!(profile as any).graduation2CourseName?.trim()) { setStatus('Informe o nome completo do curso da 2ª graduação.'); return; }
+                    if ((profile as any).graduation2 === '__outro2__' && !(profile as any).graduation2Exception?.trim()) { setStatus('Preencha o campo de exceção da 2ª graduação.'); return; }
+                  }
+                  setStatus(''); setStep(4);
+                }}>Proximo &rarr;</button>
+              </div>
+            </div>
+          )}
+
+          {/* ── STEP 4: POS/MBA ── */}
+          {step === 4 && (
+            <div className="section-card">
+              <div className="section-title">
+                <span className="section-icon">&#127891;</span>
+                <div>
+                  <h2>Pós-graduação / MBA</h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+                    Títulos de pós-graduação e MBA valem até <span style={{ color: 'var(--purple)', fontWeight: 600 }}>3 pontos</span> na aderência técnica
+                  </p>
+                </div>
+              </div>
+
+              {/* Instrucoes detalhadas */}
+              <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: 10, padding: '14px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
+                <p style={{ margin: 0, marginBottom: 8, fontWeight: 700 }}>Como funciona a pontuação de Pós-graduação / MBA:</p>
+                <p style={{ margin: 0, marginBottom: 6 }}>Selecione abaixo todos os títulos de pós-graduação, MBA, especialização ou formação executiva que você <strong>concluiu até 31/12/2025</strong>. Para cada título selecionado, indique como vai comprová-lo.</p>
+                <p style={{ margin: 0, marginBottom: 6 }}>Os títulos são classificados em duas categorias:</p>
+                <ul style={{ paddingLeft: 16, margin: '0 0 6px', lineHeight: 1.8 }}>
+                  <li><strong>Título Transversal:</strong> vale para qualquer área de interesse escolhida (foco em liderança, gestão, estratégia, inovação, governança).</li>
+                  <li><strong>Título Específico da Área:</strong> vale somente para a área correspondente, com pontuação maior.</li>
+                </ul>
+                <p style={{ margin: 0 }}>Caso seu título não esteja na lista, utilize o campo de exceção ao final do formulário para registrar a informação para análise da equipe responsável.</p>
+              </div>
+
               {/* Bloco didatico: transversal vs especifico */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16, marginTop: 8 }}>
                 <div style={{ background: '#f0fdf4', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '12px 14px' }}>
@@ -791,37 +839,152 @@ export default function ParticipantForm() {
 
               {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(2)}>&larr; Voltar</button>
+                <button type="button" className="btn-outline" onClick={() => setStep(3)}>&larr; Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
-                  if (!profile.graduation) { setStatus('Selecione a área da sua graduação.'); return; }
-                  if (!(profile as any).graduationCourseName?.trim()) { setStatus('Informe o nome completo do curso de graduação.'); return; }
-                  if (profile.graduation === '__outro__' && !(profile as any).graduationException?.trim()) { setStatus('Preencha o campo de exceção com o nome e descrição do seu curso.'); return; }
-                  // Validar comprovacao da graduacao: se escolheu upload, exige arquivo
-                  if (profile.graduation !== '__outro__') {
-                    const mode = profile.proofMode[profile.graduation];
-                    if (!mode) { setStatus('Selecione como vai comprovar sua graduação (A UGP já tem conhecimento ou Enviar documento).'); return; }
-                    if (mode === 'upload' && !profile.proofFiles[profile.graduation]) { setStatus('Você selecionou "Enviar documento" para a graduação — escolha o arquivo antes de continuar.'); return; }
-                  }
-                  // Validar 2a graduacao (se preenchida)
-                  if ((profile as any).graduation2HasField) {
-                    if (!(profile as any).graduation2) { setStatus('Selecione a área da 2ª graduação.'); return; }
-                    if (!(profile as any).graduation2CourseName?.trim()) { setStatus('Informe o nome completo do curso da 2ª graduação.'); return; }
-                    if ((profile as any).graduation2 === '__outro2__' && !(profile as any).graduation2Exception?.trim()) { setStatus('Preencha o campo de exceção da 2ª graduação.'); return; }
-                  }
                   // Validar comprovacao dos pos/MBA selecionados
                   for (const item of profile.postMBAs) {
                     const mode = profile.proofMode[item];
                     if (!mode) { setStatus(`Selecione como vai comprovar o título: "${item}".`); return; }
                     if (mode === 'upload' && !profile.proofFiles[item]) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); return; }
                   }
-                  setStatus(''); setStep(4);
+                  setStatus(''); setStep(5);
                 }}>Proximo &rarr;</button>
               </div>
             </div>
           )}
 
-          {/* ── STEP 4: EXPERIENCIA ── */}
-          {step === 4 && (
+          {/* ── STEP 5: CURSOS ESTRATEGICOS ── */}
+          {step === 5 && (
+            <div className="section-card">
+              <div className="section-title">
+                <span className="section-icon">&#127775;</span>
+                <div>
+                  <h2>Cursos Extracurriculares</h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+                    Cursos extracurriculares concluídos valem até <span style={{ color: 'var(--purple)', fontWeight: 600 }}>3 pontos</span> na aderência técnica
+                  </p>
+                </div>
+              </div>
+
+              {/* Instrucoes detalhadas */}
+              <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: 10, padding: '14px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
+                <p style={{ margin: 0, marginBottom: 8, fontWeight: 700 }}>O que são cursos extracurriculares?</p>
+                <p style={{ margin: 0, marginBottom: 6 }}>São formações de desenvolvimento continuado — diferentes de Pós/MBA. Incluem cursos, workshops, treinamentos e certificações profissionais realizados fora do ambiente acadêmico formal.</p>
+                <p style={{ margin: 0, marginBottom: 6 }}><strong>Requisito mínimo:</strong> o curso deve ter <strong>no mínimo 16 horas</strong> de carga horária para ser considerado válido para pontuação. Cursos com menos de 16h serão desconsiderados automaticamente.</p>
+                <p style={{ margin: 0, marginBottom: 6 }}>Para cada curso selecionado, informe a carga horária e indique como vai comprová-lo (documento ou conhecimento da UGP).</p>
+                <p style={{ margin: 0 }}>A validação final é feita pelo RH/UGP. Cursos não listados podem ser registrados no campo de exceção da última etapa.</p>
+              </div>
+
+              {/* Transversal vs especifico */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                <div style={{ background: '#f0fdf4', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '12px 14px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#065f46', marginBottom: 4, display: 'flex', alignItems: 'center' }}>
+                    &#127758; Curso Transversal
+                    <InfoTooltip content={
+                      <div>
+                        <p style={{ fontWeight: 700, marginBottom: 6, color: '#065f46' }}>Critérios para Curso Transversal</p>
+                        <p style={{ marginBottom: 8 }}>Será considerado Curso Transversal apenas o curso cujo nome indique claramente foco principal em:</p>
+                        <ul style={{ paddingLeft: 16, marginBottom: 8, lineHeight: 1.8 }}>
+                          <li>Liderança ou gestão de pessoas</li>
+                          <li>Desenvolvimento humano e organizacional</li>
+                          <li>Estratégia organizacional</li>
+                          <li>Gestão de projetos ou processos</li>
+                          <li>Inovação ou transformação digital aplicada à gestão</li>
+                          <li>Governança corporativa ou gestão da mudança</li>
+                        </ul>
+                        <p style={{ color: '#dc2626', marginBottom: 6 }}><strong>Não serão classificados como Transversal</strong> cursos técnicos ou funcionais de área específica, como Marketing, Finanças, Controladoria, Auditoria, Direito, Comunicação, Logística, Vendas ou Gestão Comercial.</p>
+                        <p style={{ color: '#7c3aed' }}>Nesses casos, o curso poderá ser considerado <strong>Curso Específico da Área</strong> quando houver relação direta com a área de interesse escolhida.</p>
+                      </div>
+                    } />
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: '#047857', lineHeight: 1.6, margin: 0 }}>
+                    Competências gerenciais e comportamentais que contribuem para <strong>qualquer área</strong> escolhida.
+                  </p>
+                </div>
+                <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '12px 14px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#5B2D8E', marginBottom: 4 }}>&#127919; Curso Especifico da Area</div>
+                  <p style={{ fontSize: '0.75rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
+                    Cursos técnicos ligados a uma unidade específica. Pontuam <strong>somente na área correspondente</strong>.
+                  </p>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Cursos extracurriculares concluídos</label>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Ao marcar um curso, informe a carga horária e como vai comprová-lo.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 380, overflowY: 'auto', padding: '4px' }}>
+                  {courseOptions.map((o) => {
+                    const selected = profile.selectedCourses.includes(o.label);
+                    const hours = profile.courseHours?.[o.label] || 0;
+                    const belowMin = selected && hours > 0 && hours < 16;
+                    return (
+                      <div key={o.id} style={{
+                        borderRadius: 'var(--radius-sm)',
+                        border: `1.5px solid ${belowMin ? '#fca5a5' : selected ? 'var(--purple)' : 'var(--border)'}`,
+                        background: belowMin ? '#fff1f2' : selected ? 'var(--gradient-soft)' : 'white',
+                        overflow: 'hidden', transition: 'all 0.2s'
+                      }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={selected}
+                            onChange={() => {
+                              toggleMulti('selectedCourses', o.label);
+                              if (selected) {
+                                setProfile((p) => {
+                                  const h = { ...p.courseHours }; delete h[o.label];
+                                  const m = { ...p.proofMode }; delete m[o.label];
+                                  const f = { ...p.proofFiles }; delete f[o.label];
+                                  return { ...p, courseHours: h, proofMode: m, proofFiles: f };
+                                });
+                              }
+                            }}
+                            style={{ accentColor: 'var(--purple)', width: 15, height: 15, flexShrink: 0 }} />
+                          <span style={{ fontSize: '0.82rem', color: belowMin ? '#dc2626' : selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400, flex: 1 }}>{o.label}</span>
+                        </label>
+                        {selected && (
+                          <>
+                            <div style={{ padding: '0 12px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Carga horária (h):</label>
+                              <input type="number" min={1} max={999}
+                                value={hours || ''}
+                                onChange={(e) => {
+                                  const v = parseInt(e.target.value) || 0;
+                                  setProfile((p) => ({ ...p, courseHours: { ...p.courseHours, [o.label]: v } }));
+                                }}
+                                placeholder="Ex: 40"
+                                style={{ width: 80, padding: '4px 8px', border: `1px solid ${belowMin ? '#fca5a5' : 'var(--border)'}`, borderRadius: 6, fontSize: '0.78rem' }} />
+                              {belowMin && <span style={{ fontSize: '0.72rem', color: '#dc2626' }}>&#9888; Abaixo de 16h — não pontua</span>}
+                              {selected && hours >= 16 && <span style={{ fontSize: '0.72rem', color: '#16a34a' }}>&#10003; Válido</span>}
+                            </div>
+                            <ProofSelector
+                              itemLabel={o.label}
+                              proofMode={profile.proofMode}
+                              proofFiles={profile.proofFiles}
+                              onChange={(mode, fileName) => setProof(o.label, mode, fileName)}
+                            />
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
+                <button type="button" className="btn-outline" onClick={() => setStep(4)}>&larr; Voltar</button>
+                <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
+                  for (const item of profile.selectedCourses) {
+                    const mode = profile.proofMode[item];
+                    if (!mode) { setStatus(`Selecione como vai comprovar o curso: "${item}".`); return; }
+                    if (mode === 'upload' && !profile.proofFiles[item]) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); return; }
+                  }
+                  setStatus(''); setStep(6);
+                }}>Proximo &rarr;</button>
+              </div>
+            </div>
+          )}
+
+          {/* ── STEP 6: EXPERIENCIA ── */}
+          {step === 6 && (
             <div className="section-card">
               <div className="section-title">
                 <span className="section-icon">&#128188;</span>
@@ -879,14 +1042,14 @@ export default function ParticipantForm() {
               )}
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(3)}>&larr; Voltar</button>
-                <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => { setStatus(''); setStep(5); }}>Proximo &rarr;</button>
+                <button type="button" className="btn-outline" onClick={() => setStep(5)}>&larr; Voltar</button>
+                <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => { setStatus(''); setStep(7); }}>Proximo &rarr;</button>
               </div>
             </div>
           )}
 
-          {/* ── STEP 5: CURSOS ESTRATEGICOS ── */}
-          {step === 5 && (
+          {/* ── STEP 5: CURSOS ESTRATEGICOS (DUPLICADO - REMOVIDO) ── */}
+          {step === -5 && (
             <div className="section-card">
               <div className="section-title">
                 <span className="section-icon">&#127775;</span>
@@ -1012,8 +1175,8 @@ export default function ParticipantForm() {
             </div>
           )}
 
-          {/* ── STEP 6: PROJETOS ESTRATEGICOS ── */}
-          {step === 6 && (
+          {/* ── STEP 7: PROJETOS ESTRATEGICOS ── */}
+          {step === 7 && (
             <div className="section-card">
               <div className="section-title">
                 <span className="section-icon">&#128203;</span>
@@ -1094,7 +1257,7 @@ export default function ParticipantForm() {
 
               {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(5)}>&larr; Voltar</button>
+                <button type="button" className="btn-outline" onClick={() => setStep(6)}>&larr; Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 180 }} onClick={(e) => {
                   // Validar comprovacao dos projetos selecionados
                   for (const item of profile.selectedProjects) {
