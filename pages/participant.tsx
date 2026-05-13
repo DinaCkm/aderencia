@@ -97,6 +97,37 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, onChange }: {
   );
 }
 
+// Componente de tutorial de cálculo expansível
+function CalcTutorial({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, marginBottom: 16, overflow: 'hidden' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        style={{
+          width: '100%', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: '#334155',
+          textAlign: 'left'
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ color: 'var(--purple)', fontSize: '1.1rem' }}>&#128218;</span>
+          {title}
+        </span>
+        <span style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>&#9660;</span>
+      </button>
+      {open && (
+        <div style={{ padding: '0 16px 16px', fontSize: '0.78rem', color: '#475569', lineHeight: 1.7 }}>
+          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>
+            {children}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Componente de tooltip/popover informativo
 function InfoTooltip({ content }: { content: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -434,8 +465,23 @@ export default function ParticipantForm() {
 
               <div className="section-title">
                 <span className="section-icon">&#128100;</span>
-                <div><h2>Dados Basicos</h2></div>
+                <div><h2>Dados Básicos</h2></div>
               </div>
+
+              <CalcTutorial title="Como funciona o cálculo de aderência?">
+                <p style={{ margin: '0 0 8px' }}>O índice de aderência é calculado separadamente para cada área de interesse que você escolher, com base em dois eixos:</p>
+                <p style={{ margin: '0 0 4px', fontWeight: 700 }}>Aderência Técnica (nota 0–10)</p>
+                <p style={{ margin: '0 0 8px' }}>Calculada a partir de uma nota bruta de 0 a 80 pontos, dividida em três componentes:</p>
+                <ul style={{ paddingLeft: 16, margin: '0 0 8px', lineHeight: 1.8 }}>
+                  <li><strong>Pós-graduação / MBA:</strong> até 40 pontos</li>
+                  <li><strong>Experiência gerencial:</strong> até 20 pontos (5 pts/ano)</li>
+                  <li><strong>Projetos estratégicos:</strong> até 20 pontos</li>
+                </ul>
+                <p style={{ margin: '0 0 4px' }}>Fórmula: <strong>Nota Técnica = (Soma dos pontos ÷ 80) × 10</strong></p>
+                <p style={{ margin: '0 0 8px', fontSize: '0.72rem', color: '#94a3b8' }}>Graduação e Cursos Extracurriculares são dados complementares e não entram na pontuação.</p>
+                <p style={{ margin: '0 0 4px', fontWeight: 700 }}>Aderência Comportamental (nota 0–10)</p>
+                <p style={{ margin: 0 }}>Calculada como média entre o Perfil DISC (0–10) e a Performance no programa (0–100 convertida para 0–10). Esses dados são inseridos pela equipe de RH/UGP.</p>
+              </CalcTutorial>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div className="form-group">
                   <label className="form-label">Nome completo</label>
@@ -520,6 +566,12 @@ export default function ParticipantForm() {
                   <h2>Áreas de Interesse</h2>
                 </div>
               </div>
+              <CalcTutorial title="Como as Áreas de Interesse influenciam no cálculo?">
+                <p style={{ margin: '0 0 8px' }}>Cada área de interesse que você selecionar gerará uma <strong>análise de aderência independente</strong>. Isso significa que o sistema calculará uma nota de aderência técnica e comportamental separada para cada área.</p>
+                <p style={{ margin: '0 0 8px' }}>Para cada área, o sistema seleciona automaticamente a combinação de Pós/MBA e Projetos que gera a <strong>maior pontuação possível</strong> para aquela área específica, com base no catálogo oficial.</p>
+                <p style={{ margin: 0 }}>Você pode selecionar até <strong>3 áreas</strong>. Quanto mais áreas você escolher, mais oportunidades de análise serão geradas para o seu perfil.</p>
+              </CalcTutorial>
+
               <div style={{ background: 'linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%)', border: '1.5px solid #ddd6fe', borderRadius: 10, padding: '14px 18px', marginBottom: 20 }}>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text)', lineHeight: 1.8, margin: 0 }}>
                   Escolha de <strong>1 a 3 áreas</strong> nas quais você deseja ser considerado como possível sucessor no <strong>Programa de Desenvolvimento de Líderes e Sucessores</strong>.
@@ -580,6 +632,12 @@ export default function ParticipantForm() {
                 </div>
               </div>
 
+              <CalcTutorial title="Como a Graduação é avaliada?">
+                <p style={{ margin: '0 0 8px' }}>A graduação é um <strong>requisito obrigatório</strong> para participação no programa, mas <strong>não soma pontos</strong> no cálculo do índice de aderência técnica.</p>
+                <p style={{ margin: '0 0 8px' }}>As informações registradas aqui constarão no seu documento final de aderência e servirão como <strong>dado complementar</strong> para a equipe técnica e gestores durante a análise do seu perfil.</p>
+                <p style={{ margin: 0 }}>O sistema registrará a sua formação e a classificará automaticamente em relação a cada área de interesse escolhida (como Prioritária, Específica ou Não Relacionada), mas essa classificação tem caráter apenas informativo.</p>
+              </CalcTutorial>
+
               {/* Texto de orientacao da etapa */}
               <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: 10, padding: '14px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
                 <p style={{ margin: 0, marginBottom: 8 }}>
@@ -589,7 +647,7 @@ export default function ParticipantForm() {
                   Caso não identifique sua área de formação ou o nome do seu curso nas opções disponíveis, selecione <strong>"Outro curso / Área não identificada"</strong> e registre as informações no campo de exceção para análise da equipe responsável.
                 </p>
                 <p style={{ margin: 0 }}>
-                  As informações declaradas poderão ser verificadas posteriormente e serão utilizadas para o cálculo do Índice de Aderência às áreas escolhidas.
+                  <strong>Atenção:</strong> Serão considerados apenas cursos de graduação (bacharelado, licenciatura ou tecnólogo) concluídos até 31/12/2025.
                 </p>
               </div>
 
@@ -761,16 +819,20 @@ export default function ParticipantForm() {
                 </div>
               </div>
 
+              <CalcTutorial title="Como a Pós-graduação / MBA é avaliada?">
+                <p style={{ margin: '0 0 8px' }}>A pontuação de Pós-graduação/MBA representa até <strong>40 pontos</strong> (metade da nota bruta) no cálculo da aderência técnica.</p>
+                <p style={{ margin: '0 0 8px' }}>O sistema avalia automaticamente os títulos que você informar e seleciona <strong>o de maior pontuação para cada área de interesse</strong> que você escolheu, conforme o catálogo oficial:</p>
+                <ul style={{ paddingLeft: 16, margin: '0 0 8px', lineHeight: 1.8 }}>
+                  <li><strong>Título Transversal (Prioritário):</strong> 40 pontos (foco em liderança, gestão, estratégia, inovação).</li>
+                  <li><strong>Título Específico da Área:</strong> 20 pontos (válido apenas para a área correspondente).</li>
+                  <li><strong>Título Não Relacionado:</strong> 20 pontos.</li>
+                </ul>
+                <p style={{ margin: 0 }}>Você não precisa escolher qual título usar em qual área — basta informar até 3 títulos que você possui e o sistema fará a melhor combinação possível para você em cada área.</p>
+              </CalcTutorial>
+
               {/* Instrucoes detalhadas */}
               <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: 10, padding: '14px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
-                <p style={{ margin: 0, marginBottom: 8, fontWeight: 700 }}>Como funciona a pontuação de Pós-graduação / MBA:</p>
                 <p style={{ margin: 0, marginBottom: 6 }}>Selecione até <strong>3 títulos</strong> de pós-graduação, MBA, especialização ou formação executiva que você <strong>concluiu até 31/12/2025</strong>. Para cada título selecionado, indique como vai comprová-lo.</p>
-                <p style={{ margin: 0, marginBottom: 6, color: '#0369a1', fontWeight: 600 }}>O sistema seleciona automaticamente o título de maior pontuação para cada área de interesse — você não precisa escolher qual usar em cada área.</p>
-                <p style={{ margin: 0, marginBottom: 6 }}>Os títulos são classificados em duas categorias:</p>
-                <ul style={{ paddingLeft: 16, margin: '0 0 6px', lineHeight: 1.8 }}>
-                  <li><strong>Título Transversal:</strong> vale para qualquer área de interesse escolhida (foco em liderança, gestão, estratégia, inovação, governança).</li>
-                  <li><strong>Título Específico da Área:</strong> vale somente para a área correspondente, com pontuação maior.</li>
-                </ul>
                 <p style={{ margin: 0 }}>Caso seu título não esteja na lista, utilize o campo de exceção ao final do formulário para registrar a informação para análise da equipe responsável.</p>
               </div>
 
@@ -892,6 +954,12 @@ export default function ParticipantForm() {
                 </div>
               </div>
 
+              <CalcTutorial title="Como os Cursos Extracurriculares são avaliados?">
+                <p style={{ margin: '0 0 8px' }}>Os cursos extracurriculares <strong>não somam pontos</strong> no cálculo do índice de aderência técnica.</p>
+                <p style={{ margin: '0 0 8px' }}>As informações registradas aqui constarão no seu documento final de aderência e servirão como <strong>dado complementar</strong> para a equipe técnica e gestores durante a análise do seu perfil.</p>
+                <p style={{ margin: 0 }}>O sistema registrará os seus cursos e os classificará automaticamente em relação a cada área de interesse escolhida (como Transversal ou Específico), mas essa classificação tem caráter apenas informativo.</p>
+              </CalcTutorial>
+
               {/* Aviso de dados complementares */}
               <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#92400e', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>&#8505;&#65039;</span>
@@ -904,7 +972,7 @@ export default function ParticipantForm() {
               <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: 10, padding: '14px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
                 <p style={{ margin: 0, marginBottom: 8, fontWeight: 700 }}>O que são cursos extracurriculares?</p>
                 <p style={{ margin: 0, marginBottom: 6 }}>São formações de desenvolvimento continuado — diferentes de Pós/MBA. Incluem cursos, workshops, treinamentos e certificações profissionais realizados fora do ambiente acadêmico formal.</p>
-                <p style={{ margin: 0, marginBottom: 6 }}><strong>Requisito mínimo:</strong> o curso deve ter <strong>no mínimo 16 horas</strong> de carga horária para ser considerado válido para pontuação. Cursos com menos de 16h serão desconsiderados automaticamente.</p>
+                <p style={{ margin: 0, marginBottom: 6 }}><strong>Requisito mínimo:</strong> o curso deve ter <strong>no mínimo 16 horas</strong> de carga horária para ser considerado válido para registro. Cursos com menos de 16h serão desconsiderados automaticamente.</p>
                 <p style={{ margin: 0, marginBottom: 6 }}>Para cada curso selecionado, informe a carga horária e indique como vai comprová-lo (documento ou conhecimento da UGP).</p>
                 <p style={{ margin: 0 }}>A validação final é feita pelo RH/UGP. Cursos não listados podem ser registrados no campo de exceção da última etapa.</p>
               </div>
@@ -1023,15 +1091,22 @@ export default function ParticipantForm() {
               <div className="section-title">
                 <span className="section-icon">&#128188;</span>
                 <div>
-                  <h2>Experiencia Gerencial</h2>
+                  <h2>Experiência Gerencial</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                    Experiencia em cargos de gestao vale ate <span style={{ color: 'var(--purple)', fontWeight: 600 }}>4 pontos</span> na aderencia tecnica
+                    Vale até <span style={{ color: 'var(--purple)', fontWeight: 600 }}>20 pontos</span> na aderência técnica
                   </p>
                 </div>
               </div>
-              <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10, padding: '12px 16px', marginBottom: 20, fontSize: '0.78rem', color: '#0369a1' }}>
-                <strong>Como e calculado:</strong> 1 ponto a cada 6 meses completos em cargo gerencial ou interino, maximo de 4 pontos (24 meses).
-              </div>
+
+              <CalcTutorial title="Como a Experiência Gerencial é avaliada?">
+                <p style={{ margin: '0 0 8px' }}>A experiência em cargos de gestão representa até <strong>20 pontos</strong> (1/4 da nota bruta) no cálculo da aderência técnica.</p>
+                <p style={{ margin: '0 0 8px' }}>O cálculo é feito somando o tempo em cargo gerencial efetivo e o tempo em cargo interino:</p>
+                <ul style={{ paddingLeft: 16, margin: '0 0 8px', lineHeight: 1.8 }}>
+                  <li><strong>5 pontos</strong> a cada 1 ano (12 meses) completos de experiência.</li>
+                  <li>O limite máximo é de <strong>20 pontos</strong> (alcançado com 4 anos ou 48 meses de experiência).</li>
+                </ul>
+                <p style={{ margin: 0 }}>O sistema calcula a pontuação automaticamente com base nos meses informados.</p>
+              </CalcTutorial>
 
               {/* Gerencial efetivo */}
               <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '16px', marginBottom: 16 }}>
@@ -1071,7 +1146,7 @@ export default function ParticipantForm() {
               {(profile.managerialMonths > 0 || profile.interimMonths > 0) && (
                 <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8, padding: '10px 14px', fontSize: '0.78rem', color: '#166534' }}>
                   Gerencial: <strong>{profile.managerialMonths}m</strong> + Interino: <strong>{profile.interimMonths}m</strong> = <strong>{profile.managerialMonths + profile.interimMonths}m</strong> totais
-                  &nbsp;&rarr;&nbsp; <strong style={{ color: 'var(--purple)' }}>{Math.min(4, Math.floor((profile.managerialMonths + profile.interimMonths) / 6))} ponto(s)</strong> (max 4)
+                  &nbsp;&rarr;&nbsp; <strong style={{ color: 'var(--purple)' }}>{Math.min(20, Math.floor((profile.managerialMonths + profile.interimMonths) / 12) * 5)} ponto(s)</strong> (max 20)
                 </div>
               )}
 
@@ -1215,18 +1290,27 @@ export default function ParticipantForm() {
               <div className="section-title">
                 <span className="section-icon">&#128203;</span>
                 <div>
-                  <h2>Projetos Estrategicos</h2>
+                  <h2>Projetos Estratégicos</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
                     Vale até <span style={{ color: 'var(--purple)', fontWeight: 600 }}>20 pontos</span> na aderência técnica — projetos da área pontuam conforme o catálogo oficial
                   </p>
                 </div>
               </div>
 
+              <CalcTutorial title="Como os Projetos Estratégicos são avaliados?">
+                <p style={{ margin: '0 0 8px' }}>A participação em projetos estratégicos representa até <strong>20 pontos</strong> (1/4 da nota bruta) no cálculo da aderência técnica.</p>
+                <p style={{ margin: '0 0 8px' }}>O sistema avalia automaticamente os projetos que você informar e seleciona <strong>o de maior pontuação para cada área de interesse</strong> que você escolheu, conforme o catálogo oficial:</p>
+                <ul style={{ paddingLeft: 16, margin: '0 0 8px', lineHeight: 1.8 }}>
+                  <li><strong>Projeto Estruturante da Área:</strong> 20 pontos (iniciativas de alto impacto para a área).</li>
+                  <li><strong>Projeto Relevante da Área:</strong> 15 pontos (iniciativas importantes para a área).</li>
+                </ul>
+                <p style={{ margin: 0 }}>Você não precisa escolher qual projeto usar em qual área — basta informar até 3 projetos dos quais participou ativamente e o sistema fará a melhor combinação possível para você em cada área.</p>
+              </CalcTutorial>
+
               <div style={{ background: '#f0f9ff', border: '1.5px solid #7dd3fc', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
-                <p style={{ margin: 0, marginBottom: 6, fontWeight: 700 }}>O que sao projetos estrategicos?</p>
+                <p style={{ margin: 0, marginBottom: 6, fontWeight: 700 }}>O que são projetos estratégicos?</p>
                 <p style={{ margin: 0, marginBottom: 6 }}>São iniciativas institucionais formais da organização nas quais você participou como membro, líder ou colaborador.</p>
-                <p style={{ margin: 0, marginBottom: 6 }}>A pontuação é definida pelo catálogo oficial: <strong>Projeto Estruturante da Área = 20 pts</strong> | <strong>Projeto Relevante da Área = 15 pts</strong>. O sistema soma os pontos dos projetos selecionados até o máximo de 20 pontos por área.</p>
-                <p style={{ margin: 0 }}>Selecione até <strong>3 projetos</strong> em que participou e indique como vai comprová-los.</p>
+                <p style={{ margin: 0 }}>Selecione até <strong>3 projetos</strong> em que participou e indique como vai comprová-los. A validação final é feita pelo RH/UGP.</p>
               </div>
 
               <div className="form-group">
