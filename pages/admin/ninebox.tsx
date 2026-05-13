@@ -44,7 +44,7 @@ function getCell(quadrantLabel: string) {
 export default function AdminNineBox() {
   const router = useRouter();
   const [report, setReport] = useState<Record<string, AreaAssessment[]>>({});
-  const [selectedArea, setSelectedArea] = useState<string>(OFFICIAL_AREAS[0]);
+  const [selectedArea, setSelectedArea] = useState<string>(OFFICIAL_AREAS[0].code);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -102,18 +102,18 @@ export default function AdminNineBox() {
           {/* Area selector */}
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px' }}>
             {OFFICIAL_AREAS.map((area) => (
-              <button key={area} type="button"
-                onClick={() => setSelectedArea(area)}
+              <button key={area.code} type="button"
+                onClick={() => setSelectedArea(area.code)}
                 style={{
-                  padding: '6px 14px', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', fontWeight: selectedArea === area ? 700 : 400,
-                  border: `2px solid ${selectedArea === area ? 'var(--purple)' : 'var(--border)'}`,
-                  background: selectedArea === area ? 'var(--gradient-soft)' : 'white',
-                  color: selectedArea === area ? 'var(--purple)' : 'var(--text)', cursor: 'pointer', transition: 'all 0.2s',
+                  padding: '6px 14px', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', fontWeight: selectedArea === area.code ? 700 : 400,
+                  border: `2px solid ${selectedArea === area.code ? 'var(--purple)' : 'var(--border)'}`,
+                  background: selectedArea === area.code ? 'var(--gradient-soft)' : 'white',
+                  color: selectedArea === area.code ? 'var(--purple)' : 'var(--text)', cursor: 'pointer', transition: 'all 0.2s',
                 }}>
-                {area}
-                {report[area] && report[area].length > 0 && (
+                {area.label}
+                {report[area.code] && report[area.code].length > 0 && (
                   <span style={{ marginLeft: 6, background: 'var(--purple)', color: 'white', borderRadius: 10, padding: '1px 6px', fontSize: '0.7rem' }}>
-                    {report[area].length}
+                    {report[area.code].length}
                   </span>
                 )}
               </button>

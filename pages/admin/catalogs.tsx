@@ -134,7 +134,7 @@ export default function AdminCatalogs() {
               <label className="form-label">Area (apenas para itens especificos)</label>
               <select className="form-input" value={item.area} onChange={(e) => setItem({ ...item, area: e.target.value })}>
                 <option value="">Nenhuma (transversal)</option>
-                {OFFICIAL_AREAS.map((a) => <option key={a} value={a}>{a}</option>)}
+                {OFFICIAL_AREAS.map((a) => <option key={a.code} value={a.code}>{a.label}</option>)}
               </select>
             </div>
             {message && <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 'var(--radius-sm)', padding: '8px 14px', color: '#15803d', fontSize: '0.8rem', marginBottom: 12 }}>{message}</div>}

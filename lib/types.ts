@@ -22,6 +22,8 @@ export interface CatalogItem {
   group: CatalogGroup;
   classification: CatalogClassification;
   area?: AreaCode;
+  points?: number;      // pontuação do item (definida no catálogo oficial)
+  aliases?: string[];   // termos equivalentes para matching
 }
 
 export interface ParticipantProfile {
@@ -33,19 +35,24 @@ export interface ParticipantProfile {
   currentRole: string;
   currentArea: AreaCode | '';
   selectedAreas: AreaCode[];
-  graduation: string;
-  graduationCourseName?: string;   // nome completo do curso de graduacao informado pelo participante
-  graduationException?: string;    // descricao quando area nao identificada (campo de excecao)
-  postMBAs: string[];
+  // Graduação — até 2 formações (registradas, não entram na nota)
+  graduation: string;              // primeira graduação (label do catálogo)
+  graduation2?: string;            // segunda graduação (label do catálogo)
+  graduationCourseName?: string;   // nome livre quando não encontrado no catálogo
+  graduationException?: string;    // justificativa de exceção
+  // Pós/MBA — até 3 títulos (entram no cálculo)
+  postMBAs: string[];              // labels dos títulos selecionados (máx. 3)
   certifications: string[];
-  experienceMonths: number;       // legado — soma de gerencial + interino
+  experienceMonths: number;        // legado — soma de gerencial + interino
   managerialMonths: number;        // meses em cargo gerencial efetivo
   interimMonths: number;           // meses em cargo interino
   positionsHeld: string[];
+  // Cursos extracurriculares — dados complementares (não entram na nota)
   selectedCourses: string[];
-  courseHours: Record<string, number>;  // carga horária informada por curso (chave = label do curso)
-  proofMode: Record<string, 'ugp-knows' | 'upload'>;  // modo de comprovação por item (label como chave)
-  proofFiles: Record<string, string>;                  // nome do arquivo enviado por item
+  courseHours: Record<string, number>;
+  proofMode: Record<string, 'ugp-knows' | 'upload'>;
+  proofFiles: Record<string, string>;
+  // Projetos estratégicos — entram no cálculo (máx. 3 selecionados)
   selectedProjects: string[];
   exceptionRequested: boolean;
   exceptionJustification: string;

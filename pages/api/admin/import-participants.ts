@@ -74,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       continue;
     }
 
-    const areaValues = parseList(selectedAreas).filter((area) => OFFICIAL_AREAS.includes(area as any)) as ParticipantProfile['selectedAreas'];
+    const areaValues = parseList(selectedAreas).filter((area) => OFFICIAL_AREAS.map((a) => a.code).includes(area)) as ParticipantProfile['selectedAreas'];
     const participant: ParticipantProfile = {
       id,
       name,

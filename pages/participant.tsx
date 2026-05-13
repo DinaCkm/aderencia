@@ -483,17 +483,17 @@ export default function ParticipantForm() {
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {OFFICIAL_AREAS.map((area) => {
-                    const isCurrent = profile.currentArea === area;
+                    const isCurrent = profile.currentArea === area.code;
                     return (
-                      <button key={area} type="button"
-                        onClick={() => setProfile((p) => ({ ...p, currentArea: area }))}
+                      <button key={area.code} type="button"
+                        onClick={() => setProfile((p) => ({ ...p, currentArea: area.code as AreaCode }))}
                         style={{
                           padding: '6px 14px', borderRadius: 20, fontSize: '0.78rem', fontWeight: isCurrent ? 700 : 400, cursor: 'pointer',
                           border: `2px solid ${isCurrent ? 'var(--cyan)' : 'var(--border)'}`,
                           background: isCurrent ? 'var(--cyan)' : 'white',
                           color: isCurrent ? 'white' : 'var(--text)', transition: 'all 0.2s'
                         }}>
-                        {area}{isCurrent ? ' (atual)' : ''}
+                        {area.label}{isCurrent ? ' (atual)' : ''}
                       </button>
                     );
                   })}
@@ -536,18 +536,18 @@ export default function ParticipantForm() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10, marginBottom: 16 }}>
                 {OFFICIAL_AREAS.map((area) => {
-                  const selected = profile.selectedAreas.includes(area as AreaCode);
-                  const isCurrent = profile.currentArea === area;
+                  const selected = profile.selectedAreas.includes(area.code as AreaCode);
+                  const isCurrent = profile.currentArea === area.code;
                   return (
-                    <button key={area} type="button"
-                      onClick={() => toggleArea(area as AreaCode)}
+                    <button key={area.code} type="button"
+                      onClick={() => toggleArea(area.code as AreaCode)}
                       style={{
                         padding: '12px 8px', borderRadius: 10, fontSize: '0.8rem', fontWeight: selected ? 700 : 400, cursor: 'pointer',
                         border: `2px solid ${selected ? 'var(--purple)' : 'var(--border)'}`,
                         background: selected ? 'var(--gradient-soft)' : 'white',
                         color: selected ? 'var(--purple)' : 'var(--text)', transition: 'all 0.2s', textAlign: 'center'
                       }}>
-                      {area}{isCurrent ? '\n(atual)' : ''}
+                      {area.label}{isCurrent ? ' (atual)' : ''}
                     </button>
                   );
                 })}
@@ -575,7 +575,7 @@ export default function ParticipantForm() {
                 <div>
                   <h2>Formacao Academica</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                    Titulos academicos valem ate <span style={{ color: 'var(--purple)', fontWeight: 600 }}>3 pontos</span> na aderencia tecnica
+                    Registro obrigatorio — <span style={{ color: '#0369a1', fontWeight: 600 }}>dado complementar, nao entra na pontuacao</span>
                   </p>
                 </div>
               </div>
@@ -756,7 +756,7 @@ export default function ParticipantForm() {
                 <div>
                   <h2>Pós-graduação / MBA</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                    Títulos de pós-graduação e MBA valem até <span style={{ color: 'var(--purple)', fontWeight: 600 }}>3 pontos</span> na aderência técnica
+                    Vale até <span style={{ color: 'var(--purple)', fontWeight: 600 }}>40 pontos</span> na aderência técnica — o sistema usa automaticamente o melhor título para cada área
                   </p>
                 </div>
               </div>
@@ -764,7 +764,8 @@ export default function ParticipantForm() {
               {/* Instrucoes detalhadas */}
               <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: 10, padding: '14px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
                 <p style={{ margin: 0, marginBottom: 8, fontWeight: 700 }}>Como funciona a pontuação de Pós-graduação / MBA:</p>
-                <p style={{ margin: 0, marginBottom: 6 }}>Selecione abaixo todos os títulos de pós-graduação, MBA, especialização ou formação executiva que você <strong>concluiu até 31/12/2025</strong>. Para cada título selecionado, indique como vai comprová-lo.</p>
+                <p style={{ margin: 0, marginBottom: 6 }}>Selecione até <strong>3 títulos</strong> de pós-graduação, MBA, especialização ou formação executiva que você <strong>concluiu até 31/12/2025</strong>. Para cada título selecionado, indique como vai comprová-lo.</p>
+                <p style={{ margin: 0, marginBottom: 6, color: '#0369a1', fontWeight: 600 }}>O sistema seleciona automaticamente o título de maior pontuação para cada área de interesse — você não precisa escolher qual usar em cada área.</p>
                 <p style={{ margin: 0, marginBottom: 6 }}>Os títulos são classificados em duas categorias:</p>
                 <ul style={{ paddingLeft: 16, margin: '0 0 6px', lineHeight: 1.8 }}>
                   <li><strong>Título Transversal:</strong> vale para qualquer área de interesse escolhida (foco em liderança, gestão, estratégia, inovação, governança).</li>
@@ -816,7 +817,7 @@ export default function ParticipantForm() {
 
               {/* Pos/MBA com comprovacao por item */}
               <div className="form-group">
-                <label className="form-label">Pos-graduacao / MBA concluidos</label>
+                <label className="form-label">Pos-graduacao / MBA concluidos <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(máx. 3 títulos)</span></label>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>
                   Selecione os titulos que voce concluiu e indique como comprova cada um.
                 </p>
@@ -832,6 +833,7 @@ export default function ParticipantForm() {
                       }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: 'pointer' }}>
                           <input type="checkbox" checked={selected}
+                            disabled={!selected && profile.postMBAs.length >= 3}
                             onChange={() => {
                               toggleMulti('postMBAs', o.label);
                               if (selected) {
@@ -885,9 +887,17 @@ export default function ParticipantForm() {
                 <div>
                   <h2>Cursos Extracurriculares</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                    Cursos extracurriculares concluídos valem até <span style={{ color: 'var(--purple)', fontWeight: 600 }}>3 pontos</span> na aderência técnica
+                    <span style={{ color: '#0369a1', fontWeight: 600 }}>Dados complementares</span> — registrados no documento de aderência, mas não influenciam na pontuação
                   </p>
                 </div>
+              </div>
+
+              {/* Aviso de dados complementares */}
+              <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#92400e', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>&#8505;&#65039;</span>
+                <p style={{ margin: 0, lineHeight: 1.7 }}>
+                  <strong>Dados complementares:</strong> As informações desta etapa serão registradas no documento de aderência e podem ser utilizadas pela equipe técnica como evidência de apoio, mas <strong>não influenciam na pontuação</strong> do índice de aderência.
+                </p>
               </div>
 
               {/* Instrucoes detalhadas */}
@@ -1207,17 +1217,20 @@ export default function ParticipantForm() {
                 <div>
                   <h2>Projetos Estrategicos</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                    Participacao em projetos estrategicos da organizacao contribui para a aderencia tecnica
+                    Vale até <span style={{ color: 'var(--purple)', fontWeight: 600 }}>20 pontos</span> na aderência técnica — projetos da área pontuam conforme o catálogo oficial
                   </p>
                 </div>
               </div>
 
-              <div style={{ background: '#f0f9ff', border: '1.5px solid #7dd3fc', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.78rem', color: '#0369a1' }}>
-                <strong>O que sao projetos estrategicos?</strong> Sao iniciativas institucionais formais da organizacao nas quais voce participou como membro, lider ou colaborador. Projetos especificos de uma area pontuam com peso maior naquela area.
+              <div style={{ background: '#f0f9ff', border: '1.5px solid #7dd3fc', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
+                <p style={{ margin: 0, marginBottom: 6, fontWeight: 700 }}>O que sao projetos estrategicos?</p>
+                <p style={{ margin: 0, marginBottom: 6 }}>São iniciativas institucionais formais da organização nas quais você participou como membro, líder ou colaborador.</p>
+                <p style={{ margin: 0, marginBottom: 6 }}>A pontuação é definida pelo catálogo oficial: <strong>Projeto Estruturante da Área = 20 pts</strong> | <strong>Projeto Relevante da Área = 15 pts</strong>. O sistema soma os pontos dos projetos selecionados até o máximo de 20 pontos por área.</p>
+                <p style={{ margin: 0 }}>Selecione até <strong>3 projetos</strong> em que participou e indique como vai comprová-los.</p>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Projetos estrategicos participados</label>
+                <label className="form-label">Projetos estrategicos participados <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(máx. 3 projetos)</span></label>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Selecione os projetos em que participou e indique como vai comprova-los.</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {projectOptions.map((o) => {
@@ -1231,6 +1244,7 @@ export default function ParticipantForm() {
                       }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: 'pointer' }}>
                           <input type="checkbox" checked={selected}
+                            disabled={!selected && profile.selectedProjects.length >= 3}
                             onChange={() => {
                               toggleMulti('selectedProjects', o.label);
                               if (selected) {
