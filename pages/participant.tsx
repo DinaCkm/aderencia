@@ -1034,58 +1034,80 @@ export default function ParticipantForm() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Cursos extracurriculares concluídos</label>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Ao marcar um curso, informe a carga horária e como vai comprová-lo.</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {courseOptions.map((o) => {
-                    const selected = profile.selectedCourses.includes(o.label);
-                    const hours = profile.courseHours?.[o.label] || 0;
-                    const belowMin = selected && hours > 0 && hours < 16;
+                <label className="form-label">Cursos extracurriculares concluídos <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.78rem' }}>(máx. 3 cursos)</span></label>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 12 }}>Informe até 3 cursos. Para cada um, selecione a área, informe o nome completo e a carga horária.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {[0, 1, 2].map((idx) => {
+                    const courses = (profile as any).freeCourses || [];
+                    const course = courses[idx] || { area: '', name: '', hours: 0 };
+                    const hasData = course.name?.trim() || course.area;
+                    const belowMin = hasData && course.hours > 0 && course.hours < 16;
+                    const updateCourse = (field: string, value: any) => {
+                      setProfile((p) => {
+                        const arr = [...((p as any).freeCourses || [{}, {}, {}])];
+                        while (arr.length <= idx) arr.push({});
+                        arr[idx] = { ...arr[idx], [field]: value };
+                        return { ...p, freeCourses: arr } as any;
+                      });
+                    };
                     return (
-                      <div key={o.id} style={{
-                        borderRadius: 'var(--radius-sm)',
-                        border: `1.5px solid ${belowMin ? '#fca5a5' : selected ? 'var(--purple)' : 'var(--border)'}`,
-                        background: belowMin ? '#fff1f2' : selected ? 'var(--gradient-soft)' : 'white',
-                        overflow: 'hidden', transition: 'all 0.2s'
+                      <div key={idx} style={{
+                        border: `1.5px solid ${belowMin ? '#fca5a5' : hasData ? 'var(--purple)' : 'var(--border)'}`,
+                        borderRadius: 10,
+                        background: belowMin ? '#fff1f2' : hasData ? 'var(--gradient-soft)' : '#fafafa',
+                        padding: '12px 14px',
+                        transition: 'all 0.2s'
                       }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: 'pointer' }}>
-                          <input type="checkbox" checked={selected}
-                            onChange={() => {
-                              toggleMulti('selectedCourses', o.label);
-                              if (selected) {
-                                setProfile((p) => {
-                                  const h = { ...p.courseHours }; delete h[o.label];
-                                  const m = { ...p.proofMode }; delete m[o.label];
-                                  const f = { ...p.proofFiles }; delete f[o.label];
-                                  return { ...p, courseHours: h, proofMode: m, proofFiles: f };
-                                });
-                              }
-                            }}
-                            style={{ accentColor: 'var(--purple)', width: 15, height: 15, flexShrink: 0 }} />
-                          <span style={{ fontSize: '0.82rem', color: belowMin ? '#dc2626' : selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400, flex: 1 }}>{o.label}</span>
-                        </label>
-                        {selected && (
-                          <>
-                            <div style={{ padding: '0 12px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Carga horária (h):</label>
-                              <input type="number" min={1} max={999}
-                                value={hours || ''}
-                                onChange={(e) => {
-                                  const v = parseInt(e.target.value) || 0;
-                                  setProfile((p) => ({ ...p, courseHours: { ...p.courseHours, [o.label]: v } }));
-                                }}
-                                placeholder="Ex: 40"
-                                style={{ width: 80, padding: '4px 8px', border: `1px solid ${belowMin ? '#fca5a5' : 'var(--border)'}`, borderRadius: 6, fontSize: '0.78rem' }} />
-                              {belowMin && <span style={{ fontSize: '0.72rem', color: '#dc2626' }}>&#9888; Abaixo de 16h — não pontua</span>}
-                              {selected && hours >= 16 && <span style={{ fontSize: '0.72rem', color: '#16a34a' }}>&#10003; Válido</span>}
-                            </div>
+                        <p style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--purple)', marginBottom: 10 }}>Curso {idx + 1}</p>
+                        {/* Área */}
+                        <div style={{ marginBottom: 8 }}>
+                          <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Área do curso *</label>
+                          <select
+                            value={course.area || ''}
+                            onChange={(e) => updateCourse('area', e.target.value)}
+                            style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text)', background: 'white' }}
+                          >
+                            <option value="">Selecione a área...</option>
+                            <option value="transversal">Transversal (qualquer área)</option>
+                            {OFFICIAL_AREAS.map((a) => (
+                              <option key={a.code} value={a.code}>{a.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {/* Nome do curso */}
+                        <div style={{ marginBottom: 8 }}>
+                          <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Nome do curso conforme consta no certificado *</label>
+                          <input
+                            type="text"
+                            placeholder="Ex.: Gestão de Projetos Ágeis, Liderança e Equipes..."
+                            value={course.name || ''}
+                            onChange={(e) => updateCourse('name', e.target.value)}
+                            style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text)', background: 'white' }}
+                          />
+                        </div>
+                        {/* Carga horária */}
+                        <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Carga horária (h): *</label>
+                          <input
+                            type="number" min={1} max={999}
+                            placeholder="Ex: 40"
+                            value={course.hours || ''}
+                            onChange={(e) => updateCourse('hours', parseInt(e.target.value) || 0)}
+                            style={{ width: 80, padding: '4px 8px', border: `1px solid ${belowMin ? '#fca5a5' : 'var(--border)'}`, borderRadius: 6, fontSize: '0.78rem' }}
+                          />
+                          {belowMin && <span style={{ fontSize: '0.72rem', color: '#dc2626' }}>&#9888; Abaixo de 16h</span>}
+                          {hasData && course.hours >= 16 && <span style={{ fontSize: '0.72rem', color: '#16a34a' }}>&#10003; Válido</span>}
+                        </div>
+                        {/* Comprovação */}
+                        {course.name?.trim() && course.area && course.hours >= 16 && (
+                          <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginTop: 4 }}>
                             <ProofSelector
-                              itemLabel={`curso5:${o.label}`}
+                              itemLabel={`curso5_${idx}:${course.name}`}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
-                              onChange={(mode, fileName) => setProof(`curso5:${o.label}`, mode, fileName)}
+                              onChange={(mode, fileName) => setProof(`curso5_${idx}:${course.name}`, mode, fileName)}
                             />
-                          </>
+                          </div>
                         )}
                       </div>
                     );
