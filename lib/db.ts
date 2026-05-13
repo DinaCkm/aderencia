@@ -177,7 +177,15 @@ export async function writeJsonAsync<T>(name: string, data: T): Promise<void> {
  */
 export async function initializeDatabase(seedData: Record<string, any>): Promise<void> {
   if (!USE_POSTGRES) {
-    console.log('[db] Modo JSON local — seed ignorado.');
+    // No modo JSON local, inicializa apenas as chaves que ainda não existem
+    for (const [key, value] of Object.entries(seedData)) {
+      const filePath = path.join(process.cwd(), 'data', `${key}.json`);
+      if (!fs.existsSync(filePath)) {
+        ensureDataDir();
+        fs.writeFileSync(filePath, JSON.stringify(value, null, 2));
+        console.log(`[db] Seed local: "${key}" inicializado.`);
+      }
+    }
     return;
   }
   try {
