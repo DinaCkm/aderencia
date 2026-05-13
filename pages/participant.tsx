@@ -1376,12 +1376,12 @@ export default function ParticipantForm() {
                     onChange={(e) => setProfile((p) => ({ ...p, exceptionRequested: e.target.checked }))}
                     style={{ accentColor: 'var(--purple)', width: 15, height: 15 }} />
                   <span style={{ fontWeight: 600, color: 'var(--text)', fontSize: '0.85rem' }}>
-                    Solicitar excecao — tenho formacao ou experiencia nao listada acima
+                    Tenho um projeto que não tem correspondência acima
                   </span>
                 </label>
                 {profile.exceptionRequested && (
                   <textarea className="form-input" rows={3}
-                    placeholder="Descreva a formacao ou experiencia que nao esta na lista e justifique por que deve ser considerada..."
+                    placeholder="Descreva o projeto, seu papel e por que acredita que deve ser considerado no processo de avaliação..."
                     value={profile.exceptionJustification}
                     onChange={(e) => setProfile((p) => ({ ...p, exceptionJustification: e.target.value }))}
                     style={{ resize: 'vertical', fontSize: '0.82rem' }} />
