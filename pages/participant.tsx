@@ -802,14 +802,18 @@ export default function ParticipantForm() {
                   if (!(profile as any).graduationCourseName?.trim()) { setStatus('Informe o nome completo do curso de graduação.'); return; }
                   if (profile.graduation === '__outro__' && !(profile as any).graduationException?.trim()) { setStatus('Preencha o campo de exceção com o nome e descrição do seu curso.'); return; }
                   if (profile.graduation !== '__outro__') {
-                    const mode = profile.proofMode[profile.graduation];
+                    const mode = profile.proofMode[`grad:${profile.graduation}`];
                     if (!mode) { setStatus('Selecione como vai comprovar sua graduação (A UGP já tem conhecimento ou Enviar documento).'); return; }
-                    if (mode === 'upload' && !profile.proofFiles[profile.graduation]) { setStatus('Você selecionou "Enviar documento" para a graduação — escolha o arquivo antes de continuar.'); return; }
+                    if (mode === 'upload' && !profile.proofFiles[`grad:${profile.graduation}`]) { setStatus('Você selecionou "Enviar documento" para a graduação — escolha o arquivo antes de continuar.'); return; }
                   }
                   if ((profile as any).graduation2HasField) {
                     if (!(profile as any).graduation2) { setStatus('Selecione a área da 2ª graduação.'); return; }
                     if (!(profile as any).graduation2CourseName?.trim()) { setStatus('Informe o nome completo do curso da 2ª graduação.'); return; }
                     if ((profile as any).graduation2 === '__outro2__' && !(profile as any).graduation2Exception?.trim()) { setStatus('Preencha o campo de exceção da 2ª graduação.'); return; }
+                    if ((profile as any).graduation2 !== '__outro2__') {
+                      const mode2 = profile.proofMode[`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`];
+                      if (!mode2) { setStatus('Selecione como vai comprovar a 2ª graduação (A UGP já tem conhecimento ou Enviar documento).'); return; }
+                    }
                   }
                   setStatus(''); setStep(4);
                 }}>Proximo &rarr;</button>
