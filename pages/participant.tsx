@@ -899,59 +899,103 @@ export default function ParticipantForm() {
                 </div>
               </div>
 
-              {/* Pos/MBA com comprovacao por item */}
+              {/* Pos/MBA — até 3 blocos, padrão igual à Graduação */}
               <div className="form-group">
-                <label className="form-label">Pos-graduacao / MBA concluidos <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(máx. 3 títulos)</span></label>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>
-                  Selecione os titulos que voce concluiu e indique como comprova cada um.
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {postMBAOptions.map((o) => {
-                    const selected = profile.postMBAs.includes(o.label);
+                <label className="form-label">Pós-graduação / MBA concluídos <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(máx. 3 títulos)</span></label>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 12 }}>Para cada título, selecione a área mais próxima, informe o nome completo conforme consta no certificado e o ano de conclusão.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {[0, 1, 2].map((idx) => {
+                    const mbaList = (profile as any).mbaBlocks || [];
+                    const mba = mbaList[idx] || { area: '', name: '', year: '' };
+                    const hasData = mba.area || mba.name?.trim();
+                    const updateMBA = (field: string, value: any) => {
+                      setProfile((p) => {
+                        const arr = [...((p as any).mbaBlocks || [{}, {}, {}])];
+                        while (arr.length <= idx) arr.push({});
+                        arr[idx] = { ...arr[idx], [field]: value };
+                        // sincronizar postMBAs com as áreas selecionadas
+                        const newPostMBAs = arr
+                          .filter((b: any) => b.area && b.area !== '__outro_mba__')
+                          .map((b: any) => b.area);
+                        return { ...p, mbaBlocks: arr, postMBAs: newPostMBAs } as any;
+                      });
+                    };
+                    const proofKey = `mba_${idx}:${mba.name?.trim() || mba.area}`;
                     return (
-                      <div key={o.id} style={{
-                        borderRadius: 'var(--radius-sm)',
-                        border: `1.5px solid ${selected ? 'var(--purple)' : 'var(--border)'}`,
-                        background: selected ? 'var(--gradient-soft)' : 'white',
-                        overflow: 'hidden', transition: 'all 0.2s'
+                      <div key={idx} style={{
+                        border: `1.5px solid ${hasData ? 'var(--purple)' : 'var(--border)'}`,
+                        borderRadius: 10,
+                        background: hasData ? 'var(--gradient-soft)' : '#fafafa',
+                        padding: '12px 14px',
+                        transition: 'all 0.2s'
                       }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: 'pointer' }}>
-                          <input type="checkbox" checked={selected}
-                            disabled={!selected && profile.postMBAs.length >= 3}
-                            onChange={() => {
-                              toggleMulti('postMBAs', o.label);
-                              if (selected) {
-                                setProfile((p) => {
-                                  const m = { ...p.proofMode }; delete m[o.label];
-                                  const f = { ...p.proofFiles }; delete f[o.label];
-                                  return { ...p, proofMode: m, proofFiles: f };
-                                });
-                              }
-                            }}
-                            style={{ accentColor: 'var(--purple)', width: 15, height: 15, flexShrink: 0 }} />
-                          <span style={{ fontSize: '0.82rem', color: selected ? 'var(--purple)' : 'var(--text)', fontWeight: selected ? 600 : 400 }}>
-                            {o.label}
-                          </span>
-                        </label>
-                        {selected && (
-                          <>
-                            <div style={{ padding: '8px 12px 4px', borderTop: '1px solid var(--border)' }}>
-                              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 4, fontWeight: 600 }}>Nome conforme consta no certificado ou histórico:</p>
-                              <input
-                                type="text"
-                                placeholder="Ex.: MBA em Gestão de Pessoas, Especialização em Direito Público..."
-                                value={(profile as any).postMBANames?.[o.label] || ''}
-                                onChange={(e) => setProfile((p) => ({ ...p, postMBANames: { ...(p as any).postMBANames, [o.label]: e.target.value } } as any))}
-                                style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text)', background: 'white' }}
-                              />
-                            </div>
+                        <p style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--purple)', marginBottom: 10 }}>Título {idx + 1} {idx > 0 ? <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>(opcional)</span> : ''}</p>
+                        {/* Área */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, marginBottom: 8 }}>
+                          <div>
+                            <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Área do título{idx === 0 ? ' *' : ''}</label>
+                            <select
+                              value={mba.area || ''}
+                              onChange={(e) => updateMBA('area', e.target.value)}
+                              style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text)', background: 'white' }}
+                            >
+                              <option value="">Selecione a área...</option>
+                              {postMBAOptions.map((o) => (
+                                <option key={o.id} value={o.label}>{o.label}</option>
+                              ))}
+                              <option value="__outro_mba__">Outro / Área não identificada</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Ano de conclusão</label>
+                            <input
+                              type="number" min={1990} max={2025}
+                              placeholder="Ex: 2022"
+                              value={mba.year || ''}
+                              onChange={(e) => updateMBA('year', e.target.value)}
+                              style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', textAlign: 'center' }}
+                            />
+                          </div>
+                        </div>
+                        {/* Nome conforme certificado */}
+                        <div style={{ marginBottom: 8 }}>
+                          <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Nome completo conforme consta no certificado{idx === 0 ? ' *' : ''}</label>
+                          <input
+                            type="text"
+                            placeholder="Ex.: MBA em Gestão de Pessoas, Especialização em Direito Público..."
+                            value={mba.name || ''}
+                            onChange={(e) => updateMBA('name', e.target.value)}
+                            style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text)', background: 'white' }}
+                          />
+                        </div>
+                        {/* Comprovação — só aparece quando área e nome estão preenchidos */}
+                        {mba.area && mba.name?.trim() && mba.area !== '__outro_mba__' && (
+                          <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginTop: 4 }}>
                             <ProofSelector
-                              itemLabel={`mba:${o.label}`}
+                              itemLabel={proofKey}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
-                              onChange={(mode, fileName) => setProof(`mba:${o.label}`, mode, fileName)}
+                              onChange={(mode, fileName) => setProof(proofKey, mode, fileName)}
                             />
-                          </>
+                          </div>
+                        )}
+                        {/* Campo de exceção */}
+                        {mba.area === '__outro_mba__' && (
+                          <div style={{ background: '#fef9ec', border: '1.5px solid #fbbf24', borderRadius: 10, padding: '12px 14px', marginTop: 4 }}>
+                            <label style={{ fontSize: '0.72rem', color: '#92400e', display: 'block', marginBottom: 4, fontWeight: 600 }}>Título não encontrado / Exceção</label>
+                            <textarea
+                              className="form-input"
+                              placeholder="Informe o nome completo do título e descreva brevemente a área para análise da equipe responsável."
+                              rows={2}
+                              value={(profile as any).mbaException?.[idx] || ''}
+                              onChange={(e) => setProfile((p) => {
+                                const ex = { ...((p as any).mbaException || {}) };
+                                ex[idx] = e.target.value;
+                                return { ...p, mbaException: ex } as any;
+                              })}
+                              style={{ resize: 'vertical', fontSize: '0.78rem', marginBottom: 0 }}
+                            />
+                          </div>
                         )}
                       </div>
                     );
@@ -962,12 +1006,19 @@ export default function ParticipantForm() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
                 <button type="button" className="btn-outline" onClick={() => setStep(3)}>&larr; Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
-                  // Validar comprovacao dos pos/MBA selecionados
-                  for (const item of profile.postMBAs) {
-                    const key = `mba:${item}`;
-                    const mode = profile.proofMode[key];
-                    if (!mode) { setStatus(`Selecione como vai comprovar o título: "${item}".`); return; }
-                    if (mode === 'upload' && !profile.proofFiles[key]) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); return; }
+                  // Validar comprovação dos blocos de Pós/MBA
+                  const mbaBlocks = (profile as any).mbaBlocks || [];
+                  for (let i = 0; i < mbaBlocks.length; i++) {
+                    const b = mbaBlocks[i];
+                    if (!b?.area && !b?.name?.trim()) continue; // bloco vazio, ok
+                    if (i === 0 && !b?.area) { setStatus('Selecione a área do Título 1.'); return; }
+                    if (i === 0 && !b?.name?.trim()) { setStatus('Informe o nome do Título 1 conforme o certificado.'); return; }
+                    if (b?.area && b?.area !== '__outro_mba__' && b?.name?.trim()) {
+                      const key = `mba_${i}:${b.name.trim()}`;
+                      const mode = profile.proofMode[key];
+                      if (!mode) { setStatus(`Selecione como vai comprovar o Título ${i + 1}: "${b.name}".`); return; }
+                      if (mode === 'upload' && !profile.proofFiles[key]) { setStatus(`Você selecionou "Enviar documento" para o Título ${i + 1} — escolha o arquivo antes de continuar.`); return; }
+                    }
                   }
                   setStatus(''); setStep(5);
                 }}>Proximo &rarr;</button>
