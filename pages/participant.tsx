@@ -1132,9 +1132,57 @@ export default function ParticipantForm() {
                           >
                             <option value="">Selecione a área...</option>
                             <option value="transversal">Transversal (qualquer área)</option>
-                            {OFFICIAL_AREAS.map((a) => (
-                              <option key={a.code} value={a.code}>{a.label}</option>
-                            ))}
+                            <optgroup label="Liderança e Gestão">
+                              <option value="Liderança e Gestão de Equipes">Liderança e Gestão de Equipes</option>
+                              <option value="Gestão de Pessoas / RH">Gestão de Pessoas / RH</option>
+                              <option value="Gestão de Projetos">Gestão de Projetos</option>
+                              <option value="Gestão de Processos">Gestão de Processos</option>
+                              <option value="Gestão Estratégica">Gestão Estratégica</option>
+                              <option value="Gestão de Mudanças">Gestão de Mudanças</option>
+                              <option value="Planejamento Estratégico">Planejamento Estratégico</option>
+                              <option value="Governança Corporativa">Governança Corporativa</option>
+                            </optgroup>
+                            <optgroup label="Inovação e Tecnologia">
+                              <option value="Inovação e Transformação Digital">Inovação e Transformação Digital</option>
+                              <option value="Tecnologia da Informação">Tecnologia da Informação</option>
+                              <option value="Segurança da Informação">Segurança da Informação</option>
+                              <option value="Inteligência de Dados / BI">Inteligência de Dados / BI</option>
+                              <option value="LGPD e Privacidade">LGPD e Privacidade</option>
+                            </optgroup>
+                            <optgroup label="Finanças e Controle">
+                              <option value="Finanças Corporativas">Finanças Corporativas</option>
+                              <option value="Contabilidade e Controladoria">Contabilidade e Controladoria</option>
+                              <option value="Orçamento e Finanças Públicas">Orçamento e Finanças Públicas</option>
+                              <option value="Auditoria e Compliance">Auditoria e Compliance</option>
+                              <option value="Gestão de Riscos">Gestão de Riscos</option>
+                            </optgroup>
+                            <optgroup label="Jurídico e Regulatório">
+                              <option value="Direito Público e Administrativo">Direito Público e Administrativo</option>
+                              <option value="Direito Empresarial">Direito Empresarial</option>
+                              <option value="Compliance e Integridade">Compliance e Integridade</option>
+                            </optgroup>
+                            <optgroup label="Marketing e Comunicação">
+                              <option value="Marketing e Comunicação">Marketing e Comunicação</option>
+                              <option value="Marketing Digital">Marketing Digital</option>
+                              <option value="Comunicação Corporativa">Comunicação Corporativa</option>
+                            </optgroup>
+                            <optgroup label="Negócios e Empreendedorismo">
+                              <option value="Gestão de Pequenos Negócios">Gestão de Pequenos Negócios</option>
+                              <option value="Empreendedorismo e Inovação">Empreendedorismo e Inovação</option>
+                              <option value="Atendimento e Experiência do Cliente">Atendimento e Experiência do Cliente</option>
+                              <option value="Logística e Cadeia de Suprimentos">Logística e Cadeia de Suprimentos</option>
+                            </optgroup>
+                            <optgroup label="Desenvolvimento Humano">
+                              <option value="Desenvolvimento Pessoal e Comportamental">Desenvolvimento Pessoal e Comportamental</option>
+                              <option value="Psicologia Organizacional">Psicologia Organizacional</option>
+                              <option value="Coaching e Mentoria">Coaching e Mentoria</option>
+                            </optgroup>
+                            <optgroup label="Políticas Públicas e Sustentabilidade">
+                              <option value="Políticas Públicas">Políticas Públicas</option>
+                              <option value="ESG e Sustentabilidade">ESG e Sustentabilidade</option>
+                              <option value="Desenvolvimento Regional e Territorial">Desenvolvimento Regional e Territorial</option>
+                            </optgroup>
+                            <option value="Outro">Outro (não listado acima)</option>
                           </select>
                         </div>
                         {/* Nome do curso */}
