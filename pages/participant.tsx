@@ -33,8 +33,15 @@ const initialProfile: ParticipantProfile = {
   validationStatus: 'provisional',
 };
 
-const getOptions = (group: CatalogItem['group']) =>
-  CATALOG_ITEMS.filter((item) => item.group === group);
+const getOptions = (group: CatalogItem['group']) => {
+  const seen = new Set<string>();
+  return CATALOG_ITEMS.filter((item) => {
+    if (item.group !== group) return false;
+    if (seen.has(item.label)) return false;
+    seen.add(item.label);
+    return true;
+  });
+};
 
 // Componente reutilizavel de comprovacao por item
 function ProofSelector({ itemLabel, proofMode, proofFiles, onChange }: {
@@ -957,9 +964,10 @@ export default function ParticipantForm() {
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
                   // Validar comprovacao dos pos/MBA selecionados
                   for (const item of profile.postMBAs) {
-                    const mode = profile.proofMode[item];
+                    const key = `mba:${item}`;
+                    const mode = profile.proofMode[key];
                     if (!mode) { setStatus(`Selecione como vai comprovar o título: "${item}".`); return; }
-                    if (mode === 'upload' && !profile.proofFiles[item]) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); return; }
+                    if (mode === 'upload' && !profile.proofFiles[key]) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); return; }
                   }
                   setStatus(''); setStep(5);
                 }}>Proximo &rarr;</button>
@@ -1122,10 +1130,16 @@ export default function ParticipantForm() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
                 <button type="button" className="btn-outline" onClick={() => setStep(4)}>&larr; Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
-                  for (const item of profile.selectedCourses) {
-                    const mode = profile.proofMode[item];
-                    if (!mode) { setStatus(`Selecione como vai comprovar o curso: "${item}".`); return; }
-                    if (mode === 'upload' && !profile.proofFiles[item]) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); return; }
+                  // Step 5 usa freeCourses (entrada livre) — validar comprovação apenas para cursos com dados completos e >=16h
+                  const freeCourses = (profile as any).freeCourses || [];
+                  for (let i = 0; i < freeCourses.length; i++) {
+                    const c = freeCourses[i];
+                    if (c?.name?.trim() && c?.area && c?.hours >= 16) {
+                      const key = `curso5_${i}:${c.name}`;
+                      const mode = profile.proofMode[key];
+                      if (!mode) { setStatus(`Selecione como vai comprovar o Curso ${i + 1}: "${c.name}".`); return; }
+                      if (mode === 'upload' && !profile.proofFiles[key]) { setStatus(`Você selecionou "Enviar documento" para o Curso ${i + 1} — escolha o arquivo antes de continuar.`); return; }
+                    }
                   }
                   setStatus(''); setStep(6);
                 }}>Proximo &rarr;</button>
@@ -1431,9 +1445,10 @@ export default function ParticipantForm() {
                 <button type="button" className="btn-primary" style={{ minWidth: 180 }} onClick={(e) => {
                   // Validar comprovacao dos projetos selecionados
                   for (const item of profile.selectedProjects) {
-                    const mode = profile.proofMode[item];
+                    const key = `proj:${item}`;
+                    const mode = profile.proofMode[key];
                     if (!mode) { setStatus(`Selecione como vai comprovar o projeto: "${item}".`); return; }
-                    if (mode === 'upload' && !profile.proofFiles[item]) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); return; }
+                    if (mode === 'upload' && !profile.proofFiles[key]) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); return; }
                   }
                   handleSubmit(e as any);
                 }}>
