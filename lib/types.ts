@@ -86,6 +86,17 @@ export interface AssessmentCalculation {
   detail?: string;
 }
 
+export interface PostMBADetail {
+  titleUsed: string | null;
+  classification: string;
+  score: number;
+}
+
+export interface ProjectDetail {
+  label: string;
+  points: number;
+}
+
 export interface AreaAssessment {
   participantId: string;
   area: AreaCode;
@@ -95,6 +106,8 @@ export interface AreaAssessment {
   behavioralAdherence?: number;
   technicalAdherence: number;
   quadrant: string;
+  postMBADetail?: PostMBADetail;       // detalhes do título de Pós/MBA considerado
+  projectsDetail?: ProjectDetail[];    // projetos considerados com pontuação
   calculationSteps: AssessmentCalculation[];
   exceptions: string[];
 }

@@ -25,6 +25,49 @@ function ScoreBar({ value, max, color }: { value: number; max: number; color?: s
   );
 }
 
+function TechDetailRow({ label, score, maxScore, color, summary, details }: {
+  label: string;
+  score: number;
+  maxScore: number;
+  color: string;
+  summary: string;
+  details: { label: string; value: string }[];
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>{label}</span>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', background: '#f3f4f6', borderRadius: 4, padding: '1px 7px', maxWidth: 340, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{summary}</span>
+          <button type="button" onClick={() => setOpen(o => !o)}
+            style={{ background: open ? color : 'none', border: `1px solid ${color}`, borderRadius: 4, padding: '1px 8px', cursor: 'pointer', fontSize: '0.68rem', color: open ? 'white' : color, fontWeight: 600, flexShrink: 0 }}>
+            {open ? '▲ Fechar' : '▼ Ver detalhes'}
+          </button>
+        </div>
+        <span style={{ fontSize: '0.9rem', fontWeight: 800, color, marginLeft: 12, whiteSpace: 'nowrap' }}>
+          {score.toFixed(1)} <span style={{ fontSize: '0.72rem', fontWeight: 400, color: 'var(--text-muted)' }}>/ {maxScore}</span>
+        </span>
+      </div>
+      <ScoreBar value={score} max={maxScore} color={color} />
+      {open && (
+        <div style={{ marginTop: 8, background: '#f8f7fc', border: `1.5px solid ${color}30`, borderRadius: 8, padding: '12px 14px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
+            <tbody>
+              {details.map((d, i) => (
+                <tr key={i} style={{ borderBottom: i < details.length - 1 ? '1px solid #e5e7eb' : 'none' }}>
+                  <td style={{ padding: '6px 8px 6px 0', fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap', width: '35%' }}>{d.label}</td>
+                  <td style={{ padding: '6px 0', color: 'var(--text)', lineHeight: 1.5 }}>{d.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ScoreRow({ label, value, max, color, detail, explain }: {
   label: string; value: number | undefined; max: number;
   color?: string; detail?: string; explain: string;
@@ -221,15 +264,61 @@ export default function MyResults() {
                 </div>
                 <ScoreBar value={techScore} max={10} color="var(--purple)" />
                 <div style={{ marginTop: 16 }}>
-                  <ScoreRow label="&#127891; Pos-graduacao / MBA" value={r.breakdown?.postMBA} max={3} color="#7c3aed"
-                    detail={r.breakdown?.postMBA > 0 ? 'reconhecido' : 'nao informado'}
-                    explain={'Vale 3 pontos se voce tiver ao menos 1 pos-graduacao ou MBA reconhecido no catalogo oficial do SEBRAE TO. Pos/MBA especificos da area ' + r.area + ' e os transversais pontuam. Se nao houver nenhum reconhecido, a pontuacao e 0.'} />
-                  <ScoreRow label="&#128188; Experiencia gerencial / interina" value={r.breakdown?.experience} max={4} color="#0e7490"
-                    detail={expDetail}
-                    explain={'Cada 6 meses completos em cargo gerencial ou interino = 1 ponto, maximo de 4 pontos (24 meses). Formula: floor(meses / 6), limitado a 4. Exemplo: 18 meses = 3 pontos; 24 meses ou mais = 4 pontos.'} />
-                  <ScoreRow label="&#128203; Cursos e projetos estrategicos" value={r.breakdown?.coursesProjects} max={3} color="#059669"
-                    detail={courseDetail}
-                    explain={'Cada curso ou projeto do catalogo que seja transversal ou especifico da area ' + r.area + ' vale 1,2 pontos, maximo de 3 pontos. Itens de outras areas especificas nao pontuam aqui. Formula: min(3, quantidade x 1,2).'} />
+                  <TechDetailRow
+                    label="&#127891; Pos-graduacao / MBA"
+                    score={r.postMBADetail?.score ?? 0}
+                    maxScore={40}
+                    color="#7c3aed"
+                    summary={r.postMBADetail?.titleUsed
+                      ? `"${r.postMBADetail.titleUsed}" — ${r.postMBADetail.classification}`
+                      : 'Nenhum título informado'}
+                    details={[
+                      { label: 'Título considerado', value: r.postMBADetail?.titleUsed ?? 'Nenhum' },
+                      { label: 'Classificação', value: r.postMBADetail?.classification ?? '—' },
+                      { label: 'Pontuação atribuída', value: `${r.postMBADetail?.score ?? 0} pts de 40 possíveis` },
+                      { label: 'Regra', value: 'Transversal = 40 pts | Específico da área = 20 pts | Não relacionado = 20 pts | Sem título = 0 pts' },
+                    ]}
+                  />
+                  <TechDetailRow
+                    label="&#128188; Experiência gerencial / interina"
+                    score={Number(r.calculationSteps?.find((s: any) => s.name.includes('Experi'))?.value ?? 0)}
+                    maxScore={20}
+                    color="#0e7490"
+                    summary={expDetail || 'Sem experiência gerencial informada'}
+                    details={[
+                      { label: 'Fórmula', value: '5 pts por ano, máx. 20 pts' },
+                      { label: 'Detalhe', value: expDetail || 'Nenhum mês informado' },
+                    ]}
+                  />
+                  <TechDetailRow
+                    label="&#128203; Projetos estratégicos da área"
+                    score={Number(r.calculationSteps?.find((s: any) => s.name.includes('Projetos'))?.value ?? 0)}
+                    maxScore={20}
+                    color="#059669"
+                    summary={r.projectsDetail?.length > 0
+                      ? `${r.projectsDetail.length} projeto(s) considerado(s) para ${r.area}`
+                      : 'Nenhum projeto selecionado para esta área'}
+                    details={[
+                      ...(r.projectsDetail?.length > 0
+                        ? r.projectsDetail.map((p: any) => ({
+                            label: p.label,
+                            value: `${p.points} pts (${p.points === 20 ? 'Projeto Estruturante' : 'Projeto Relevante'})`
+                          }))
+                        : [{ label: 'Projetos', value: 'Nenhum projeto desta área foi selecionado' }]),
+                      { label: 'Regra', value: 'Estruturante = 20 pts | Relevante = 15 pts | Máx. 20 pts por área' },
+                    ]}
+                  />
+                  <div style={{ marginTop: 12, background: '#f0f4ff', borderRadius: 8, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', border: '1px solid #c7d2fe' }}>
+                    <span style={{ color: '#4338ca', fontWeight: 600 }}>Total bruto (0–80) → convertido para escala 0–10</span>
+                    <span style={{ fontWeight: 800, color: 'var(--purple)' }}>
+                      {(
+                        (r.postMBADetail?.score ?? 0) +
+                        Number(r.calculationSteps?.find((s: any) => s.name.includes('Experi'))?.value ?? 0) +
+                        Number(r.calculationSteps?.find((s: any) => s.name.includes('Projetos'))?.value ?? 0)
+                      ).toFixed(1)} / 80
+                      &nbsp;→&nbsp; <strong>{r.technicalScore?.toFixed(1)} / 10</strong>
+                    </span>
+                  </div>
                 </div>
               </div>
 

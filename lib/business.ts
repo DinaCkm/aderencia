@@ -38,8 +38,11 @@ export function getLatestPerformance(records: PerformanceRecord[], participantId
 // Graduação e cursos extracurriculares: registrados mas NÃO entram na nota.
 // ─────────────────────────────────────────────────────────────────────────────
 
-function bestPostMBAScore(postMBALabels: string[], area: string): number {
-  // Filtra itens do catálogo que correspondem aos títulos informados E são válidos para a área
+function bestPostMBADetail(postMBALabels: string[], area: string): {
+  score: number;
+  titleUsed: string | null;
+  classification: string;
+} {
   const candidates = CATALOG_ITEMS.filter(
     (i) =>
       i.group === 'postMBA' &&
@@ -48,12 +51,22 @@ function bestPostMBAScore(postMBALabels: string[], area: string): number {
   );
 
   if (candidates.length === 0) {
-    // Nenhum título reconhecido → pontuação mínima (não relacionada = 20)
-    return postMBALabels.length > 0 ? 20 : 0;
+    if (postMBALabels.length === 0) return { score: 0, titleUsed: null, classification: 'Nenhum título informado' };
+    return { score: 20, titleUsed: postMBALabels[0], classification: 'Não relacionado à área — pontuação mínima (20 pts)' };
   }
 
-  // Retorna a maior pontuação entre os títulos válidos para a área
-  return Math.max(...candidates.map((i) => (i as any).points ?? 20));
+  // Seleciona o candidato de maior pontuação
+  const best = candidates.reduce((a, b) => ((b as any).points ?? 20) > ((a as any).points ?? 20) ? b : a);
+  const pts = (best as any).points ?? 20;
+  const cls = (best as any).classification === 'transversal'
+    ? 'Transversal — vale para qualquer área'
+    : `Específico da área ${area}`;
+
+  return { score: pts, titleUsed: best.label, classification: cls };
+}
+
+function bestPostMBAScore(postMBALabels: string[], area: string): number {
+  return bestPostMBADetail(postMBALabels, area).score;
 }
 
 function experienceScore(managerialMonths: number, interimMonths: number): number {
@@ -80,24 +93,35 @@ function computeTechnicalAdherence(
 ): {
   technicalAdherence: number;
   calculationSteps: { name: string; value: number | string; detail?: string }[];
+  postMBADetail: { titleUsed: string | null; classification: string; score: number };
+  projectsDetail: { label: string; points: number }[];
 } {
-  const postMBAScore = bestPostMBAScore(profile.postMBAs ?? [], area);
+  const postMBADet = bestPostMBADetail(profile.postMBAs ?? [], area);
   const expScore = experienceScore(profile.managerialMonths ?? 0, profile.interimMonths ?? 0);
-  const projScore = projectScore(profile.selectedProjects ?? [], area);
 
-  const total80 = postMBAScore + expScore + projScore;
-  const score10 = Math.round((total80 / 80) * 100) / 10; // 1 casa decimal, escala 0–10
+  // Projetos com detalhes
+  const projItems = CATALOG_ITEMS.filter(
+    (i) => i.group === 'project' && (profile.selectedProjects ?? []).includes(i.label) && i.area === area
+  );
+  const projScore = Math.min(20, projItems.reduce((acc, i) => acc + ((i as any).points ?? 15), 0));
+
+  const total80 = postMBADet.score + expScore + projScore;
+  const score10 = Math.round((total80 / 80) * 100) / 10;
 
   const managerialMonths = profile.managerialMonths ?? 0;
   const interimMonths = profile.interimMonths ?? 0;
 
   return {
     technicalAdherence: score10,
+    postMBADetail: postMBADet,
+    projectsDetail: projItems.map((i) => ({ label: i.label, points: (i as any).points ?? 15 })),
     calculationSteps: [
       {
         name: 'Pós/MBA (melhor título para a área)',
-        value: postMBAScore,
-        detail: `${profile.postMBAs?.length ?? 0} título(s) informado(s) — máx. 40 pts`,
+        value: postMBADet.score,
+        detail: postMBADet.titleUsed
+          ? `Título considerado: "${postMBADet.titleUsed}" — ${postMBADet.classification} — máx. 40 pts`
+          : 'Nenhum título informado',
       },
       {
         name: 'Experiência gerencial/interina',
@@ -107,7 +131,9 @@ function computeTechnicalAdherence(
       {
         name: 'Projetos estratégicos da área',
         value: projScore,
-        detail: `${(profile.selectedProjects ?? []).length} projeto(s) selecionado(s) — máx. 20 pts`,
+        detail: projItems.length > 0
+          ? projItems.map((i) => `"${i.label}" = ${(i as any).points ?? 15} pts`).join(' | ') + ` — máx. 20 pts`
+          : 'Nenhum projeto selecionado para esta área',
       },
       {
         name: 'Total bruto (0–80)',
@@ -188,6 +214,8 @@ export function buildAreaAssessment(
     behavioralAdherence: behavioral,
     technicalAdherence: technical.technicalAdherence,
     quadrant,
+    postMBADetail: technical.postMBADetail,
+    projectsDetail: technical.projectsDetail,
     calculationSteps: [
       ...technical.calculationSteps,
       {

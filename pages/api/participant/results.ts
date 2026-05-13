@@ -28,6 +28,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       behavioralScore: assessment.behavioralAdherence,
       totalScore: (assessment.technicalAdherence || 0) + (assessment.behavioralAdherence || 0),
       nineBoxClassification: assessment.quadrant,
+      postMBADetail: assessment.postMBADetail,
+      projectsDetail: assessment.projectsDetail,
       breakdown: {
         postMBA: getStep('pós') ?? getStep('mba') ?? getStep('post'),
         experience: getStep('experiência') ?? getStep('experience'),
