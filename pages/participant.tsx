@@ -762,6 +762,17 @@ export default function ParticipantForm() {
                         onChange={(e) => setProfile((p) => ({ ...p, graduation2CourseName: e.target.value } as any))}
                       />
                     </div>
+                    {/* ProofSelector da 2ª graduação */}
+                    {(profile as any).graduation2 && (profile as any).graduation2 !== '__outro2__' && (
+                      <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+                        <ProofSelector
+                          itemLabel={(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}
+                          proofMode={profile.proofMode}
+                          proofFiles={profile.proofFiles}
+                          onChange={(mode, fileName) => setProof((profile as any).graduation2CourseName?.trim() || (profile as any).graduation2, mode, fileName)}
+                        />
+                      </div>
+                    )}
                     {/* Campo condicional de excecao da 2ª graduacao */}
                     {(profile as any).graduation2 === '__outro2__' && (
                       <div style={{ background: '#fef9ec', border: '1.5px solid #fbbf24', borderRadius: 10, padding: '14px 16px' }}>
