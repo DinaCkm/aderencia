@@ -912,19 +912,30 @@ export default function ParticipantForm() {
                           </span>
                         </label>
                         {selected && (
-                          <ProofSelector
-                            itemLabel={o.label}
-                            proofMode={profile.proofMode}
-                            proofFiles={profile.proofFiles}
-                            onChange={(mode, fileName) => setProof(o.label, mode, fileName)}
-                          />
+                          <>
+                            <div style={{ padding: '8px 12px 4px', borderTop: '1px solid var(--border)' }}>
+                              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 4, fontWeight: 600 }}>Nome conforme consta no certificado ou histórico:</p>
+                              <input
+                                type="text"
+                                placeholder="Ex.: MBA em Gestão de Pessoas, Especialização em Direito Público..."
+                                value={(profile as any).postMBANames?.[o.label] || ''}
+                                onChange={(e) => setProfile((p) => ({ ...p, postMBANames: { ...(p as any).postMBANames, [o.label]: e.target.value } } as any))}
+                                style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text)', background: 'white' }}
+                              />
+                            </div>
+                            <ProofSelector
+                              itemLabel={o.label}
+                              proofMode={profile.proofMode}
+                              proofFiles={profile.proofFiles}
+                              onChange={(mode, fileName) => setProof(o.label, mode, fileName)}
+                            />
+                          </>
                         )}
                       </div>
                     );
                   })}
                 </div>
               </div>
-
               {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
                 <button type="button" className="btn-outline" onClick={() => setStep(3)}>&larr; Voltar</button>
