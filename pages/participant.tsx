@@ -679,10 +679,10 @@ export default function ParticipantForm() {
                 {profile.graduation && profile.graduation !== '__outro__' && (
                   <div style={{ marginTop: 8, border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
                     <ProofSelector
-                      itemLabel={profile.graduation}
+                      itemLabel={`grad:${profile.graduation}`}
                       proofMode={profile.proofMode}
                       proofFiles={profile.proofFiles}
-                      onChange={(mode, fileName) => setProof(profile.graduation, mode, fileName)}
+                      onChange={(mode, fileName) => setProof(`grad:${profile.graduation}`, mode, fileName)}
                     />
                   </div>
                 )}
@@ -766,10 +766,10 @@ export default function ParticipantForm() {
                     {(profile as any).graduation2 && (profile as any).graduation2 !== '__outro2__' && (
                       <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
                         <ProofSelector
-                          itemLabel={(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}
+                          itemLabel={`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`}
                           proofMode={profile.proofMode}
                           proofFiles={profile.proofFiles}
-                          onChange={(mode, fileName) => setProof((profile as any).graduation2CourseName?.trim() || (profile as any).graduation2, mode, fileName)}
+                          onChange={(mode, fileName) => setProof(`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`, mode, fileName)}
                         />
                       </div>
                     )}
@@ -935,10 +935,10 @@ export default function ParticipantForm() {
                               />
                             </div>
                             <ProofSelector
-                              itemLabel={o.label}
+                              itemLabel={`mba:${o.label}`}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
-                              onChange={(mode, fileName) => setProof(o.label, mode, fileName)}
+                              onChange={(mode, fileName) => setProof(`mba:${o.label}`, mode, fileName)}
                             />
                           </>
                         )}
@@ -1080,10 +1080,10 @@ export default function ParticipantForm() {
                               {selected && hours >= 16 && <span style={{ fontSize: '0.72rem', color: '#16a34a' }}>&#10003; Válido</span>}
                             </div>
                             <ProofSelector
-                              itemLabel={o.label}
+                              itemLabel={`curso5:${o.label}`}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
-                              onChange={(mode, fileName) => setProof(o.label, mode, fileName)}
+                              onChange={(mode, fileName) => setProof(`curso5:${o.label}`, mode, fileName)}
                             />
                           </>
                         )}
@@ -1278,10 +1278,10 @@ export default function ParticipantForm() {
                               {selected && hours >= 16 && <span style={{ fontSize: '0.72rem', color: '#16a34a' }}>&#10003; Valido</span>}
                             </div>
                             <ProofSelector
-                              itemLabel={o.label}
+                              itemLabel={`curso7:${o.label}`}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
-                              onChange={(mode, fileName) => setProof(o.label, mode, fileName)}
+                              onChange={(mode, fileName) => setProof(`curso7:${o.label}`, mode, fileName)}
                             />
                           </>
                         )}
@@ -1368,10 +1368,10 @@ export default function ParticipantForm() {
                         </label>
                         {selected && (
                           <ProofSelector
-                            itemLabel={o.label}
+                            itemLabel={`proj:${o.label}`}
                             proofMode={profile.proofMode}
                             proofFiles={profile.proofFiles}
-                            onChange={(mode, fileName) => setProof(o.label, mode, fileName)}
+                            onChange={(mode, fileName) => setProof(`proj:${o.label}`, mode, fileName)}
                           />
                         )}
                       </div>
