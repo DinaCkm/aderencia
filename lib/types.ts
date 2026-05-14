@@ -1,9 +1,4 @@
 export type AreaCode =
-  // Diretoria e Assessorias
-  | 'DIREX'
-  | 'DITEC'
-  | 'DAF'
-  | 'CDE'
   // Unidades
   | 'UAC'
   | 'UAS'

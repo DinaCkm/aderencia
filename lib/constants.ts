@@ -488,11 +488,6 @@ export function calcTechnicalAdherence(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const OFFICIAL_AREAS: { code: string; label: string }[] = [
-  // ── Diretoria e Assessorias ──────────────────────────────────────────────
-  { code: 'DIREX',   label: 'Diretoria Superintendente' },
-  { code: 'DITEC',   label: 'DITEC — Diretoria Técnica' },
-  { code: 'DAF',     label: 'DAF — Diretoria de Administração e Finanças' },
-  { code: 'CDE',     label: 'CDE — Assessoria' },
   // ── Unidades ────────────────────────────────────────────────────────────
   { code: 'UAC',     label: 'UAC — Unidade de Articulação e Competitividade' },
   { code: 'UAS',     label: 'UAS — Unidade de Administração e Suprimentos' },
