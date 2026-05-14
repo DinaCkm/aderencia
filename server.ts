@@ -13,20 +13,16 @@ const hostname = '0.0.0.0';
 const port = parseInt(process.env.PORT || '3000', 10);
 
 async function main() {
-  // Inicializa o banco de dados com os dados base
-  if (process.env.DATABASE_URL) {
-    console.log('[server] Inicializando banco de dados PostgreSQL...');
-    try {
-      const { initializeDatabase } = await import('./lib/db');
-      const { SEED_DATA } = await import('./lib/seed');
-      await initializeDatabase(SEED_DATA);
-      console.log('[server] Banco de dados inicializado com sucesso.');
-    } catch (err) {
-      console.error('[server] Erro ao inicializar banco de dados:', err);
-      // Não interrompe o servidor — continua com fallback JSON
-    }
-  } else {
-    console.log('[server] DATABASE_URL não configurada — usando arquivos JSON locais.');
+  // Inicializa os dados base — funciona tanto com PostgreSQL quanto com JSON local
+  console.log('[server] Inicializando dados base...');
+  try {
+    const { initializeDatabase } = await import('./lib/db');
+    const { SEED_DATA } = await import('./lib/seed');
+    await initializeDatabase(SEED_DATA);
+    console.log('[server] Dados base inicializados com sucesso.');
+  } catch (err) {
+    console.error('[server] Erro ao inicializar dados base:', err);
+    // Não interrompe o servidor
   }
 
   const app = next({ dev, hostname, port });
