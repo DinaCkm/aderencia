@@ -14,7 +14,7 @@ export default function AdminImportDisc() {
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const role = sessionStorage.getItem('aderênciaRole');
+    const role = sessionStorage.getItem('aderenciaRole');
     if (role !== 'admin') { router.push('/login'); return; }
   }, [router]);
 

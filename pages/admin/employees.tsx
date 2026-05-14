@@ -40,7 +40,7 @@ export default function AdminEmployees() {
   const [editNewEmail, setEditNewEmail] = useState('');
 
   useEffect(() => {
-    const role = sessionStorage.getItem('aderênciaRole');
+    const role = sessionStorage.getItem('aderenciaRole');
     if (role !== 'admin') { router.push('/login'); return; }
     loadEmployees();
   }, [router]);

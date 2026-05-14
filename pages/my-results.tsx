@@ -109,9 +109,9 @@ export default function MyResults() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const role = sessionStorage.getItem('aderênciaRole');
-    const email = sessionStorage.getItem('aderênciaEmail');
-    const name = sessionStorage.getItem('aderênciaName');
+    const role = sessionStorage.getItem('aderenciaRole');
+    const email = sessionStorage.getItem('aderenciaEmail');
+    const name = sessionStorage.getItem('aderenciaName');
     if (!role || !email) { router.push('/login'); return; }
     setParticipantName(name || '');
     fetch('/api/participant/results?email=' + encodeURIComponent(email))

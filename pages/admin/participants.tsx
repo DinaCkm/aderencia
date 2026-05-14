@@ -21,7 +21,7 @@ export default function AdminParticipants() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const role = sessionStorage.getItem('aderênciaRole');
+    const role = sessionStorage.getItem('aderenciaRole');
     if (role !== 'admin') { router.push('/login'); return; }
     fetch('/api/admin/participants').then(r => r.json()).then(d => { setParticipants(d.participants || []); setLoading(false); });
   }, [router]);

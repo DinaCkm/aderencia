@@ -14,7 +14,7 @@ export default function AdminExceptions() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const role = sessionStorage.getItem('aderênciaRole');
+    const role = sessionStorage.getItem('aderenciaRole');
     if (role !== 'admin') { router.push('/login'); return; }
     fetch('/api/admin/exceptions')
       .then((res) => res.json())

@@ -49,7 +49,7 @@ export default function AdminNineBox() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const role = sessionStorage.getItem('aderênciaRole');
+    const role = sessionStorage.getItem('aderenciaRole');
     if (role !== 'admin') { router.push('/login'); return; }
     fetch('/api/admin/ninebox')
       .then((res) => res.json())

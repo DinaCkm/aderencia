@@ -186,21 +186,21 @@ export default function ParticipantForm() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const role = sessionStorage.getItem('aderênciaRole');
-    const email = sessionStorage.getItem('aderênciaEmail');
-    const name = sessionStorage.getItem('aderênciaName');
+    const role = sessionStorage.getItem('aderenciaRole');
+    const email = sessionStorage.getItem('aderenciaEmail');
+    const name = sessionStorage.getItem('aderenciaName');
     if (role !== 'participant' || !email) {
       router.push('/login');
       return;
     }
     setParticipantName(name || '');
     // Restaurar rascunho salvo no sessionStorage
-    const draft = sessionStorage.getItem('aderênciaDraft');
+    const draft = sessionStorage.getItem('aderenciaDraft');
     if (draft) {
       try {
         const saved = JSON.parse(draft) as ParticipantProfile;
         setProfile(saved);
-        const savedStep = sessionStorage.getItem('aderênciaStep');
+        const savedStep = sessionStorage.getItem('aderenciaStep');
         if (savedStep) setStep(parseInt(savedStep, 10));
       } catch { /* ignora rascunho inválido */ }
     } else {
@@ -212,8 +212,8 @@ export default function ParticipantForm() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (profile.id) {
-      sessionStorage.setItem('aderênciaDraft', JSON.stringify(profile));
-      sessionStorage.setItem('aderênciaStep', String(step));
+      sessionStorage.setItem('aderenciaDraft', JSON.stringify(profile));
+      sessionStorage.setItem('aderenciaStep', String(step));
     }
   }, [profile, step]);
 
@@ -269,8 +269,8 @@ export default function ParticipantForm() {
       });
       if (res.ok) {
         // Limpar rascunho após envio bem-sucedido
-        sessionStorage.removeItem('aderênciaDraft');
-        sessionStorage.removeItem('aderênciaStep');
+        sessionStorage.removeItem('aderenciaDraft');
+        sessionStorage.removeItem('aderenciaStep');
         setSubmitted(true);
         setStatus('');
       } else {
