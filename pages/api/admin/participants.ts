@@ -1,37 +1,49 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { readJsonAsync, queryUsers } from '../../../lib/db';
+import { readJsonAsync } from '../../../lib/db';
 import type { ParticipantProfile } from '../../../lib/types';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // Buscar todos os usuários ativos do banco MySQL (exceto admins)
-    const users = await queryUsers<{ id: number; name: string; email: string; role: string; lastSignedIn: string | null }[]>(
-      `SELECT id, name, email, role, lastSignedIn FROM users WHERE role != 'admin' AND status = 'ativo' ORDER BY name ASC`
-    );
+    // Buscar todos os usuários cadastrados (kv_store key: 'users')
+    const allUsers = await readJsonAsync<any[]>('users', []);
+    const usersArray = Array.isArray(allUsers) ? allUsers : [];
 
-    // Buscar participantes que já preencheram o formulário
+    // Buscar participantes que já preencheram o formulário (kv_store key: 'participants')
     const participants = await readJsonAsync<ParticipantProfile[]>('participants', []);
+    const participantsArray = Array.isArray(participants) ? participants : [];
+
     const participantsByEmail = new Map<string, ParticipantProfile>();
-    for (const p of (Array.isArray(participants) ? participants : [])) {
+    for (const p of participantsArray) {
       if (p.email) participantsByEmail.set(p.email.toLowerCase(), p);
     }
 
-    // Cruzar: para cada usuário, verificar se já preencheu
-    const merged = users.map((u) => {
-      const p = participantsByEmail.get(u.email?.toLowerCase() ?? '');
+    // Filtrar apenas colaboradores (não admins)
+    const collaborators = usersArray.filter((u: any) => u.role !== 'admin');
+
+    // Cruzar: para cada usuário, verificar se já preencheu o formulário
+    const merged = collaborators.map((u: any) => {
+      const p = participantsByEmail.get((u.email || '').toLowerCase());
       return {
-        userId: u.id,
+        userId: u.id || u.email,
         name: u.name || '—',
         email: u.email,
-        role: u.role,
-        lastSignedIn: u.lastSignedIn,
+        role: u.role || 'colaborador',
+        lastSignedIn: u.lastSignedIn || null,
         formStatus: p ? 'preenchido' : u.lastSignedIn ? 'pendente' : 'nao_acessou',
-        matrícula: p?.matrícula ?? null,
+        matrícula: p?.matrícula ?? u.matrícula ?? null,
         unit: p?.currentArea ?? null,
         selectedAreas: p?.selectedAreas ?? [],
         exceptionRequested: p?.exceptionRequested ?? false,
         exceptionStatus: p?.exceptionStatus ?? null,
       };
+    });
+
+    // Ordenar: preenchidos primeiro, depois pendentes, depois não acessou; dentro de cada grupo, por nome
+    const order: Record<string, number> = { preenchido: 0, pendente: 1, nao_acessou: 2 };
+    merged.sort((a, b) => {
+      const diff = (order[a.formStatus] ?? 2) - (order[b.formStatus] ?? 2);
+      if (diff !== 0) return diff;
+      return (a.name || '').localeCompare(b.name || '', 'pt-BR');
     });
 
     return res.status(200).json({ participants: merged, total: merged.length });
