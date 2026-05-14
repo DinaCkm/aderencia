@@ -160,9 +160,9 @@ export default function MyResults() {
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
             {[
-              { title: 'Aderência Técnica (0–10)', items: ['Pós/MBA reconhecido: até 3 pts', 'Experiência gerencial: até 4 pts', 'Cursos e projetos estratégicos: até 3 pts'] },
-              { title: 'Aderência Comportamental (0–10)', items: ['Performance (engajamento 0–100 → 0–10)', 'Perfil DISC (escala 0–10)', 'Fórmula: (Performance 0–10 + DISC 0–10) / 2'] },
-              { title: 'Posição no Nine Box', items: ['Eixo X = Aderência Técnica', 'Eixo Y = Aderência Comportamental', 'Baixo: 0–3 | Médio: 4–6 | Alto: 7–10'] },
+              { title: 'Aderência Técnica (0–10)', items: ['Pós/MBA reconhecido: até 40 pts (escala 0–80)', 'Experiência gerencial/interina: até 20 pts (5 pts/ano)', 'Projetos estratégicos da área: até 20 pts', 'Total bruto 0–80 convertido para 0–10'] },
+              { title: 'Aderência Comportamental (0–10)', items: ['Performance (engajamento 0–100 → 0–10)', 'Perfil DISC fornecido pelo RH (escala 0–10)', 'Fórmula: (Performance + DISC) / 2'] },
+              { title: 'Posição no Nine Box', items: ['Eixo X = Aderência Técnica', 'Eixo Y = Aderência Comportamental', 'Baixa: 0–4,9 | Média: 5–7,4 | Alta: 7,5–10'] },
             ].map((block) => (
               <div key={block.title} style={{ background: 'white', borderRadius: 8, padding: '12px 14px' }}>
                 <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--purple)', marginBottom: 6 }}>{block.title}</div>
