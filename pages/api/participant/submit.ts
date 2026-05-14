@@ -18,7 +18,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // aqui para compatibilidade com registros importados via CSV (que podem nao ter esses campos)
   // e para evitar falsos 400 quando o rascunho for restaurado de uma sessao anterior.
 
-  const participants = await readJsonAsync<ParticipantProfile[]>('participants', []);
+  const rawParticipants = await readJsonAsync<ParticipantProfile[]>('participants', []);
+  // Garantir que participants seja sempre um array (proteção contra cache corrompido)
+  const participants: ParticipantProfile[] = Array.isArray(rawParticipants) ? rawParticipants : [];
   const existingIndex = participants.findIndex((item) => item.id === data.id);
 
   // Se graduation e __outro__, marcar como excecao automaticamente

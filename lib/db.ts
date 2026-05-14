@@ -49,7 +49,15 @@ async function mysqlRead<T>(name: string, defaultValue: T): Promise<T> {
       return defaultValue;
     }
     const raw = rows[0].value;
-    return (typeof raw === 'string' ? JSON.parse(raw) : raw) as T;
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    // Garantir que o tipo retornado seja compatível com o defaultValue
+    // Se defaultValue é array mas parsed é objeto (cache corrompido), retornar defaultValue
+    if (Array.isArray(defaultValue) && !Array.isArray(parsed)) {
+      console.warn(`[db] Tipo inválido para "${name}": esperado array, recebido ${typeof parsed}. Usando default.`);
+      await mysqlWrite(name, defaultValue);
+      return defaultValue;
+    }
+    return parsed as T;
   } catch (err) {
     console.error(`[db] Erro ao ler "${name}" do MySQL:`, err);
     return defaultValue;
@@ -156,7 +164,13 @@ export async function readJsonAsync<T>(name: string, defaultValue: T): Promise<T
   if (!USE_MYSQL) {
     return jsonRead(name, defaultValue);
   }
+  // Sempre ler do MySQL (sem cache) para garantir consistência
   const data = await mysqlRead(name, defaultValue);
+  // Validar tipo antes de guardar no cache
+  if (Array.isArray(defaultValue) && !Array.isArray(data)) {
+    memCache[name] = defaultValue;
+    return defaultValue;
+  }
   memCache[name] = data;
   return data;
 }
