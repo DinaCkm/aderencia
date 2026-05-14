@@ -192,7 +192,7 @@ export function buildAreaAssessment(
   const quadrant =
     behavioral !== undefined
       ? getQuadrant(technical.technicalAdherence, behavioral)
-      : 'Dados incompletos para quadrante';
+      : 'Dados incompletos para definição do quadrante';
 
   // Detectar títulos fora do catálogo (para registro de exceções)
   const unknownPost = (profile.postMBAs ?? []).filter(
@@ -232,7 +232,7 @@ export function buildAreaAssessment(
         name: 'Aderência Comportamental',
         value: behavioral ?? 'incompleta',
         detail: disc && perfConverted !== undefined
-          ? `(DISC ${disc.score10} + Performance ${perfConverted}) / 2`
+          ? `(DISC ${disc.score10} + Performance convertida ${perfConverted}) / 2`
           : 'DISC ou Performance ausente',
       },
     ],

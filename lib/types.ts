@@ -1,17 +1,31 @@
 export type AreaCode =
-  | 'GAB'
-  | 'UAUD'
-  | 'URI'
-  | 'UGE'
-  | 'UMC'
-  | 'AJUR'
-  | 'UGP'
-  | 'UAS'
-  | 'UGOC'
-  | 'UTIC'
-  | 'URC'
+  // Diretoria e Assessorias
+  | 'DIREX'
+  | 'DITEC'
+  | 'DAF'
+  | 'CDE'
+  // Unidades
   | 'UAC'
-  | 'UNIDADES_REGIONAIS';
+  | 'UAS'
+  | 'UAUD'
+  | 'UGE'
+  | 'UGOC'
+  | 'UGP'
+  | 'UMC'
+  | 'URC'
+  | 'URI'
+  | 'UTIC'
+  // Regionais (agrupadas no seletor)
+  | 'REGIONAIS'
+  // Regionais individuais (usadas em contextos específicos)
+  | 'RBP'
+  | 'RME'
+  | 'RMN'
+  | 'RNO'
+  | 'RPJ'
+  | 'RSG'
+  | 'RSU'
+  | 'RVA';
 
 export type CatalogGroup = 'postMBA' | 'course' | 'project' | 'certification' | 'unit' | 'role' | 'graduation' | 'name' | 'matricula';
 export type CatalogClassification = 'transversal' | 'area-specific' | 'non-related';

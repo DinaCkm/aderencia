@@ -65,7 +65,7 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, onChange }: {
             checked={mode === 'ugp-knows'}
             onChange={() => onChange('ugp-knows')}
             style={{ accentColor: 'var(--cyan)', width: 13, height: 13 }} />
-          &#10003; A UGP ja tem conhecimento
+          ✓ A UGP já tem conhecimento
         </label>
         <label style={{
           display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
@@ -77,7 +77,7 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, onChange }: {
             checked={mode === 'upload'}
             onChange={() => onChange('upload')}
             style={{ accentColor: 'var(--purple)', width: 13, height: 13 }} />
-          &#128206; Enviar documento
+          📎 Enviar documento
         </label>
       </div>
       {mode === 'upload' && (
@@ -97,7 +97,7 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, onChange }: {
       )}
       {!mode && (
         <p style={{ fontSize: '0.7rem', color: '#f59e0b', marginTop: 4 }}>
-          &#9888; Selecione como vai comprovar este item
+          ⚠ Selecione como vai comprovar este item
         </p>
       )}
     </div>
@@ -278,23 +278,23 @@ export default function ParticipantForm() {
         setStatus(data.message || 'Erro ao enviar. Tente novamente.');
       }
     } catch {
-      setStatus('Erro de conexao. Tente novamente.');
+      setStatus('Erro de conexão. Tente novamente.');
     }
   };
 
   const TOTAL_STEPS = 7;
-  const stepLabels = ['Dados Basicos', 'Areas de Interesse', 'Graduacao', 'Pos/MBA', 'Cursos Extracurriculares', 'Experiencia', 'Projetos'];
+  const stepLabels = ['Dados Básicos', 'Áreas de Interesse', 'Graduação', 'Pós/MBA', 'Cursos Extracurriculares', 'Experiência', 'Projetos'];
 
   if (submitted) {
     return (
       <>
-        <Head><title>Formulario enviado | Banco de Sucessores</title></Head>
+        <Head><title>Formulário enviado | Banco de Sucessores</title></Head>
         <nav className="topbar">
           <div className="topbar-brand">
             <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             <div>
-              <div className="topbar-title">Banco de Sucessores Aderencia</div>
+              <div className="topbar-title">Banco de Sucessores — Aderência</div>
               <div className="topbar-subtitle">SEBRAE Tocantins</div>
             </div>
           </div>
@@ -307,25 +307,25 @@ export default function ParticipantForm() {
             {/* Banner provisorio */}
             <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '14px 18px', marginBottom: 24, textAlign: 'left' }}>
               <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#92400e', marginBottom: 6 }}>
-                &#9888; Pontuacao Provisoria
+                ⚠ Pontuação Provisória
               </div>
               <p style={{ fontSize: '0.78rem', color: '#78350f', lineHeight: 1.6, margin: 0 }}>
-                Sua pontuacao e posicao no Nine Box estao disponiveis agora, mas sao <strong>provisorias</strong>.
-                A confirmacao definitiva ocorrera apos a <strong>checagem dos documentos</strong> enviados ou validacao pela UGP.
-                Voce sera notificado quando sua pontuacao for confirmada.
+                Sua pontuação e posição no Nine Box estão disponíveis agora, mas são <strong>provisórias</strong>.
+                A confirmação definitiva ocorrerá após a <strong>checagem dos documentos</strong> enviados ou validação pela UGP.
+                Você será notificado quando sua pontuação for confirmada.
               </p>
             </div>
             <div style={{ fontSize: '3rem', marginBottom: '16px' }}>&#10003;</div>
             <h2 style={{ color: 'var(--purple)', marginBottom: '12px' }}>Formulario enviado com sucesso!</h2>
             <p style={{ color: 'var(--text-muted)', marginBottom: '28px' }}>
-              Seus dados foram registrados. Voce pode visualizar sua aderencia e posicao no Nine Box a qualquer momento.
+              Seus dados foram registrados. Você pode visualizar sua aderência e posição no Nine Box a qualquer momento.
             </p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="/my-results">
                 <button className="btn-primary">Ver meus resultados</button>
               </Link>
               <button className="btn-outline" onClick={() => setSubmitted(false)}>
-                Editar formulario
+                Editar formulário
               </button>
             </div>
           </div>
@@ -336,14 +336,14 @@ export default function ParticipantForm() {
 
   return (
     <>
-      <Head><title>Formulario | Banco de Sucessores Aderencia</title></Head>
+      <Head><title>Formulário | Banco de Sucessores — Aderência</title></Head>
 
       <nav className="topbar">
         <div className="topbar-brand">
           <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
-            <div className="topbar-title">Banco de Sucessores Aderencia</div>
+            <div className="topbar-title">Banco de Sucessores — Aderência</div>
             <div className="topbar-subtitle">SEBRAE Tocantins</div>
           </div>
         </div>
@@ -501,7 +501,7 @@ export default function ParticipantForm() {
                     style={{ background: '#f1f5f9', color: 'var(--text-muted)' }} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Matricula *</label>
+                  <label className="form-label">Matrícula *</label>
                   <input className="form-input" type="text" placeholder="Ex: 123456"
                     value={profile.matricula}
                     onChange={(e) => setProfile((p) => ({ ...p, matricula: e.target.value }))} required />
@@ -524,15 +524,15 @@ export default function ParticipantForm() {
                     </optgroup>
                     <optgroup label="Outros">
                       <option>Estagiário</option>
-                      <option>Secretaria DIREX</option>
+                      
                     </optgroup>
                   </select>
                 </div>
               </div>
               <div className="form-group" style={{ marginTop: 8 }}>
-                <label className="form-label">Area em que atua atualmente *</label>
+                <label className="form-label">Área em que atua atualmente *</label>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 10 }}>
-                  Selecione a area onde voce trabalha hoje. Isso nos ajuda a entender quantas pessoas da mesma area tem aderencia a cada destino.
+                  Selecione a área onde você trabalha hoje. Isso nos ajuda a entender quantas pessoas da mesma área têm aderência a cada destino.
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {OFFICIAL_AREAS.map((area) => {
@@ -555,11 +555,11 @@ export default function ParticipantForm() {
               {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
-                  if (!profile.matricula) { setStatus('Informe sua matricula.'); return; }
-                  if (!profile.currentRole) { setStatus('Informe seu cargo/funcao.'); return; }
-                  if (!profile.currentArea) { setStatus('Selecione a area em que atua atualmente.'); return; }
+                  if (!profile.matricula) { setStatus('Informe sua matrícula.'); return; }
+                  if (!profile.currentRole) { setStatus('Informe seu cargo/função.'); return; }
+                  if (!profile.currentArea) { setStatus('Selecione a área em que atua atualmente.'); return; }
                   setStatus(''); setStep(2);
-                }}>Proximo &rarr;</button>
+                }}>Próximo →</button>
               </div>
             </div>
           )}
@@ -617,24 +617,24 @@ export default function ParticipantForm() {
               </p>
               {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(1)}>&larr; Voltar</button>
+                <button type="button" className="btn-outline" onClick={() => setStep(1)}>← Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
-                  if (profile.selectedAreas.length === 0) { setStatus('Selecione ao menos 1 area de interesse.'); return; }
+                  if (profile.selectedAreas.length === 0) { setStatus('Selecione ao menos 1 área de interesse.'); return; }
                   setStatus(''); setStep(3);
-                }}>Proximo &rarr;</button>
+                }}>Próximo →</button>
               </div>
             </div>
           )}
 
-          {/* ── STEP 3: FORMACAO ── */}
+          {/* ── STEP 3: FORMAÇÃO ── */}
           {step === 3 && (
             <div className="section-card">
               <div className="section-title">
                 <span className="section-icon">&#127891;</span>
                 <div>
-                  <h2>Formacao Academica</h2>
+                  <h2>Formação Acadêmica</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                    Registro obrigatorio — <span style={{ color: '#0369a1', fontWeight: 600 }}>dado complementar, nao entra na pontuacao</span>
+                    Registro obrigatório — <span style={{ color: '#0369a1', fontWeight: 600 }}>dado complementar, não entra na pontuação</span>
                   </p>
                 </div>
               </div>
@@ -667,7 +667,7 @@ export default function ParticipantForm() {
                 </p>
               </div>
 
-              {/* Graduacao principal com comprovacao */}
+              {/* Graduação principal com comprovação */}
               <div className="form-group">
                 <label className="form-label">Área da graduação *</label>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 6 }}>Selecione a área mais próxima da sua formação.</p>
@@ -695,7 +695,7 @@ export default function ParticipantForm() {
                 )}
               </div>
 
-              {/* Nome completo do curso de graduacao */}
+              {/* Nome completo do curso de graduação */}
               <div className="form-group">
                 <label className="form-label">Nome do curso de graduação *</label>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 6 }}>Digite o nome completo do curso conforme consta no diploma, certificado ou histórico acadêmico.</p>
@@ -730,7 +730,7 @@ export default function ParticipantForm() {
                 </div>
               )}
 
-              {/* Segunda graduacao (opcional) */}
+              {/* Segunda graduação (opcional) */}
               <div className="form-group">
                 <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <input type="checkbox"
@@ -780,7 +780,7 @@ export default function ParticipantForm() {
                         />
                       </div>
                     )}
-                    {/* Campo condicional de excecao da 2ª graduacao */}
+                    {/* Campo condicional de exceção da 2ª graduação */}
                     {(profile as any).graduation2 === '__outro2__' && (
                       <div style={{ background: '#fef9ec', border: '1.5px solid #fbbf24', borderRadius: 10, padding: '14px 16px' }}>
                         <label className="form-label" style={{ color: '#92400e', marginBottom: 6 }}>Curso não encontrado / Exceção — 2ª Graduação *</label>
@@ -803,7 +803,7 @@ export default function ParticipantForm() {
 
               {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(2)}>&larr; Voltar</button>
+                <button type="button" className="btn-outline" onClick={() => setStep(2)}>← Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
                   if (!profile.graduation) { setStatus('Selecione a área da sua graduação.'); return; }
                   if (!(profile as any).graduationCourseName?.trim()) { setStatus('Informe o nome completo do curso de graduação.'); return; }
@@ -823,7 +823,7 @@ export default function ParticipantForm() {
                     }
                   }
                   setStatus(''); setStep(4);
-                }}>Proximo &rarr;</button>
+                }}>Próximo →</button>
               </div>
             </div>
           )}
@@ -862,7 +862,7 @@ export default function ParticipantForm() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16, marginTop: 8 }}>
                 <div style={{ background: '#f0fdf4', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '12px 14px' }}>
                   <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#065f46', marginBottom: 4, display: 'flex', alignItems: 'center' }}>
-                    &#127758; Titulo Transversal
+                    🌍 Título Transversal
                     <InfoTooltip content={
                       <div>
                         <p style={{ fontWeight: 700, marginBottom: 6, color: '#065f46' }}>Critérios para Título Transversal</p>
@@ -882,19 +882,19 @@ export default function ParticipantForm() {
                     } />
                   </div>
                   <p style={{ fontSize: '0.75rem', color: '#047857', lineHeight: 1.6, margin: 0 }}>
-                    Vale para <strong>qualquer area</strong> de interesse. Titulos de gestao, lideranca e competencias gerais.
+                    Vale para <strong>qualquer área</strong> de interesse. Títulos de gestão, liderança e competências gerais.
                   </p>
                   <p style={{ fontSize: '0.7rem', color: '#059669', marginTop: 4, fontStyle: 'italic' }}>
-                    Ex: MBA em Gestao de Pessoas, Lideranca, Inovacao.
+                    Ex.: MBA em Gestão de Pessoas, Liderança, Inovação.
                   </p>
                 </div>
                 <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '12px 14px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#5B2D8E', marginBottom: 4 }}>&#127919; Titulo Especifico da Area</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#5B2D8E', marginBottom: 4 }}>🎯 Título Específico da Área</div>
                   <p style={{ fontSize: '0.75rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
-                    Vale <strong>somente para a area correspondente</strong> e com pontuacao maior.
+                    Vale <strong>somente para a área correspondente</strong> e com pontuação maior.
                   </p>
                   <p style={{ fontSize: '0.7rem', color: '#7c3aed', marginTop: 4, fontStyle: 'italic' }}>
-                    Ex: MBA em Auditoria (UAUD), Direito Publico (AJUR).
+                    Ex.: MBA em Auditoria (UAUD), Direito Público.
                   </p>
                 </div>
               </div>
@@ -1004,7 +1004,7 @@ export default function ParticipantForm() {
               </div>
               {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(3)}>&larr; Voltar</button>
+                <button type="button" className="btn-outline" onClick={() => setStep(3)}>← Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
                   // Validar comprovação dos blocos de Pós/MBA
                   const mbaBlocks = (profile as any).mbaBlocks || [];
@@ -1021,7 +1021,7 @@ export default function ParticipantForm() {
                     }
                   }
                   setStatus(''); setStep(5);
-                }}>Proximo &rarr;</button>
+                }}>Próximo →</button>
               </div>
             </div>
           )}
@@ -1089,7 +1089,7 @@ export default function ParticipantForm() {
                   </p>
                 </div>
                 <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '12px 14px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#5B2D8E', marginBottom: 4 }}>&#127919; Curso Especifico da Area</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#5B2D8E', marginBottom: 4 }}>🎯 Curso Específico da Área</div>
                   <p style={{ fontSize: '0.75rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
                     Cursos técnicos ligados a uma unidade específica. Pontuam <strong>somente na área correspondente</strong>.
                   </p>
@@ -1206,7 +1206,7 @@ export default function ParticipantForm() {
                             onChange={(e) => updateCourse('hours', parseInt(e.target.value) || 0)}
                             style={{ width: 80, padding: '4px 8px', border: `1px solid ${belowMin ? '#fca5a5' : 'var(--border)'}`, borderRadius: 6, fontSize: '0.78rem' }}
                           />
-                          {belowMin && <span style={{ fontSize: '0.72rem', color: '#dc2626' }}>&#9888; Abaixo de 16h</span>}
+                          {belowMin && <span style={{ fontSize: '0.72rem', color: '#dc2626' }}>⚠ Abaixo de 16h</span>}
                           {hasData && course.hours >= 16 && <span style={{ fontSize: '0.72rem', color: '#16a34a' }}>&#10003; Válido</span>}
                         </div>
                         {/* Comprovação */}
@@ -1227,7 +1227,7 @@ export default function ParticipantForm() {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(4)}>&larr; Voltar</button>
+                <button type="button" className="btn-outline" onClick={() => setStep(4)}>← Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
                   // Step 5 usa freeCourses (entrada livre) — validar comprovação apenas para cursos com dados completos e >=16h
                   const freeCourses = (profile as any).freeCourses || [];
@@ -1241,12 +1241,12 @@ export default function ParticipantForm() {
                     }
                   }
                   setStatus(''); setStep(6);
-                }}>Proximo &rarr;</button>
+                }}>Próximo →</button>
               </div>
             </div>
           )}
 
-          {/* ── STEP 6: EXPERIENCIA ── */}
+          {/* ── STEP 6: EXPERIÊNCIA ── */}
           {step === 6 && (
             <div className="section-card">
               <div className="section-title">
@@ -1275,7 +1275,7 @@ export default function ParticipantForm() {
                   &#128081; Cargo Gerencial Efetivo
                 </div>
                 <p style={{ fontSize: '0.75rem', color: '#6d28d9', marginBottom: 12 }}>
-                  Cargo formal com equipe e atribuicoes permanentes. Ex: Gerente de Unidade, Coordenador, Superintendente.
+                  Cargo formal com equipe e atribuições permanentes. Ex.: Gerente de Unidade, Coordenador, Superintendente.
                 </p>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label" style={{ fontSize: '0.78rem' }}>Meses em cargo gerencial efetivo</label>
@@ -1292,7 +1292,7 @@ export default function ParticipantForm() {
                   &#128203; Cargo Interino
                 </div>
                 <p style={{ fontSize: '0.75rem', color: '#0284c7', marginBottom: 12 }}>
-                  Substituicao temporaria com as mesmas atribuicoes do cargo gerencial por periodo determinado.
+                  Substituição temporária com as mesmas atribuições do cargo gerencial por período determinado.
                 </p>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label" style={{ fontSize: '0.78rem' }}>Meses em cargo interino</label>
@@ -1303,7 +1303,7 @@ export default function ParticipantForm() {
                 </div>
               </div>
 
-              {/* Preview do calculo */}
+              {/* Preview do cálculo */}
               {(profile.managerialMonths > 0 || profile.interimMonths > 0) && (
                 <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8, padding: '10px 14px', fontSize: '0.78rem', color: '#166534' }}>
                   Gerencial: <strong>{profile.managerialMonths}m</strong> + Interino: <strong>{profile.interimMonths}m</strong> = <strong>{profile.managerialMonths + profile.interimMonths}m</strong> totais
@@ -1312,8 +1312,8 @@ export default function ParticipantForm() {
               )}
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(5)}>&larr; Voltar</button>
-                <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => { setStatus(''); setStep(7); }}>Proximo &rarr;</button>
+                <button type="button" className="btn-outline" onClick={() => setStep(5)}>← Voltar</button>
+                <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => { setStatus(''); setStep(7); }}>Próximo →</button>
               </div>
             </div>
           )}
@@ -1324,16 +1324,16 @@ export default function ParticipantForm() {
               <div className="section-title">
                 <span className="section-icon">&#127775;</span>
                 <div>
-                  <h2>Cursos Estrategicos</h2>
+                  <h2>Cursos Estratégicos</h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                    Cursos estrategicos concluidos valem ate <span style={{ color: 'var(--purple)', fontWeight: 600 }}>3 pontos</span> na aderencia tecnica
+                    Cursos estratégicos concluídos valem até <span style={{ color: 'var(--purple)', fontWeight: 600 }}>3 pontos</span> na aderência técnica
                   </p>
                 </div>
               </div>
 
-              {/* Definicao didatica */}
+              {/* Definição didática */}
               <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.78rem', color: '#92400e' }}>
-                <strong>O que sao cursos estrategicos?</strong> Sao formacoes de desenvolvimento continuado — diferentes de Pos/MBA. Incluem cursos, workshops, treinamentos e certificacoes profissionais. Para pontuar, o curso deve ter <strong>no minimo 16 horas</strong>. A validacao final e feita pelo RH/UGP.
+                <strong>O que são cursos estratégicos?</strong> São formações de desenvolvimento continuado — diferentes de Pós/MBA. Incluem cursos, workshops, treinamentos e certificações profissionais. Para pontuar, o curso deve ter <strong>no mínimo 16 horas</strong>. A validação final é feita pelo RH/UGP.
               </div>
 
               {/* Transversal vs especifico */}
@@ -1359,20 +1359,20 @@ export default function ParticipantForm() {
                     } />
                   </div>
                   <p style={{ fontSize: '0.75rem', color: '#047857', lineHeight: 1.6, margin: 0 }}>
-                    Competencias gerenciais e comportamentais que contribuem para <strong>qualquer area</strong> escolhida.
+                    Competências gerenciais e comportamentais que contribuem para <strong>qualquer área</strong> escolhida.
                   </p>
                 </div>
                 <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '12px 14px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#5B2D8E', marginBottom: 4 }}>&#127919; Curso Especifico da Area</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#5B2D8E', marginBottom: 4 }}>🎯 Curso Específico da Área</div>
                   <p style={{ fontSize: '0.75rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
-                    Cursos tecnicos ligados a uma unidade especifica. Pontuam <strong>somente na area correspondente</strong>.
+                    Cursos técnicos ligados a uma unidade específica. Pontuam <strong>somente na área correspondente</strong>.
                   </p>
                 </div>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Cursos estrategicos concluidos</label>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Ao marcar um curso, informe a carga horaria e como vai comprova-lo.</p>
+                <label className="form-label">Cursos estratégicos concluídos</label>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Ao marcar um curso, informe a carga horária e como vai comprová-lo.</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {courseOptions.map((o) => {
                     const selected = profile.selectedCourses.includes(o.label);
@@ -1404,7 +1404,7 @@ export default function ParticipantForm() {
                         {selected && (
                           <>
                             <div style={{ padding: '0 12px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Carga horaria (h):</label>
+                              <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Carga horária (h):</label>
                               <input type="number" min={1} max={999}
                                 value={hours || ''}
                                 onChange={(e) => {
@@ -1413,7 +1413,7 @@ export default function ParticipantForm() {
                                 }}
                                 placeholder="Ex: 40"
                                 style={{ width: 80, padding: '4px 8px', border: `1px solid ${belowMin ? '#fca5a5' : 'var(--border)'}`, borderRadius: 6, fontSize: '0.78rem' }} />
-                              {belowMin && <span style={{ fontSize: '0.72rem', color: '#dc2626' }}>&#9888; Abaixo de 16h — nao pontua</span>}
+                              {belowMin && <span style={{ fontSize: '0.72rem', color: '#dc2626' }}>⚠ Abaixo de 16h — nao pontua</span>}
                               {selected && hours >= 16 && <span style={{ fontSize: '0.72rem', color: '#16a34a' }}>&#10003; Valido</span>}
                             </div>
                             <ProofSelector
@@ -1431,7 +1431,7 @@ export default function ParticipantForm() {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(4)}>&larr; Voltar</button>
+                <button type="button" className="btn-outline" onClick={() => setStep(4)}>← Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
                   // Validar comprovacao dos cursos selecionados
                   for (const item of profile.selectedCourses) {
@@ -1440,7 +1440,7 @@ export default function ParticipantForm() {
                     if (mode === 'upload' && !profile.proofFiles[item]) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); return; }
                   }
                   setStatus(''); setStep(6);
-                }}>Proximo &rarr;</button>
+                }}>Próximo →</button>
               </div>
             </div>
           )}
@@ -1540,7 +1540,7 @@ export default function ParticipantForm() {
 
               {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(6)}>&larr; Voltar</button>
+                <button type="button" className="btn-outline" onClick={() => setStep(6)}>← Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 180 }} onClick={(e) => {
                   // Validar comprovacao dos projetos selecionados
                   for (const item of profile.selectedProjects) {
@@ -1551,7 +1551,7 @@ export default function ParticipantForm() {
                   }
                   handleSubmit(e as any);
                 }}>
-                  &#10003; Enviar formulario
+                  ✓ Enviar formulário
                 </button>
               </div>
             </div>

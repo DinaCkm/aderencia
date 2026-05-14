@@ -8,19 +8,19 @@ import { CatalogItem } from './types';
 
 export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] })[] = [
   // ── GRADUAÇÕES ──────────────────────────────────────────────────────────────
-  // GAB
+  // CDE — Assessoria
   { id: 'grad-gab-administracao', label: 'Administração', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Administração', 'Administração de Empresas'] },
   { id: 'grad-gab-ciencia-da-computacao', label: 'Ciência da Computação', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Ciência da Computação'] },
-  { id: 'grad-gab-ciencias-contabeis', label: 'Ciências Contábeis', group: 'graduation', classification: 'area-specific', points: 5, area: 'GAB', aliases: ['Ciências Contábeis', 'Contabilidade'] },
+  { id: 'grad-gab-ciencias-contabeis', label: 'Ciências Contábeis', group: 'graduation', classification: 'area-specific', points: 5, area: 'CDE', aliases: ['Ciências Contábeis', 'Contabilidade'] },
   { id: 'grad-gab-cursos-com-enfase-em-gestao-de-projetos', label: 'Cursos com ênfase em Gestão de Projetos', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Gestão de Projetos', 'Projetos', 'PMO', 'Project Management'] },
   { id: 'grad-gab-cursos-com-enfase-em-inovacao', label: 'Cursos com ênfase em Inovação', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Inovação', 'Gestão da Inovação', 'Transformação e Inovação'] },
   { id: 'grad-gab-cursos-com-enfase-em-lideranca', label: 'Cursos com ênfase em Liderança', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Liderança', 'Desenvolvimento de Lideranças', 'Liderança Estratégica'] },
-  { id: 'grad-gab-direito', label: 'Direito', group: 'graduation', classification: 'area-specific', points: 5, area: 'GAB', aliases: ['Direito'] },
+  { id: 'grad-gab-direito', label: 'Direito', group: 'graduation', classification: 'area-specific', points: 5, area: 'CDE', aliases: ['Direito'] },
   { id: 'grad-gab-engenharia-de-producao', label: 'Engenharia de Produção', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Engenharia de Produção'] },
   { id: 'grad-gab-gestao-de-pessoas', label: 'Gestão de Pessoas', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Gestão de Pessoas', 'Recursos Humanos', 'RH'] },
-  { id: 'grad-gab-gestao-publica', label: 'Gestão Pública', group: 'graduation', classification: 'area-specific', points: 5, area: 'GAB', aliases: ['Gestão Pública', 'Administração Pública'] },
+  { id: 'grad-gab-gestao-publica', label: 'Gestão Pública', group: 'graduation', classification: 'area-specific', points: 5, area: 'CDE', aliases: ['Gestão Pública', 'Administração Pública'] },
   { id: 'grad-gab-psicologia-organizacional', label: 'Psicologia Organizacional', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Psicologia Organizacional', 'Psicologia do Trabalho'] },
-  { id: 'grad-gab-secretariado-executivo', label: 'Secretariado Executivo', group: 'graduation', classification: 'area-specific', points: 5, area: 'GAB', aliases: ['Secretariado Executivo'] },
+  { id: 'grad-gab-secretariado-executivo', label: 'Secretariado Executivo', group: 'graduation', classification: 'area-specific', points: 5, area: 'CDE', aliases: ['Secretariado Executivo'] },
   { id: 'grad-gab-sistemasti', label: 'Sistemas/TI', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Sistemas/TI', 'Sistemas de Informação', 'Tecnologia da Informação', 'TI'] },
   { id: 'grad-gab-tecnologia-da-informacao', label: 'Tecnologia da Informação', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Tecnologia da Informação', 'TI'] },
   // UAUD
@@ -80,13 +80,13 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'grad-umc-psicologia-organizacional', label: 'Psicologia Organizacional', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Psicologia Organizacional', 'Psicologia do Trabalho'] },
   { id: 'grad-umc-sistemasti', label: 'Sistemas/TI', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Sistemas/TI', 'Sistemas de Informação', 'Tecnologia da Informação', 'TI'] },
   { id: 'grad-umc-tecnologia-da-informacao', label: 'Tecnologia da Informação', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Tecnologia da Informação', 'TI'] },
-  // AJUR
+  // CDE — Assessoria (Jurídico)
   { id: 'grad-ajur-administracao', label: 'Administração', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Administração', 'Administração de Empresas'] },
   { id: 'grad-ajur-ciencia-da-computacao', label: 'Ciência da Computação', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Ciência da Computação'] },
   { id: 'grad-ajur-cursos-com-enfase-em-gestao-de-projetos', label: 'Cursos com ênfase em Gestão de Projetos', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Gestão de Projetos', 'Projetos', 'PMO', 'Project Management'] },
   { id: 'grad-ajur-cursos-com-enfase-em-inovacao', label: 'Cursos com ênfase em Inovação', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Inovação', 'Gestão da Inovação', 'Transformação e Inovação'] },
   { id: 'grad-ajur-cursos-com-enfase-em-lideranca', label: 'Cursos com ênfase em Liderança', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Liderança', 'Desenvolvimento de Lideranças', 'Liderança Estratégica'] },
-  { id: 'grad-ajur-direito', label: 'Direito', group: 'graduation', classification: 'area-specific', points: 5, area: 'AJUR', aliases: ['Direito'] },
+  { id: 'grad-ajur-direito', label: 'Direito', group: 'graduation', classification: 'area-specific', points: 5, area: 'CDE', aliases: ['Direito'] },
   { id: 'grad-ajur-engenharia-de-producao', label: 'Engenharia de Produção', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Engenharia de Produção'] },
   { id: 'grad-ajur-gestao-de-pessoas', label: 'Gestão de Pessoas', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Gestão de Pessoas', 'Recursos Humanos', 'RH'] },
   { id: 'grad-ajur-psicologia-organizacional', label: 'Psicologia Organizacional', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Psicologia Organizacional', 'Psicologia do Trabalho'] },
@@ -175,25 +175,25 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   // REGIONAIS
   { id: 'grad-regionais-administracao', label: 'Administração', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Administração', 'Administração de Empresas'] },
   { id: 'grad-regionais-ciencia-da-computacao', label: 'Ciência da Computação', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Ciência da Computação'] },
-  { id: 'grad-regionais-ciencias-contabeis', label: 'Ciências Contábeis', group: 'graduation', classification: 'area-specific', points: 5, area: 'UNIDADES_REGIONAIS', aliases: ['Ciências Contábeis', 'Contabilidade'] },
+  { id: 'grad-regionais-ciencias-contabeis', label: 'Ciências Contábeis', group: 'graduation', classification: 'area-specific', points: 5, area: 'REGIONAIS', aliases: ['Ciências Contábeis', 'Contabilidade'] },
   { id: 'grad-regionais-cursos-com-enfase-em-gestao-de-projetos', label: 'Cursos com ênfase em Gestão de Projetos', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Gestão de Projetos', 'Projetos', 'PMO', 'Project Management'] },
   { id: 'grad-regionais-cursos-com-enfase-em-inovacao', label: 'Cursos com ênfase em Inovação', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Inovação', 'Gestão da Inovação', 'Transformação e Inovação'] },
   { id: 'grad-regionais-cursos-com-enfase-em-lideranca', label: 'Cursos com ênfase em Liderança', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Liderança', 'Desenvolvimento de Lideranças', 'Liderança Estratégica'] },
-  { id: 'grad-regionais-economia', label: 'Economia', group: 'graduation', classification: 'area-specific', points: 5, area: 'UNIDADES_REGIONAIS', aliases: ['Economia'] },
+  { id: 'grad-regionais-economia', label: 'Economia', group: 'graduation', classification: 'area-specific', points: 5, area: 'REGIONAIS', aliases: ['Economia'] },
   { id: 'grad-regionais-engenharia-de-producao', label: 'Engenharia de Produção', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Engenharia de Produção'] },
   { id: 'grad-regionais-gestao-de-pessoas', label: 'Gestão de Pessoas', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Gestão de Pessoas', 'Recursos Humanos', 'RH'] },
-  { id: 'grad-regionais-gestao-publica', label: 'Gestão Pública', group: 'graduation', classification: 'area-specific', points: 5, area: 'UNIDADES_REGIONAIS', aliases: ['Gestão Pública', 'Administração Pública'] },
+  { id: 'grad-regionais-gestao-publica', label: 'Gestão Pública', group: 'graduation', classification: 'area-specific', points: 5, area: 'REGIONAIS', aliases: ['Gestão Pública', 'Administração Pública'] },
   { id: 'grad-regionais-psicologia-organizacional', label: 'Psicologia Organizacional', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Psicologia Organizacional', 'Psicologia do Trabalho'] },
   { id: 'grad-regionais-sistemasti', label: 'Sistemas/TI', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Sistemas/TI', 'Sistemas de Informação', 'Tecnologia da Informação', 'TI'] },
   { id: 'grad-regionais-tecnologia-da-informacao', label: 'Tecnologia da Informação', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Tecnologia da Informação', 'TI'] },
 
   // ── PÓS/MBA ──────────────────────────────────────────────────────────────────
-  // GAB
-  { id: 'pos-gab-administracao-publica', label: 'Administração Pública', group: 'postMBA', classification: 'area-specific', points: 20, area: 'GAB', aliases: ['Administração Pública'] },
-  { id: 'pos-gab-compliance-e-integridade', label: 'Compliance e Integridade', group: 'postMBA', classification: 'area-specific', points: 20, area: 'GAB', aliases: ['Compliance', 'Integridade'] },
-  { id: 'pos-gab-gestao-de-processos-organizacionais', label: 'Gestão de Processos Organizacionais', group: 'postMBA', classification: 'area-specific', points: 20, area: 'GAB', aliases: ['Gestão de Processos Organizacionais', 'Processos Organizacionais'] },
-  { id: 'pos-gab-gestao-publica-ou-gestao-institucional', label: 'Gestão Pública ou Gestão Institucional', group: 'postMBA', classification: 'area-specific', points: 20, area: 'GAB', aliases: ['Gestão Pública', 'Gestão Institucional'] },
-  { id: 'pos-gab-governanca-corporativa', label: 'Governança Corporativa', group: 'postMBA', classification: 'area-specific', points: 20, area: 'GAB', aliases: ['Governança Corporativa'] },
+  // CDE — Assessoria
+  { id: 'pos-gab-administracao-publica', label: 'Administração Pública', group: 'postMBA', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['Administração Pública'] },
+  { id: 'pos-gab-compliance-e-integridade', label: 'Compliance e Integridade', group: 'postMBA', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['Compliance', 'Integridade'] },
+  { id: 'pos-gab-gestao-de-processos-organizacionais', label: 'Gestão de Processos Organizacionais', group: 'postMBA', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['Gestão de Processos Organizacionais', 'Processos Organizacionais'] },
+  { id: 'pos-gab-gestao-publica-ou-gestao-institucional', label: 'Gestão Pública ou Gestão Institucional', group: 'postMBA', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['Gestão Pública', 'Gestão Institucional'] },
+  { id: 'pos-gab-governanca-corporativa', label: 'Governança Corporativa', group: 'postMBA', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['Governança Corporativa'] },
   { id: 'pos-gab-mbapos-em-estrategia-organizacional', label: 'MBA/Pós em Estratégia Organizacional', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Estratégia Organizacional', 'Gestão Estratégica', 'Planejamento Estratégico'] },
   { id: 'pos-gab-mbapos-em-gestao-de-pessoas', label: 'MBA/Pós em Gestão de Pessoas', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Pessoas', 'People Analytics', 'RH Estratégico'] },
   { id: 'pos-gab-mbapos-em-gestao-de-projetos', label: 'MBA/Pós em Gestão de Projetos', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Projetos', 'Projetos', 'PMO', 'Project Management'] },
@@ -248,12 +248,12 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'pos-umc-mbapos-em-inovacao', label: 'MBA/Pós em Inovação', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Inovação', 'Gestão da Inovação', 'Transformação Digital e Inovação'] },
   { id: 'pos-umc-mbapos-em-lideranca', label: 'MBA/Pós em Liderança', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Liderança', 'Desenvolvimento de Lideranças', 'Liderança Estratégica'] },
   { id: 'pos-umc-mbapos-em-tecnologia', label: 'MBA/Pós em Tecnologia', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Tecnologia', 'Gestão de TI', 'Transformação Digital', 'TI'] },
-  // AJUR
-  { id: 'pos-ajur-compliance-e-integridade', label: 'Compliance e Integridade', group: 'postMBA', classification: 'area-specific', points: 20, area: 'AJUR', aliases: ['Compliance', 'Integridade'] },
-  { id: 'pos-ajur-direito-administrativo', label: 'Direito Administrativo', group: 'postMBA', classification: 'area-specific', points: 20, area: 'AJUR', aliases: ['Direito Administrativo'] },
-  { id: 'pos-ajur-direito-empresarial', label: 'Direito Empresarial', group: 'postMBA', classification: 'area-specific', points: 20, area: 'AJUR', aliases: ['Direito Empresarial'] },
-  { id: 'pos-ajur-direito-publico', label: 'Direito Público', group: 'postMBA', classification: 'area-specific', points: 20, area: 'AJUR', aliases: ['Direito Público'] },
-  { id: 'pos-ajur-gestao-de-riscos-juridicos', label: 'Gestão de Riscos Jurídicos', group: 'postMBA', classification: 'area-specific', points: 20, area: 'AJUR', aliases: ['Gestão de Riscos Jurídicos'] },
+  // CDE — Assessoria (Jurídico)
+  { id: 'pos-ajur-compliance-e-integridade', label: 'Compliance e Integridade', group: 'postMBA', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['Compliance', 'Integridade'] },
+  { id: 'pos-ajur-direito-administrativo', label: 'Direito Administrativo', group: 'postMBA', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['Direito Administrativo'] },
+  { id: 'pos-ajur-direito-empresarial', label: 'Direito Empresarial', group: 'postMBA', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['Direito Empresarial'] },
+  { id: 'pos-ajur-direito-publico', label: 'Direito Público', group: 'postMBA', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['Direito Público'] },
+  { id: 'pos-ajur-gestao-de-riscos-juridicos', label: 'Gestão de Riscos Jurídicos', group: 'postMBA', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['Gestão de Riscos Jurídicos'] },
   { id: 'pos-ajur-mbapos-em-estrategia-organizacional', label: 'MBA/Pós em Estratégia Organizacional', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Estratégia Organizacional', 'Gestão Estratégica', 'Planejamento Estratégico'] },
   { id: 'pos-ajur-mbapos-em-gestao-de-pessoas', label: 'MBA/Pós em Gestão de Pessoas', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Pessoas', 'People Analytics', 'RH Estratégico'] },
   { id: 'pos-ajur-mbapos-em-gestao-de-projetos', label: 'MBA/Pós em Gestão de Projetos', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Projetos', 'Projetos', 'PMO', 'Project Management'] },
@@ -329,10 +329,10 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'pos-uac-mbapos-em-tecnologia', label: 'MBA/Pós em Tecnologia', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Tecnologia', 'Gestão de TI', 'Transformação Digital', 'TI'] },
   { id: 'pos-uac-politicas-publicas-para-pequenos-negocios', label: 'Políticas Públicas para Pequenos Negócios', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAC', aliases: ['Políticas Públicas para Pequenos Negócios'] },
   // REGIONAIS
-  { id: 'pos-regionais-desenvolvimento-regional', label: 'Desenvolvimento Regional', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UNIDADES_REGIONAIS', aliases: ['Desenvolvimento Regional'] },
-  { id: 'pos-regionais-gestao-de-pequenos-negocios', label: 'Gestão de Pequenos Negócios', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UNIDADES_REGIONAIS', aliases: ['Gestão de Pequenos Negócios'] },
+  { id: 'pos-regionais-desenvolvimento-regional', label: 'Desenvolvimento Regional', group: 'postMBA', classification: 'area-specific', points: 20, area: 'REGIONAIS', aliases: ['Desenvolvimento Regional'] },
+  { id: 'pos-regionais-gestao-de-pequenos-negocios', label: 'Gestão de Pequenos Negócios', group: 'postMBA', classification: 'area-specific', points: 20, area: 'REGIONAIS', aliases: ['Gestão de Pequenos Negócios'] },
   { id: 'pos-regionais-gestao-de-projetos', label: 'Gestão de Projetos', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Projetos', 'Projetos'] },
-  { id: 'pos-regionais-gestao-estrategica', label: 'Gestão Estratégica', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UNIDADES_REGIONAIS', aliases: ['Gestão Estratégica'] },
+  { id: 'pos-regionais-gestao-estrategica', label: 'Gestão Estratégica', group: 'postMBA', classification: 'area-specific', points: 20, area: 'REGIONAIS', aliases: ['Gestão Estratégica'] },
   { id: 'pos-regionais-lideranca-e-gestao-de-equipes', label: 'Liderança e Gestão de Equipes', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Liderança e Gestão de Equipes', 'Liderança'] },
   { id: 'pos-regionais-mbapos-em-estrategia-organizacional', label: 'MBA/Pós em Estratégia Organizacional', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Estratégia Organizacional', 'Gestão Estratégica', 'Planejamento Estratégico'] },
   { id: 'pos-regionais-mbapos-em-gestao-de-pessoas', label: 'MBA/Pós em Gestão de Pessoas', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Pessoas', 'People Analytics', 'RH Estratégico'] },
@@ -342,12 +342,12 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'pos-regionais-mbapos-em-tecnologia', label: 'MBA/Pós em Tecnologia', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Tecnologia', 'Gestão de TI', 'Transformação Digital', 'TI'] },
 
   // ── PROJETOS ESTRATÉGICOS ────────────────────────────────────────────────────
-  // GAB
-  { id: 'proj-gab-gestao-da-agenda-colegiada-e-fluxo-deliberativo', label: 'Gestão da agenda colegiada e fluxo deliberativo', group: 'project', classification: 'area-specific', points: 20, area: 'GAB', aliases: ['agenda colegiada', 'fluxo deliberativo', 'secretaria de colegiados'] },
-  { id: 'proj-gab-programa-de-conformidade-regimental-e-governanca-do-cde', label: 'Programa de conformidade regimental e governança do CDE', group: 'project', classification: 'area-specific', points: 20, area: 'GAB', aliases: ['conformidade regimental', 'governança do conselho', 'compliance do CDE'] },
-  { id: 'proj-gab-gestao-documental-e-memoria-dos-colegiados', label: 'Gestão documental e memória dos colegiados', group: 'project', classification: 'area-specific', points: 15, area: 'GAB', aliases: ['gestão documental', 'memória institucional', 'acervo colegiado'] },
-  { id: 'proj-gab-painel-executivo-de-acompanhamento-das-deliberacoes', label: 'Painel executivo de acompanhamento das deliberações', group: 'project', classification: 'area-specific', points: 15, area: 'GAB', aliases: ['dashboard de deliberações', 'painel executivo do conselho', 'indicadores do CDE'] },
-  { id: 'proj-gab-articulacao-estrategica-conselho-diretoria', label: 'Articulação estratégica Conselho-Diretoria', group: 'project', classification: 'area-specific', points: 20, area: 'GAB', aliases: ['interface conselho-diretoria', 'articulação estratégica institucional'] },
+  // CDE — Assessoria
+  { id: 'proj-gab-gestao-da-agenda-colegiada-e-fluxo-deliberativo', label: 'Gestão da agenda colegiada e fluxo deliberativo', group: 'project', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['agenda colegiada', 'fluxo deliberativo', 'secretaria de colegiados'] },
+  { id: 'proj-gab-programa-de-conformidade-regimental-e-governanca-do-cde', label: 'Programa de conformidade regimental e governança do CDE', group: 'project', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['conformidade regimental', 'governança do conselho', 'compliance do CDE'] },
+  { id: 'proj-gab-gestao-documental-e-memoria-dos-colegiados', label: 'Gestão documental e memória dos colegiados', group: 'project', classification: 'area-specific', points: 15, area: 'CDE', aliases: ['gestão documental', 'memória institucional', 'acervo colegiado'] },
+  { id: 'proj-gab-painel-executivo-de-acompanhamento-das-deliberacoes', label: 'Painel executivo de acompanhamento das deliberações', group: 'project', classification: 'area-specific', points: 15, area: 'CDE', aliases: ['dashboard de deliberações', 'painel executivo do conselho', 'indicadores do CDE'] },
+  { id: 'proj-gab-articulacao-estrategica-conselho-diretoria', label: 'Articulação estratégica Conselho-Diretoria', group: 'project', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['interface conselho-diretoria', 'articulação estratégica institucional'] },
   // UAUD
   { id: 'proj-uaud-plano-anual-de-auditoria-baseada-em-riscos', label: 'Plano anual de auditoria baseada em riscos', group: 'project', classification: 'area-specific', points: 20, area: 'UAUD', aliases: ['PAINT', 'auditoria baseada em riscos', 'plano anual de auditoria'] },
   { id: 'proj-uaud-mapeamento-e-melhoria-de-controles-internos', label: 'Mapeamento e melhoria de controles internos', group: 'project', classification: 'area-specific', points: 20, area: 'UAUD', aliases: ['controles internos', 'mapeamento de controles', 'melhoria de controles'] },
@@ -372,12 +372,12 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'proj-umc-marketing-digital-e-presenca-multicanal', label: 'Marketing digital e presença multicanal', group: 'project', classification: 'area-specific', points: 20, area: 'UMC', aliases: ['marketing digital', 'mídias digitais', 'presença multicanal'] },
   { id: 'proj-umc-comunicacao-publica-e-institucional-com-stakeholders', label: 'Comunicação pública e institucional com stakeholders', group: 'project', classification: 'area-specific', points: 15, area: 'UMC', aliases: ['comunicação pública', 'relacionamento com públicos', 'stakeholders'] },
   { id: 'proj-umc-gestao-de-crises-e-reputacao', label: 'Gestão de crises e reputação', group: 'project', classification: 'area-specific', points: 15, area: 'UMC', aliases: ['gestão de crises', 'reputação institucional', 'comunicação de crise'] },
-  // AJUR
-  { id: 'proj-ajur-programa-de-mitigacao-de-riscos-juridicos', label: 'Programa de mitigação de riscos jurídicos', group: 'project', classification: 'area-specific', points: 20, area: 'AJUR', aliases: ['riscos jurídicos', 'mitigação de riscos legais', 'risk legal'] },
-  { id: 'proj-ajur-revisao-e-padronizacao-de-instrumentos-juridicos', label: 'Revisão e padronização de instrumentos jurídicos', group: 'project', classification: 'area-specific', points: 20, area: 'AJUR', aliases: ['padronização contratual', 'instrumentos jurídicos', 'minutas-padrão'] },
-  { id: 'proj-ajur-compliance-juridico-e-integridade-normativa', label: 'Compliance jurídico e integridade normativa', group: 'project', classification: 'area-specific', points: 20, area: 'AJUR', aliases: ['compliance jurídico', 'integridade normativa', 'governança jurídica'] },
-  { id: 'proj-ajur-suporte-juridico-estrategico-a-projetos-institucionais', label: 'Suporte jurídico estratégico a projetos institucionais', group: 'project', classification: 'area-specific', points: 15, area: 'AJUR', aliases: ['parecer jurídico estratégico', 'apoio jurídico a projetos'] },
-  { id: 'proj-ajur-gestao-de-contingencias-e-pareceres-prioritarios', label: 'Gestão de contingências e pareceres prioritários', group: 'project', classification: 'area-specific', points: 15, area: 'AJUR', aliases: ['contingências jurídicas', 'pareceres prioritários', 'gestão de demandas'] },
+  // CDE — Assessoria (Jurídico)
+  { id: 'proj-ajur-programa-de-mitigacao-de-riscos-juridicos', label: 'Programa de mitigação de riscos jurídicos', group: 'project', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['riscos jurídicos', 'mitigação de riscos legais', 'risk legal'] },
+  { id: 'proj-ajur-revisao-e-padronizacao-de-instrumentos-juridicos', label: 'Revisão e padronização de instrumentos jurídicos', group: 'project', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['padronização contratual', 'instrumentos jurídicos', 'minutas-padrão'] },
+  { id: 'proj-ajur-compliance-juridico-e-integridade-normativa', label: 'Compliance jurídico e integridade normativa', group: 'project', classification: 'area-specific', points: 20, area: 'CDE', aliases: ['compliance jurídico', 'integridade normativa', 'governança jurídica'] },
+  { id: 'proj-ajur-suporte-juridico-estrategico-a-projetos-institucionais', label: 'Suporte jurídico estratégico a projetos institucionais', group: 'project', classification: 'area-specific', points: 15, area: 'CDE', aliases: ['parecer jurídico estratégico', 'apoio jurídico a projetos'] },
+  { id: 'proj-ajur-gestao-de-contingencias-e-pareceres-prioritarios', label: 'Gestão de contingências e pareceres prioritários', group: 'project', classification: 'area-specific', points: 15, area: 'CDE', aliases: ['contingências jurídicas', 'pareceres prioritários', 'gestão de demandas'] },
   // UGP
   { id: 'proj-ugp-programa-de-sucessao-e-desenvolvimento-de-liderancas', label: 'Programa de sucessão e desenvolvimento de lideranças', group: 'project', classification: 'area-specific', points: 20, area: 'UGP', aliases: ['sucessão', 'lideranças', 'desenvolvimento de líderes', 'banco de sucessores'] },
   { id: 'proj-ugp-projeto-de-cultura-organizacional-e-engajamento', label: 'Projeto de cultura organizacional e engajamento', group: 'project', classification: 'area-specific', points: 20, area: 'UGP', aliases: ['cultura organizacional', 'engajamento', 'clima'] },
@@ -415,11 +415,11 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'proj-uac-politicas-publicas-para-pequenos-negocios', label: 'Políticas públicas para pequenos negócios', group: 'project', classification: 'area-specific', points: 15, area: 'UAC', aliases: ['políticas públicas para pequenos negócios', 'advocacy setorial'] },
   { id: 'proj-uac-redes-de-cooperacao-e-ecossistemas-competitivos', label: 'Redes de cooperação e ecossistemas competitivos', group: 'project', classification: 'area-specific', points: 15, area: 'UAC', aliases: ['redes de cooperação', 'ecossistema competitivo', 'governança territorial'] },
   // REGIONAIS
-  { id: 'proj-regionais-execucao-estrategica-regional-do-portfolio', label: 'Execução estratégica regional do portfólio', group: 'project', classification: 'area-specific', points: 20, area: 'UNIDADES_REGIONAIS', aliases: ['execução regional', 'portfólio regional', 'desdobramento territorial'] },
-  { id: 'proj-regionais-articulacao-regional-e-parcerias-territoriais', label: 'Articulação regional e parcerias territoriais', group: 'project', classification: 'area-specific', points: 20, area: 'UNIDADES_REGIONAIS', aliases: ['articulação regional', 'parcerias territoriais', 'stakeholders regionais'] },
-  { id: 'proj-regionais-desenvolvimento-regional-e-interiorizacao', label: 'Desenvolvimento regional e interiorização', group: 'project', classification: 'area-specific', points: 20, area: 'UNIDADES_REGIONAIS', aliases: ['desenvolvimento regional', 'interiorização', 'ações territoriais'] },
-  { id: 'proj-regionais-gestao-de-equipes-e-operacoes-regionais', label: 'Gestão de equipes e operações regionais', group: 'project', classification: 'area-specific', points: 15, area: 'UNIDADES_REGIONAIS', aliases: ['equipes regionais', 'operações regionais', 'liderança regional'] },
-  { id: 'proj-regionais-monitoramento-de-resultados-e-metas-regionais', label: 'Monitoramento de resultados e metas regionais', group: 'project', classification: 'area-specific', points: 15, area: 'UNIDADES_REGIONAIS', aliases: ['metas regionais', 'monitoramento regional', 'painel regional'] },
+  { id: 'proj-regionais-execucao-estrategica-regional-do-portfolio', label: 'Execução estratégica regional do portfólio', group: 'project', classification: 'area-specific', points: 20, area: 'REGIONAIS', aliases: ['execução regional', 'portfólio regional', 'desdobramento territorial'] },
+  { id: 'proj-regionais-articulacao-regional-e-parcerias-territoriais', label: 'Articulação regional e parcerias territoriais', group: 'project', classification: 'area-specific', points: 20, area: 'REGIONAIS', aliases: ['articulação regional', 'parcerias territoriais', 'stakeholders regionais'] },
+  { id: 'proj-regionais-desenvolvimento-regional-e-interiorizacao', label: 'Desenvolvimento regional e interiorização', group: 'project', classification: 'area-specific', points: 20, area: 'REGIONAIS', aliases: ['desenvolvimento regional', 'interiorização', 'ações territoriais'] },
+  { id: 'proj-regionais-gestao-de-equipes-e-operacoes-regionais', label: 'Gestão de equipes e operações regionais', group: 'project', classification: 'area-specific', points: 15, area: 'REGIONAIS', aliases: ['equipes regionais', 'operações regionais', 'liderança regional'] },
+  { id: 'proj-regionais-monitoramento-de-resultados-e-metas-regionais', label: 'Monitoramento de resultados e metas regionais', group: 'project', classification: 'area-specific', points: 15, area: 'REGIONAIS', aliases: ['metas regionais', 'monitoramento regional', 'painel regional'] },
 ];
 
 // ── helpers de consulta ───────────────────────────────────────────────────────
@@ -488,19 +488,36 @@ export function calcTechnicalAdherence(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const OFFICIAL_AREAS: { code: string; label: string }[] = [
-  { code: 'GAB',                label: 'Gabinete (GAB)' },
-  { code: 'UAUD',               label: 'Unidade de Auditoria (UAUD)' },
-  { code: 'URI',                label: 'Unidade de Relacionamento Institucional (URI)' },
-  { code: 'UGE',                label: 'Unidade de Gestão Estratégica (UGE)' },
-  { code: 'UMC',                label: 'Unidade de Marketing e Comunicação (UMC)' },
-  { code: 'AJUR',               label: 'Assessoria Jurídica (AJUR)' },
-  { code: 'UGP',                label: 'Unidade de Gestão de Pessoas (UGP)' },
-  { code: 'UAS',                label: 'Unidade de Atendimento e Soluções (UAS)' },
-  { code: 'UGOC',               label: 'Unidade de Gestão Orçamentária e Contábil (UGOC)' },
-  { code: 'UTIC',               label: 'Unidade de Tecnologia da Informação e Comunicação (UTIC)' },
-  { code: 'URC',                label: 'Unidade de Relacionamento com o Cliente (URC)' },
-  { code: 'UAC',                label: 'Unidade de Acesso a Capital (UAC)' },
-  { code: 'UNIDADES_REGIONAIS', label: 'Unidades Regionais' },
+  // ── Diretoria e Assessorias ──────────────────────────────────────────────
+  { code: 'DIREX',   label: 'Diretoria Superintendente' },
+  { code: 'DITEC',   label: 'DITEC — Diretoria Técnica' },
+  { code: 'DAF',     label: 'DAF — Diretoria de Administração e Finanças' },
+  { code: 'CDE',     label: 'CDE — Assessoria' },
+  // ── Unidades ────────────────────────────────────────────────────────────
+  { code: 'UAC',     label: 'UAC — Unidade de Articulação e Competitividade' },
+  { code: 'UAS',     label: 'UAS — Unidade de Administração e Suprimentos' },
+  { code: 'UAUD',    label: 'UAUD — Unidade de Auditoria Interna' },
+  { code: 'UGE',     label: 'UGE — Unidade de Gestão Estratégica e Integridade' },
+  { code: 'UGOC',    label: 'UGOC — Unidade de Gestão Orç. Contabilidade e Finanças' },
+  { code: 'UGP',     label: 'UGP — Unidade de Gestão de Pessoas' },
+  { code: 'UMC',     label: 'UMC — Unidade de Marketing e Comunicação' },
+  { code: 'URC',     label: 'URC — Unidade de Relacionamento com o Cliente' },
+  { code: 'URI',     label: 'URI — Unidade de Relacionamento Institucional' },
+  { code: 'UTIC',    label: 'UTIC — Unidade de Tecnologia da Inform. e Comunicação de Dados' },
+  // ── Regionais (agrupadas) ────────────────────────────────────────────────
+  { code: 'REGIONAIS', label: 'Unidades Regionais' },
+];
+
+// Lista completa das regionais — usada em contextos que exigem nome individual
+export const REGIONAL_AREAS: { code: string; label: string }[] = [
+  { code: 'RBP', label: 'RBP — Regional Bico do Papagaio' },
+  { code: 'RME', label: 'RME — Regional Metropolitana' },
+  { code: 'RMN', label: 'RMN — Regional Médio Norte Colinas' },
+  { code: 'RNO', label: 'RNO — Regional Norte' },
+  { code: 'RPJ', label: 'RPJ — Regional Portal do Jalapão' },
+  { code: 'RSG', label: 'RSG — Regional Serras Gerais' },
+  { code: 'RSU', label: 'RSU — Regional Sul' },
+  { code: 'RVA', label: 'RVA — Regional Vale do Araguaia' },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
