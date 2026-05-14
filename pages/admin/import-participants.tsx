@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
-const TEMPLATE = `id,name,email,matricula,unit,currentRole,selectedAreas,graduation,postMBAs,certifications,experienceMonths,positionsHeld,selectedCourses,selectedProjects,exceptionRequested,exceptionJustification,attachments,exceptionStatus\njdoe,Joao Doe,joao@sebraeto.com.br,12345,UGE,Analista,UGE;UAS,Administracao,,,,,,,,,,pending`;
+const TEMPLATE = `id,name,email,matrícula,unit,currentRole,selectedAreas,graduation,postMBAs,certifications,experienceMonths,positionsHeld,selectedCourses,selectedProjects,exceptionRequested,exceptionJustification,attachments,exceptionStatus\njdoe,Joao Doe,joao@sebraeto.com.br,12345,UGE,Analista,UGE;UAS,Administração,,,,,,,,,,pending`;
 
 export default function AdminImportParticipants() {
   const router = useRouter();
@@ -14,7 +14,7 @@ export default function AdminImportParticipants() {
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const role = sessionStorage.getItem('aderenciaRole');
+    const role = sessionStorage.getItem('aderênciaRole');
     if (role !== 'admin') { router.push('/login'); return; }
   }, [router]);
 
@@ -40,7 +40,7 @@ export default function AdminImportParticipants() {
     });
     const data = await res.json();
     setIsError(!res.ok);
-    setMessage(data.message || (res.ok ? 'Importacao concluida.' : 'Erro na importacao.'));
+    setMessage(data.message || (res.ok ? 'Importação concluída.' : 'Erro na importação.'));
   };
 
   return (
@@ -48,10 +48,10 @@ export default function AdminImportParticipants() {
       <Head><title>Importar Colaboradores | Admin</title></Head>
       <nav className="topbar">
         <div className="topbar-brand">
-          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider"
+          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLíder"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
-            <div className="topbar-title">Banco de Sucessores Aderencia</div>
+            <div className="topbar-title">Banco de Sucessores Aderência</div>
             <div className="topbar-subtitle">Painel Administrativo</div>
           </div>
         </div>
@@ -90,7 +90,7 @@ export default function AdminImportParticipants() {
               <label className="form-label">Conteudo CSV (cole ou edite)</label>
               <textarea className="form-input" rows={8} value={csv}
                 onChange={(e) => setCsv(e.target.value)}
-                placeholder="id,name,email,matricula,unit,currentRole,selectedAreas,..."
+                placeholder="id,name,email,matrícula,unit,currentRole,selectedAreas,..."
                 style={{ fontFamily: 'monospace', fontSize: '0.78rem', resize: 'vertical' }} />
             </div>
             {message && (
@@ -106,7 +106,7 @@ export default function AdminImportParticipants() {
           <h2 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--purple)', marginBottom: 12 }}>Colunas do arquivo</h2>
           <div style={{ overflowX: 'auto' }}>
             <code style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.8, display: 'block' }}>
-              id, name, email, matricula, unit, currentRole, selectedAreas, graduation, postMBAs, certifications,
+              id, name, email, matrícula, unit, currentRole, selectedAreas, graduation, postMBAs, certifications,
               experienceMonths, positionsHeld, selectedCourses, selectedProjects, exceptionRequested,
               exceptionJustification, attachments, exceptionStatus
             </code>

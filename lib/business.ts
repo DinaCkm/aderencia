@@ -152,11 +152,11 @@ const NINE_BOX_QUADRANTS: { x: 'low' | 'mid' | 'high'; y: 'low' | 'mid' | 'high'
   { x: 'high', y: 'high', label: 'Alta Prontidão' },
   { x: 'mid',  y: 'high', label: 'Pronto em Desenvolvimento' },
   { x: 'low',  y: 'high', label: 'Potencial de Curto Prazo (gap técnico)' },
-  { x: 'high', y: 'mid',  label: 'Destaque Técnico, lapidar liderança' },
+  { x: 'high', y: 'mid',  label: 'Destaque Técnico, lapidar líderança' },
   { x: 'mid',  y: 'mid',  label: 'Potencial de Médio Prazo' },
   { x: 'low',  y: 'mid',  label: 'Desenvolvimento Direcionado' },
-  { x: 'high', y: 'low',  label: 'Risco de Liderança' },
-  { x: 'mid',  y: 'low',  label: 'Especialista Técnico sem Perfil de Liderança' },
+  { x: 'high', y: 'low',  label: 'Risco de Líderança' },
+  { x: 'mid',  y: 'low',  label: 'Especialista Técnico sem Perfil de Líderança' },
   { x: 'low',  y: 'low',  label: 'Baixa Aderência' },
 ];
 

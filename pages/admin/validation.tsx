@@ -24,7 +24,7 @@ export default function AdminValidation() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const role = sessionStorage.getItem('aderenciaRole');
+    const role = sessionStorage.getItem('aderênciaRole');
     if (role !== 'admin') { router.push('/login'); return; }
     load();
   }, [router]);
@@ -37,11 +37,11 @@ export default function AdminValidation() {
     });
     if (res.ok) {
       setIsError(false);
-      setMessage(`Pontuacao confirmada para ${id}.`);
+      setMessage(`Pontuação confirmada para ${id}.`);
       load();
     } else {
       setIsError(true);
-      setMessage('Erro ao confirmar validacao.');
+      setMessage('Erro ao confirmar validação.');
     }
   };
 
@@ -53,11 +53,11 @@ export default function AdminValidation() {
     });
     if (res.ok) {
       setIsError(false);
-      setMessage(`Pontuacao revertida para provisoria: ${id}.`);
+      setMessage(`Pontuação revertida para provisória: ${id}.`);
       load();
     } else {
       setIsError(true);
-      setMessage('Erro ao reverter validacao.');
+      setMessage('Erro ao reverter validação.');
     }
   };
 
@@ -72,13 +72,13 @@ export default function AdminValidation() {
 
   return (
     <>
-      <Head><title>Validacao de Pontuacoes | Admin</title></Head>
+      <Head><title>Validação de Pontuações | Admin</title></Head>
       <nav className="topbar">
         <div className="topbar-brand">
-          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider"
+          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLíder"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
-            <div className="topbar-title">Banco de Sucessores Aderencia</div>
+            <div className="topbar-title">Banco de Sucessores Aderência</div>
             <div className="topbar-subtitle">Painel Administrativo</div>
           </div>
         </div>
@@ -94,8 +94,8 @@ export default function AdminValidation() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, marginBottom: 24 }}>
           {[
             { label: 'Total de empregados', value: participants.length, color: 'var(--purple)', bg: 'var(--gradient-soft)' },
-            { label: 'Aguardando validacao', value: provisional, color: '#92400e', bg: '#fffbeb' },
-            { label: 'Pontuacao confirmada', value: confirmed, color: '#065f46', bg: '#f0fdf4' },
+            { label: 'Aguardando validação', value: provisional, color: '#92400e', bg: '#fffbeb' },
+            { label: 'Pontuação confirmada', value: confirmed, color: '#065f46', bg: '#f0fdf4' },
           ].map((s) => (
             <div key={s.label} style={{ background: s.bg, border: '1.5px solid var(--border)', borderRadius: 10, padding: '14px 18px' }}>
               <div style={{ fontSize: '1.6rem', fontWeight: 800, color: s.color }}>{s.value}</div>
@@ -108,9 +108,9 @@ export default function AdminValidation() {
           <div className="section-title">
             <span className="section-icon">&#10003;</span>
             <div>
-              <h2>Validacao de Pontuacoes</h2>
+              <h2>Validação de Pontuações</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                Confirme a pontuacao dos empregados apos checar os documentos comprobatorios enviados
+                Confirme a pontuação dos empregados após checar os documentos comprobatórios enviados
               </p>
             </div>
           </div>
@@ -140,7 +140,7 @@ export default function AdminValidation() {
                   background: filter === f ? 'var(--gradient-soft)' : 'white',
                   color: filter === f ? 'var(--purple)' : 'var(--text-muted)'
                 }}>
-                {f === 'all' ? 'Todos' : f === 'provisional' ? 'Provisorios' : 'Confirmados'}
+                {f === 'all' ? 'Todos' : f === 'provisional' ? 'Provisórios' : 'Confirmados'}
               </button>
             ))}
           </div>
@@ -173,7 +173,7 @@ export default function AdminValidation() {
                           background: isConfirmed ? '#dcfce7' : hasSubmitted ? '#fef9c3' : '#f3f4f6',
                           color: isConfirmed ? '#15803d' : hasSubmitted ? '#92400e' : '#6b7280'
                         }}>
-                          {isConfirmed ? '✓ Confirmado' : hasSubmitted ? '⏳ Aguardando validacao' : 'Sem formulario'}
+                          {isConfirmed ? '✓ Confirmado' : hasSubmitted ? '⏳ Aguardando validação' : 'Sem formulário'}
                         </span>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 3 }}>{p.email}</div>
@@ -182,7 +182,7 @@ export default function AdminValidation() {
                           Areas: <strong>{((p as any).selectedAreas || []).join(', ') || '—'}</strong>
                           {(p as any).proofMode && Object.keys((p as any).proofMode).length > 0 && (
                             <span style={{ marginLeft: 10 }}>
-                              Comprovacoes: {Object.entries((p as any).proofMode).map(([item, mode]: [string, any]) => (
+                              Comprovações: {Object.entries((p as any).proofMode).map(([item, mode]: [string, any]) => (
                                 <span key={item} style={{ marginLeft: 4, background: mode === 'ugp-knows' ? '#cffafe' : '#ede9fe', borderRadius: 4, padding: '1px 5px', fontSize: '0.68rem', color: mode === 'ugp-knows' ? '#0e7490' : '#5B2D8E' }}>
                                   {mode === 'ugp-knows' ? '✓ UGP' : '📄 Upload'}: {item.length > 20 ? item.slice(0, 20) + '...' : item}
                                 </span>
@@ -198,13 +198,13 @@ export default function AdminValidation() {
                           <button type="button" className="btn-primary"
                             style={{ background: 'linear-gradient(135deg, #15803d, #16a34a)', padding: '7px 16px', fontSize: '0.78rem', width: 'auto' }}
                             onClick={() => confirmValidation(p.id)}>
-                            ✓ Confirmar pontuacao
+                            ✓ Confirmar pontuação
                           </button>
                         ) : (
                           <button type="button" className="btn-outline"
                             style={{ borderColor: '#f59e0b', color: '#92400e', padding: '7px 16px', fontSize: '0.78rem' }}
                             onClick={() => revertToProvisional(p.id)}>
-                            Reverter para provisorio
+                            Reverter para provisório
                           </button>
                         )}
                       </div>

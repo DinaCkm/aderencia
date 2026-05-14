@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { OFFICIAL_AREAS } from '../../lib/constants';
 import type { CatalogItem } from '../../lib/types';
 
-const GROUPS = ['postMBA', 'course', 'project', 'certification', 'unit', 'role', 'graduation', 'name', 'matricula'];
+const GROUPS = ['postMBA', 'course', 'project', 'certification', 'unit', 'role', 'graduation', 'name', 'matrícula'];
 const CLASSIFICATIONS = ['transversal', 'area-specific', 'non-related'];
 
 export default function AdminCatalogs() {
@@ -27,13 +27,13 @@ export default function AdminCatalogs() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const role = sessionStorage.getItem('aderenciaRole');
+    const role = sessionStorage.getItem('aderênciaRole');
     if (role !== 'admin') { router.push('/login'); return; }
     fetchCatalogs();
   }, [router]);
 
   const downloadTemplate = () => {
-    const template = `id,label,group,classification,area\nmba-strategic,MBA Estrategia Corporativa,postMBA,transversal,\ncurso-lideranca,Curso de Lideranca Estrategica,course,transversal,\nprojeto-transformacao,Projeto de Transformacao Digital,project,transversal,\n`;
+    const template = `id,label,group,classification,area\nmba-strategic,MBA Estratégia Corporativa,postMBA,transversal,\ncurso-líderança,Cursó de Líderança Estratégica,course,transversal,\nprojeto-transformação,Projeto de Transformação Digital,project,transversal,\n`;
     const blob = new Blob([template], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -68,7 +68,7 @@ export default function AdminCatalogs() {
       method: 'POST', headers: { 'Content-Type': 'text/csv' }, body: csv,
     });
     const data = await res.json();
-    setImportMessage(data.message || (res.ok ? 'Importacao concluida.' : 'Erro na importacao.'));
+    setImportMessage(data.message || (res.ok ? 'Importação concluída.' : 'Erro na importação.'));
     if (res.ok) fetchCatalogs();
   };
 
@@ -78,13 +78,13 @@ export default function AdminCatalogs() {
 
   return (
     <>
-      <Head><title>Catalogos | Admin</title></Head>
+      <Head><title>Catálogos | Admin</title></Head>
       <nav className="topbar">
         <div className="topbar-brand">
-          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider"
+          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLíder"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
-            <div className="topbar-title">Banco de Sucessores Aderencia</div>
+            <div className="topbar-title">Banco de Sucessores Aderência</div>
             <div className="topbar-subtitle">Painel Administrativo</div>
           </div>
         </div>
@@ -101,19 +101,19 @@ export default function AdminCatalogs() {
           <div className="section-title">
             <span className="section-icon">&#43;</span>
             <div>
-              <h2>Adicionar Item ao Catalogo</h2>
+              <h2>Adicionar Item ao Catálogo</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Cadastre cursos, projetos e pos/MBA nas listas fechadas</p>
             </div>
           </div>
           <form onSubmit={handleSubmit}>
             <div className="form-grid">
               <div className="form-group">
-                <label className="form-label">ID unico *</label>
-                <input className="form-input" value={item.id} onChange={(e) => setItem({ ...item, id: e.target.value })} required placeholder="ex: curso-lideranca" />
+                <label className="form-label">ID único *</label>
+                <input className="form-input" value={item.id} onChange={(e) => setItem({ ...item, id: e.target.value })} required placeholder="ex: curso-líderança" />
               </div>
               <div className="form-group">
                 <label className="form-label">Rotulo *</label>
-                <input className="form-input" value={item.label} onChange={(e) => setItem({ ...item, label: e.target.value })} required placeholder="ex: Curso de Lideranca" />
+                <input className="form-input" value={item.label} onChange={(e) => setItem({ ...item, label: e.target.value })} required placeholder="ex: Cursó de Líderança" />
               </div>
             </div>
             <div className="form-grid">
@@ -124,14 +124,14 @@ export default function AdminCatalogs() {
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Classificacao *</label>
+                <label className="form-label">Classificação *</label>
                 <select className="form-input" value={item.classification} onChange={(e) => setItem({ ...item, classification: e.target.value })}>
                   {CLASSIFICATIONS.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
             </div>
             <div className="form-group">
-              <label className="form-label">Area (apenas para itens especificos)</label>
+              <label className="form-label">Area (apenas para itens específicos)</label>
               <select className="form-input" value={item.area} onChange={(e) => setItem({ ...item, area: e.target.value })}>
                 <option value="">Nenhuma (transversal)</option>
                 {OFFICIAL_AREAS.map((a) => <option key={a.code} value={a.code}>{a.label}</option>)}
@@ -147,7 +147,7 @@ export default function AdminCatalogs() {
           <div className="section-title">
             <span className="section-icon">&#128196;</span>
             <div>
-              <h2>Importar Catalogo via CSV</h2>
+              <h2>Importar Catálogo via CSV</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Formato: id,label,group,classification,area</p>
             </div>
           </div>
@@ -163,14 +163,14 @@ export default function AdminCatalogs() {
                 style={{ fontFamily: 'monospace', fontSize: '0.75rem', resize: 'vertical' }} />
             </div>
             {importMessage && <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 'var(--radius-sm)', padding: '8px 14px', color: '#15803d', fontSize: '0.8rem', marginBottom: 12 }}>{importMessage}</div>}
-            <button type="submit" className="btn-primary">Importar catalogo</button>
+            <button type="submit" className="btn-primary">Importar catálogo</button>
           </form>
         </div>
 
         {/* Current catalog */}
         <div className="section-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-            <h2 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--purple)' }}>Catalogo Atual ({catalogs.length} itens)</h2>
+            <h2 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--purple)' }}>Catálogo Atual ({catalogs.length} itens)</h2>
             <select className="form-input" style={{ maxWidth: 180, fontSize: '0.78rem' }} value={filter} onChange={(e) => setFilter(e.target.value)}>
               <option value="">Todos os grupos</option>
               {GROUPS.map((g) => <option key={g} value={g}>{g}</option>)}
@@ -183,7 +183,7 @@ export default function AdminCatalogs() {
                   <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>ID</th>
                   <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Rotulo</th>
                   <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Grupo</th>
-                  <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Classificacao</th>
+                  <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Classificação</th>
                   <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Area</th>
                 </tr>
               </thead>

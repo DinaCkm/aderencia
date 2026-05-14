@@ -40,7 +40,7 @@ export default function AdminEmployees() {
   const [editNewEmail, setEditNewEmail] = useState('');
 
   useEffect(() => {
-    const role = sessionStorage.getItem('aderenciaRole');
+    const role = sessionStorage.getItem('aderênciaRole');
     if (role !== 'admin') { router.push('/login'); return; }
     loadEmployees();
   }, [router]);
@@ -132,10 +132,10 @@ export default function AdminEmployees() {
       <Head><title>Gestão de Empregados | Admin</title></Head>
       <nav className="topbar">
         <div className="topbar-brand">
-          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider"
+          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLíder"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
-            <div className="topbar-title">Banco de Sucessores Aderencia</div>
+            <div className="topbar-title">Banco de Sucessores Aderência</div>
             <div className="topbar-subtitle">Painel Administrativo</div>
           </div>
         </div>
@@ -205,7 +205,7 @@ export default function AdminEmployees() {
               </button>
             </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 10 }}>
-              &#128274; O CPF será usado como senha de acesso do colaborador. Informe o CPF correto.
+              &#128274; O CPF será usado como senha de acessó do colaborador. Informe o CPF correto.
             </p>
           </div>
         )}

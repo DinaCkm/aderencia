@@ -14,7 +14,7 @@ export default function AdminImportDisc() {
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const role = sessionStorage.getItem('aderenciaRole');
+    const role = sessionStorage.getItem('aderênciaRole');
     if (role !== 'admin') { router.push('/login'); return; }
   }, [router]);
 
@@ -40,7 +40,7 @@ export default function AdminImportDisc() {
     });
     const data = await res.json();
     setIsError(!res.ok);
-    setMessage(data.message || (res.ok ? 'Importacao concluida.' : 'Erro na importacao.'));
+    setMessage(data.message || (res.ok ? 'Importação concluída.' : 'Erro na importação.'));
   };
 
   return (
@@ -48,10 +48,10 @@ export default function AdminImportDisc() {
       <Head><title>Importar DISC | Admin</title></Head>
       <nav className="topbar">
         <div className="topbar-brand">
-          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider"
+          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLíder"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
-            <div className="topbar-title">Banco de Sucessores Aderencia</div>
+            <div className="topbar-title">Banco de Sucessores Aderência</div>
             <div className="topbar-subtitle">Painel Administrativo</div>
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function AdminImportDisc() {
           <div className="section-title">
             <span className="section-icon">&#129504;</span>
             <div>
-              <h2>Importar Relatorios DISC</h2>
+              <h2>Importar Relatórios DISC</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                 CSV com nota DISC por colaborador e area (escala 0-10)
               </p>

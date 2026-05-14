@@ -7,7 +7,7 @@ const QUADRANT_INFO: Record<string, { color: string; bg: string; icon: string; d
   'Alta Prontidão':                          { color: '#065f46', bg: '#d1fae5', icon: '🏆', desc: 'Alta aderência técnica E comportamental. Candidato prioritário para sucessão.' },
   'Pronto em Desenvolvimento':              { color: '#1d4ed8', bg: '#dbeafe', icon: '⭐', desc: 'Boa aderência comportamental, em desenvolvimento técnico. Potencial elevado.' },
   'Potencial de Curto Prazo':               { color: '#0e7490', bg: '#cffafe', icon: '🚀', desc: 'Forte aderência comportamental, precisa desenvolver competências técnicas.' },
-  'Destaque Técnico, lapidar liderança':    { color: '#7c3aed', bg: '#ede9fe', icon: '🔧', desc: 'Excelente base técnica. Requer desenvolvimento de competências comportamentais.' },
+  'Destaque Técnico, lapidar líderança':    { color: '#7c3aed', bg: '#ede9fe', icon: '🔧', desc: 'Excelente base técnica. Requer desenvolvimento de competências comportamentais.' },
   'Potencial de Médio Prazo':               { color: '#b45309', bg: '#fef3c7', icon: '📈', desc: 'Aderência moderada em ambas as dimensões. Plano de desenvolvimento recomendado.' },
   'Desenvolvimento Direcionado':            { color: '#92400e', bg: '#fef9c3', icon: '🎯', desc: 'Boa aderência técnica, comportamental em desenvolvimento.' },
   'Potencial de Longo Prazo':               { color: '#6b7280', bg: '#f3f4f6', icon: '🌱', desc: 'Aderência inicial. Requer plano de desenvolvimento estruturado.' },
@@ -109,9 +109,9 @@ export default function MyResults() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const role = sessionStorage.getItem('aderenciaRole');
-    const email = sessionStorage.getItem('aderenciaEmail');
-    const name = sessionStorage.getItem('aderenciaName');
+    const role = sessionStorage.getItem('aderênciaRole');
+    const email = sessionStorage.getItem('aderênciaEmail');
+    const name = sessionStorage.getItem('aderênciaName');
     if (!role || !email) { router.push('/login'); return; }
     setParticipantName(name || '');
     fetch('/api/participant/results?email=' + encodeURIComponent(email))
@@ -127,7 +127,7 @@ export default function MyResults() {
       <Head><title>Meus Resultados | Banco de Sucessores</title></Head>
       <nav className="topbar">
         <div className="topbar-brand">
-          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider"
+          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLíder"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
             <div className="topbar-title">Banco de Sucessores — Aderência</div>
@@ -149,7 +149,7 @@ export default function MyResults() {
             🎯 Meus Resultados de Aderência
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-            Veja abaixo sua pontuação detalhada para cada área de interesse. Todos os cálculos são exibidos de forma transparente
+            Vejá abaixo sua pontuação detalhada para cada área de interesse. Todos os cálculos são exibidos de forma transparente
             — clique no <strong>?</strong> ao lado de cada item para entender como aquele valor foi obtido.
           </p>
         </div>

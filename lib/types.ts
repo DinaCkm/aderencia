@@ -27,7 +27,7 @@ export type AreaCode =
   | 'RSU'
   | 'RVA';
 
-export type CatalogGroup = 'postMBA' | 'course' | 'project' | 'certification' | 'unit' | 'role' | 'graduation' | 'name' | 'matricula';
+export type CatalogGroup = 'postMBA' | 'course' | 'project' | 'certification' | 'unit' | 'role' | 'graduation' | 'name' | 'matrícula';
 export type CatalogClassification = 'transversal' | 'area-specific' | 'non-related';
 
 export interface CatalogItem {
@@ -44,7 +44,7 @@ export interface ParticipantProfile {
   id: string;
   name: string;
   email: string;
-  matricula: string;
+  matrícula: string;
   unit: string;
   currentRole: string;
   currentArea: AreaCode | '';
@@ -72,7 +72,7 @@ export interface ParticipantProfile {
   exceptionJustification: string;
   attachments: string[];
   exceptionStatus: 'pending' | 'approved' | 'rejected';
-  validationStatus: 'provisional' | 'validated' | 'adjusted'; // provisório ate RH/UGP confirmar documentos
+  validationStatus: 'provisional' | 'validated' | 'adjusted'; // provisório até RH/UGP confirmar documentos
   validationNote?: string;   // observação do admin ao validar
   validatedAt?: string;      // data da validação
   submittedAt?: string;

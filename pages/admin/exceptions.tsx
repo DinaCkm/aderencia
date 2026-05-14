@@ -14,7 +14,7 @@ export default function AdminExceptions() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const role = sessionStorage.getItem('aderenciaRole');
+    const role = sessionStorage.getItem('aderênciaRole');
     if (role !== 'admin') { router.push('/login'); return; }
     fetch('/api/admin/exceptions')
       .then((res) => res.json())
@@ -30,22 +30,22 @@ export default function AdminExceptions() {
     if (res.ok) {
       setPending((cur) => cur.filter((p) => p.id !== id));
       setIsError(false);
-      setMessage(`Excecao ${action === 'approve' ? 'aprovada' : 'rejeitada'} para ${id}.`);
+      setMessage(`Exceção ${action === 'approve' ? 'aprovada' : 'rejeitada'} para ${id}.`);
     } else {
       setIsError(true);
-      setMessage('Erro ao processar excecao.');
+      setMessage('Erro ao processar exceção.');
     }
   };
 
   return (
     <>
-      <Head><title>Excecoes Pendentes | Admin</title></Head>
+      <Head><title>Exceções Pendentes | Admin</title></Head>
       <nav className="topbar">
         <div className="topbar-brand">
-          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider"
+          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLíder"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
-            <div className="topbar-title">Banco de Sucessores Aderencia</div>
+            <div className="topbar-title">Banco de Sucessores Aderência</div>
             <div className="topbar-subtitle">Painel Administrativo</div>
           </div>
         </div>
@@ -60,9 +60,9 @@ export default function AdminExceptions() {
           <div className="section-title">
             <span className="section-icon">&#9888;</span>
             <div>
-              <h2>Excecoes Pendentes</h2>
+              <h2>Exceções Pendentes</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                Valide itens fora do catalogo antes do processamento das avaliacoes
+                Valide itens fora do catálogo antes do processamento das avaliações
               </p>
             </div>
           </div>
@@ -76,7 +76,7 @@ export default function AdminExceptions() {
           {pending.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)' }}>
               <div style={{ fontSize: '2rem', marginBottom: 12 }}>&#10003;</div>
-              <p style={{ fontSize: '0.88rem' }}>Nenhuma excecao pendente.</p>
+              <p style={{ fontSize: '0.88rem' }}>Nenhuma exceção pendente.</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

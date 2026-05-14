@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id,
       name,
       email,
-      matricula,
+      matrícula,
       unit,
       currentRole,
       selectedAreas,
@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       exceptionStatus
     ] = row;
 
-    if (!id || !name || !email || !matricula || !unit || !currentRole || !selectedAreas || !graduation) {
+    if (!id || !name || !email || !matrícula || !unit || !currentRole || !selectedAreas || !graduation) {
       continue;
     }
 
@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id,
       name,
       email,
-      matricula,
+      matrícula,
       unit,
       currentRole,
       currentArea: '' as ParticipantProfile['currentArea'],

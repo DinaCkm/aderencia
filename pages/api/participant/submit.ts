@@ -13,21 +13,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Dados do participante incompletos.' });
   }
 
-  // Validar campos obrigatorios da formacao academica
+  // Validar campos obrigatórios da formação academica
   if (!data.graduation) {
-    return res.status(400).json({ message: 'Selecione a area da sua graduacao.' });
+    return res.status(400).json({ message: 'Selecione a area da sua graduação.' });
   }
   if (!data.graduationCourseName?.trim()) {
-    return res.status(400).json({ message: 'Informe o nome completo do curso de graduacao.' });
+    return res.status(400).json({ message: 'Informe o nome completo do cursó de graduação.' });
   }
   if (data.graduation === '__outro__' && !data.graduationException?.trim()) {
-    return res.status(400).json({ message: 'Preencha o campo de excecao com o nome e descricao do seu curso.' });
+    return res.status(400).json({ message: 'Preencha o campo de exceção com o nome e descrição do seu curso.' });
   }
 
   const participants = await readJsonAsync<ParticipantProfile[]>('participants', []);
   const existingIndex = participants.findIndex((item) => item.id === data.id);
 
-  // Se graduation e __outro__, marcar como excecao automaticamente
+  // Se graduation e __outro__, marcar como exceção automaticamente
   const hasGraduationException = data.graduation === '__outro__';
 
   const profile: ParticipantProfile = {

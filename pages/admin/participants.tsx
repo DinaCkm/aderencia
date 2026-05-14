@@ -21,7 +21,7 @@ export default function AdminParticipants() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const role = sessionStorage.getItem('aderenciaRole');
+    const role = sessionStorage.getItem('aderênciaRole');
     if (role !== 'admin') { router.push('/login'); return; }
     fetch('/api/admin/participants').then(r => r.json()).then(d => { setParticipants(d.participants || []); setLoading(false); });
   }, [router]);
@@ -38,7 +38,7 @@ export default function AdminParticipants() {
       <Head><title>Participantes | Banco de Sucessores</title></Head>
       <nav className="topbar">
         <div className="topbar-brand">
-          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLíder" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
             <div className="topbar-title">Banco de Sucessores Aderência</div>
             <div className="topbar-subtitle">Painel Administrativo · SEBRAE Tocantins</div>
@@ -91,7 +91,7 @@ export default function AdminParticipants() {
                     <tr key={p.id || p.email}>
                       <td style={{ fontWeight: 600 }}>{p.name || '—'}</td>
                       <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{p.email}</td>
-                      <td>{p.matricula || '—'}</td>
+                      <td>{p.matrícula || '—'}</td>
                       <td>{p.unit || '—'}</td>
                       <td>
                         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>

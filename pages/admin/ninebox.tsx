@@ -7,28 +7,28 @@ import type { AreaAssessment } from '../../lib/types';
 
 // Nine Box grid layout:
 // Eixo Y (comportamental): high=linha 0, mid=linha 1, low=linha 2
-// Eixo X (tecnico):        low=col 0,  mid=col 1,  high=col 2
+// Eixo X (técnico):        low=col 0,  mid=col 1,  high=col 2
 const GRID_CELLS: { x: string; y: string; label: string; color: string; bg: string }[] = [
   { x: 'low',  y: 'high', label: 'Potencial de Curto Prazo',          color: '#0369a1', bg: '#e0f2fe' },
   { x: 'mid',  y: 'high', label: 'Pronto em Desenvolvimento',          color: '#7c3aed', bg: '#ede9fe' },
   { x: 'high', y: 'high', label: 'Alta Prontidao',                     color: '#15803d', bg: '#dcfce7' },
   { x: 'low',  y: 'mid',  label: 'Desenvolvimento Direcionado',        color: '#92400e', bg: '#fef3c7' },
-  { x: 'mid',  y: 'mid',  label: 'Potencial de Medio Prazo',           color: '#5B2D8E', bg: '#f3e8ff' },
-  { x: 'high', y: 'mid',  label: 'Destaque Tecnico',                   color: '#0f766e', bg: '#ccfbf1' },
-  { x: 'low',  y: 'low',  label: 'Baixa Aderencia',                    color: '#9f1239', bg: '#ffe4e6' },
-  { x: 'mid',  y: 'low',  label: 'Especialista sem Lideranca',         color: '#c2410c', bg: '#ffedd5' },
-  { x: 'high', y: 'low',  label: 'Risco de Lideranca',                 color: '#b45309', bg: '#fef9c3' },
+  { x: 'mid',  y: 'mid',  label: 'Potencial de Médio Prazo',           color: '#5B2D8E', bg: '#f3e8ff' },
+  { x: 'high', y: 'mid',  label: 'Destaque Técnico',                   color: '#0f766e', bg: '#ccfbf1' },
+  { x: 'low',  y: 'low',  label: 'Baixa Aderência',                    color: '#9f1239', bg: '#ffe4e6' },
+  { x: 'mid',  y: 'low',  label: 'Especialista sem Líderança',         color: '#c2410c', bg: '#ffedd5' },
+  { x: 'high', y: 'low',  label: 'Risco de Líderança',                 color: '#b45309', bg: '#fef9c3' },
 ];
 
 function getCell(quadrantLabel: string) {
   const map: Record<string, { x: string; y: string }> = {
-    'Baixa Aderencia': { x: 'low', y: 'low' },
-    'Especialista Tecnico sem Perfil de Lideranca': { x: 'mid', y: 'low' },
-    'Risco de Lideranca': { x: 'high', y: 'low' },
+    'Baixa Aderência': { x: 'low', y: 'low' },
+    'Especialista Técnico sem Perfil de Líderança': { x: 'mid', y: 'low' },
+    'Risco de Líderança': { x: 'high', y: 'low' },
     'Desenvolvimento Direcionado': { x: 'low', y: 'mid' },
-    'Potencial de Medio Prazo': { x: 'mid', y: 'mid' },
-    'Destaque Tecnico, lapidar lideranca': { x: 'high', y: 'mid' },
-    'Potencial de Curto Prazo (gap tecnico)': { x: 'low', y: 'high' },
+    'Potencial de Médio Prazo': { x: 'mid', y: 'mid' },
+    'Destaque Técnico, lapidar líderança': { x: 'high', y: 'mid' },
+    'Potencial de Curto Prazo (gap técnico)': { x: 'low', y: 'high' },
     'Pronto em Desenvolvimento': { x: 'mid', y: 'high' },
     'Alta Prontidao': { x: 'high', y: 'high' },
   };
@@ -49,7 +49,7 @@ export default function AdminNineBox() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const role = sessionStorage.getItem('aderenciaRole');
+    const role = sessionStorage.getItem('aderênciaRole');
     if (role !== 'admin') { router.push('/login'); return; }
     fetch('/api/admin/ninebox')
       .then((res) => res.json())
@@ -74,10 +74,10 @@ export default function AdminNineBox() {
 
       <nav className="topbar">
         <div className="topbar-brand">
-          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider"
+          <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLíder"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
-            <div className="topbar-title">Banco de Sucessores Aderencia</div>
+            <div className="topbar-title">Banco de Sucessores Aderência</div>
             <div className="topbar-subtitle">Painel Administrativo</div>
           </div>
         </div>
@@ -94,7 +94,7 @@ export default function AdminNineBox() {
             <div>
               <h2>Nine Box por Area</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                Eixo X = Aderencia Tecnica &nbsp;|&nbsp; Eixo Y = Aderencia Comportamental
+                Eixo X = Aderência Técnica &nbsp;|&nbsp; Eixo Y = Aderência Comportamental
               </p>
             </div>
           </div>
@@ -125,8 +125,8 @@ export default function AdminNineBox() {
           ) : areaData.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
               <div style={{ fontSize: '2rem', marginBottom: 12 }}>&#128202;</div>
-              <p>Nenhuma avaliacao processada para <strong>{selectedArea}</strong>.</p>
-              <p style={{ fontSize: '0.85rem', marginTop: 8 }}>Os participantes precisam preencher o formulario e ter dados de performance e DISC importados.</p>
+              <p>Nenhuma avaliação processada para <strong>{selectedArea}</strong>.</p>
+              <p style={{ fontSize: '0.85rem', marginTop: 8 }}>Os participantes precisam preencher o fórmulario e ter dados de performance e DISC importados.</p>
             </div>
           ) : (
             <>
@@ -137,13 +137,13 @@ export default function AdminNineBox() {
                   position: 'absolute', left: -32, top: '50%', transform: 'translateY(-50%) rotate(-90deg)',
                   fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap',
                 }}>
-                  Aderencia Comportamental
+                  Aderência Comportamental
                 </div>
 
                 <div style={{ marginLeft: 16 }}>
                   {/* Y axis labels */}
                   <div style={{ display: 'flex', marginBottom: 4, marginLeft: 60 }}>
-                    {['Baixo (0-3)', 'Medio (4-6)', 'Alto (7-10)'].map((l) => (
+                    {['Baixo (0-3)', 'Médio (4-6)', 'Alto (7-10)'].map((l) => (
                       <div key={l} style={{ flex: 1, textAlign: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>{l}</div>
                     ))}
                   </div>
@@ -153,7 +153,7 @@ export default function AdminNineBox() {
                     <div key={yVal} style={{ display: 'flex', alignItems: 'stretch', marginBottom: 4 }}>
                       {/* Y axis row label */}
                       <div style={{ width: 60, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8, fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                        {yVal === 'high' ? 'Alto' : yVal === 'mid' ? 'Medio' : 'Baixo'}
+                        {yVal === 'high' ? 'Alto' : yVal === 'mid' ? 'Médio' : 'Baixo'}
                       </div>
                       {/* 3 cells in this row */}
                       {(['low', 'mid', 'high'] as const).map((xVal) => {
@@ -199,7 +199,7 @@ export default function AdminNineBox() {
 
                   {/* X axis label */}
                   <div style={{ textAlign: 'center', marginTop: 8, fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginLeft: 60 }}>
-                    Aderencia Tecnica
+                    Aderência Técnica
                   </div>
                 </div>
               </div>
@@ -207,14 +207,14 @@ export default function AdminNineBox() {
               {/* Participants table */}
               <div style={{ marginTop: 24 }}>
                 <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--purple)', marginBottom: 12 }}>
-                  Detalhamento — {selectedArea} ({areaData.length} avaliacao(oes))
+                  Detalhamento — {selectedArea} ({areaData.length} avaliação(oes))
                 </h3>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                     <thead>
                       <tr style={{ background: 'var(--gradient-soft)' }}>
                         <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Participante</th>
-                        <th style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--purple)', fontWeight: 700 }}>Tecnica</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--purple)', fontWeight: 700 }}>Técnica</th>
                         <th style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--purple)', fontWeight: 700 }}>Comportamental</th>
                         <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Quadrante</th>
                       </tr>
@@ -260,24 +260,24 @@ export default function AdminNineBox() {
                   {/* Aderência Técnica */}
                   <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '16px 20px', border: '1px solid var(--border)' }}>
                     <div style={{ fontWeight: 700, color: 'var(--purple)', fontSize: '0.88rem', marginBottom: 10 }}>
-                      Eixo X — Aderencia Tecnica (0 a 10 pts)
+                      Eixo X — Aderência Técnica (0 a 10 pts)
                     </div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text)', lineHeight: 1.7 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginBottom: 4 }}>
-                        <span>Pos-graduacao / MBA concluido</span>
-                        <strong style={{ color: 'var(--purple)' }}>ate 3 pts</strong>
+                        <span>Pós-graduação / MBA concluído</span>
+                        <strong style={{ color: 'var(--purple)' }}>até 3 pts</strong>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginBottom: 4 }}>
-                        <span>Experiencia gerencial/interina</span>
-                        <strong style={{ color: 'var(--purple)' }}>ate 4 pts</strong>
+                        <span>Experiência gerencial/interina</span>
+                        <strong style={{ color: 'var(--purple)' }}>até 4 pts</strong>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginBottom: 4 }}>
-                        <span>Cursos e projetos estrategicos</span>
-                        <strong style={{ color: 'var(--purple)' }}>ate 3 pts</strong>
+                        <span>Cursos e projetos estratégicos</span>
+                        <strong style={{ color: 'var(--purple)' }}>até 3 pts</strong>
                       </div>
                       <div style={{ marginTop: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                        Experiencia: 1 pt a cada 6 meses completos (max 24 meses = 4 pts).<br />
-                        Cursos/projetos: 1,2 pt por item estrategico da area, max 3 pts.
+                        Experiência: 1 pt a cada 6 meses completos (max 24 meses = 4 pts).<br />
+                        Cursos/projetos: 1,2 pt por item estratégico da area, max 3 pts.
                       </div>
                     </div>
                   </div>
@@ -285,7 +285,7 @@ export default function AdminNineBox() {
                   {/* Aderência Comportamental */}
                   <div style={{ background: '#e0f2fe', borderRadius: 'var(--radius-sm)', padding: '16px 20px', border: '1px solid #bae6fd' }}>
                     <div style={{ fontWeight: 700, color: '#0369a1', fontSize: '0.88rem', marginBottom: 10 }}>
-                      Eixo Y — Aderencia Comportamental (0 a 10 pts)
+                      Eixo Y — Aderência Comportamental (0 a 10 pts)
                     </div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text)', lineHeight: 1.7 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #bae6fd', paddingBottom: 4, marginBottom: 4 }}>
@@ -300,7 +300,7 @@ export default function AdminNineBox() {
                         Comportamental = (DISC + Performance/10) / 2
                       </div>
                       <div style={{ marginTop: 6, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                        Requer importacao de DISC e Performance para ser calculado.
+                        Requer importação de DISC e Performance para ser calculado.
                       </div>
                     </div>
                   </div>
@@ -309,19 +309,19 @@ export default function AdminNineBox() {
                 {/* Quadrantes */}
                 <div style={{ background: '#fafafa', borderRadius: 'var(--radius-sm)', padding: '16px 20px', border: '1px solid var(--border)' }}>
                   <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '0.85rem', marginBottom: 12 }}>
-                    Classificacao dos Quadrantes
+                    Classificação dos Quadrantes
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8 }}>
                     {[
-                      { label: 'Alta Prontidao', desc: 'Tecnica alta + Comportamental alta', color: '#15803d', bg: '#dcfce7' },
-                      { label: 'Pronto em Desenvolvimento', desc: 'Tecnica media + Comportamental alta', color: '#7c3aed', bg: '#ede9fe' },
-                      { label: 'Potencial de Curto Prazo', desc: 'Tecnica baixa + Comportamental alta', color: '#0369a1', bg: '#e0f2fe' },
-                      { label: 'Destaque Tecnico', desc: 'Tecnica alta + Comportamental media', color: '#0f766e', bg: '#ccfbf1' },
-                      { label: 'Potencial de Medio Prazo', desc: 'Tecnica media + Comportamental media', color: '#5B2D8E', bg: '#f3e8ff' },
-                      { label: 'Desenvolvimento Direcionado', desc: 'Tecnica baixa + Comportamental media', color: '#92400e', bg: '#fef3c7' },
-                      { label: 'Risco de Lideranca', desc: 'Tecnica alta + Comportamental baixa', color: '#b45309', bg: '#fef9c3' },
-                      { label: 'Especialista sem Lideranca', desc: 'Tecnica media + Comportamental baixa', color: '#c2410c', bg: '#ffedd5' },
-                      { label: 'Baixa Aderencia', desc: 'Tecnica baixa + Comportamental baixa', color: '#9f1239', bg: '#ffe4e6' },
+                      { label: 'Alta Prontidao', desc: 'Técnica alta + Comportamental alta', color: '#15803d', bg: '#dcfce7' },
+                      { label: 'Pronto em Desenvolvimento', desc: 'Técnica média + Comportamental alta', color: '#7c3aed', bg: '#ede9fe' },
+                      { label: 'Potencial de Curto Prazo', desc: 'Técnica baixa + Comportamental alta', color: '#0369a1', bg: '#e0f2fe' },
+                      { label: 'Destaque Técnico', desc: 'Técnica alta + Comportamental média', color: '#0f766e', bg: '#ccfbf1' },
+                      { label: 'Potencial de Médio Prazo', desc: 'Técnica média + Comportamental média', color: '#5B2D8E', bg: '#f3e8ff' },
+                      { label: 'Desenvolvimento Direcionado', desc: 'Técnica baixa + Comportamental média', color: '#92400e', bg: '#fef3c7' },
+                      { label: 'Risco de Líderança', desc: 'Técnica alta + Comportamental baixa', color: '#b45309', bg: '#fef9c3' },
+                      { label: 'Especialista sem Líderança', desc: 'Técnica média + Comportamental baixa', color: '#c2410c', bg: '#ffedd5' },
+                      { label: 'Baixa Aderência', desc: 'Técnica baixa + Comportamental baixa', color: '#9f1239', bg: '#ffe4e6' },
                     ].map((q) => (
                       <div key={q.label} style={{ background: q.bg, borderRadius: 6, padding: '8px 12px', border: `1px solid ${q.color}30` }}>
                         <div style={{ fontWeight: 700, fontSize: '0.75rem', color: q.color, marginBottom: 2 }}>{q.label}</div>
@@ -330,7 +330,7 @@ export default function AdminNineBox() {
                     ))}
                   </div>
                   <div style={{ marginTop: 12, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    Faixas: Baixo = 0-3 pts &nbsp;|&nbsp; Medio = 4-6 pts &nbsp;|&nbsp; Alto = 7-10 pts
+                    Faixas: Baixo = 0-3 pts &nbsp;|&nbsp; Médio = 4-6 pts &nbsp;|&nbsp; Alto = 7-10 pts
                   </div>
                 </div>
               </div>
