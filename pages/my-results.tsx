@@ -149,8 +149,7 @@ export default function MyResults() {
             🎯 Meus Resultados de Aderência
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-            Vejá abaixo sua pontuação detalhada para cada área de interesse. Todos os cálculos são exibidos de forma transparente
-            — clique no <strong>?</strong> ao lado de cada item para entender como aquele valor foi obtido.
+            Veja abaixo sua pontuação detalhada para cada área de interesse.
           </p>
         </div>
 
