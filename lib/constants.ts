@@ -488,6 +488,11 @@ export function calcTechnicalAdherence(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const OFFICIAL_AREAS: { code: string; label: string }[] = [
+  // ── Diretoria e Assessorias ──────────────────────────────────────────────
+  { code: 'DIREX',   label: 'Diretoria Superintendente' },
+  { code: 'DITEC',   label: 'DITEC — Diretoria Técnica' },
+  { code: 'DAF',     label: 'DAF — Diretoria de Administração e Finanças' },
+  { code: 'CDE',     label: 'CDE — Assessoria' },
   // ── Unidades ────────────────────────────────────────────────────────────
   { code: 'UAC',     label: 'UAC — Unidade de Articulação e Competitividade' },
   { code: 'UAS',     label: 'UAS — Unidade de Administração e Suprimentos' },
@@ -502,6 +507,11 @@ export const OFFICIAL_AREAS: { code: string; label: string }[] = [
   // ── Regionais (agrupadas) ────────────────────────────────────────────────
   { code: 'REGIONAIS', label: 'Unidades Regionais' },
 ];
+
+// Áreas disponíveis para seleção de interesse (Step 2) — exclui Diretoria e Assessorias
+export const INTEREST_AREAS: { code: string; label: string }[] = OFFICIAL_AREAS.filter(
+  (a) => !['DIREX', 'DITEC', 'DAF', 'CDE'].includes(a.code)
+);
 
 // Lista completa das regionais — usada em contextos que exigem nome individual
 export const REGIONAL_AREAS: { code: string; label: string }[] = [

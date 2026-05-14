@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, FormEvent } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { OFFICIAL_AREAS, CATALOG_ITEMS } from '../lib/constants';
+import { OFFICIAL_AREAS, INTEREST_AREAS, CATALOG_ITEMS } from '../lib/constants';
 import type { AreaCode, CatalogItem, ParticipantProfile } from '../lib/types';
 
 const initialProfile: ParticipantProfile = {
@@ -594,7 +594,7 @@ export default function ParticipantForm() {
                 </p>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10, marginBottom: 16 }}>
-                {OFFICIAL_AREAS.map((area) => {
+                {INTEREST_AREAS.map((area) => {
                   const selected = profile.selectedAreas.includes(area.code as AreaCode);
                   const isCurrent = profile.currentArea === area.code;
                   return (
