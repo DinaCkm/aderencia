@@ -28,6 +28,12 @@ function getPool() {
   return mysqlPool;
 }
 
+export async function queryUsers<T = any[]>(sql: string, params: any[] = []): Promise<T> {
+  const pool = getPool();
+  const [rows]: any[] = await pool.query(sql, params);
+  return rows as T;
+}
+
 async function ensureTable(): Promise<void> {
   const pool = getPool();
   await pool.query(`
