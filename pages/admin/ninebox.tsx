@@ -16,18 +16,18 @@ const GRID_CELLS: { x: string; y: string; label: string; color: string; bg: stri
   { x: 'mid',  y: 'mid',  label: 'Potencial de Médio Prazo',           color: '#5B2D8E', bg: '#f3e8ff' },
   { x: 'high', y: 'mid',  label: 'Destaque Técnico',                   color: '#0f766e', bg: '#ccfbf1' },
   { x: 'low',  y: 'low',  label: 'Baixa Aderência',                    color: '#9f1239', bg: '#ffe4e6' },
-  { x: 'mid',  y: 'low',  label: 'Especialista sem Líderança',         color: '#c2410c', bg: '#ffedd5' },
-  { x: 'high', y: 'low',  label: 'Risco de Líderança',                 color: '#b45309', bg: '#fef9c3' },
+  { x: 'mid',  y: 'low',  label: 'Especialista sem Liderança',         color: '#c2410c', bg: '#ffedd5' },
+  { x: 'high', y: 'low',  label: 'Risco de Liderança',                 color: '#b45309', bg: '#fef9c3' },
 ];
 
 function getCell(quadrantLabel: string) {
   const map: Record<string, { x: string; y: string }> = {
     'Baixa Aderência': { x: 'low', y: 'low' },
-    'Especialista Técnico sem Perfil de Líderança': { x: 'mid', y: 'low' },
-    'Risco de Líderança': { x: 'high', y: 'low' },
+    'Especialista Técnico sem Perfil de Liderança': { x: 'mid', y: 'low' },
+    'Risco de Liderança': { x: 'high', y: 'low' },
     'Desenvolvimento Direcionado': { x: 'low', y: 'mid' },
     'Potencial de Médio Prazo': { x: 'mid', y: 'mid' },
-    'Destaque Técnico, lapidar líderança': { x: 'high', y: 'mid' },
+    'Destaque Técnico, lapidar liderança': { x: 'high', y: 'mid' },
     'Potencial de Curto Prazo (gap técnico)': { x: 'low', y: 'high' },
     'Pronto em Desenvolvimento': { x: 'mid', y: 'high' },
     'Alta Prontidao': { x: 'high', y: 'high' },
@@ -319,8 +319,8 @@ export default function AdminNineBox() {
                       { label: 'Destaque Técnico', desc: 'Técnica alta + Comportamental média', color: '#0f766e', bg: '#ccfbf1' },
                       { label: 'Potencial de Médio Prazo', desc: 'Técnica média + Comportamental média', color: '#5B2D8E', bg: '#f3e8ff' },
                       { label: 'Desenvolvimento Direcionado', desc: 'Técnica baixa + Comportamental média', color: '#92400e', bg: '#fef3c7' },
-                      { label: 'Risco de Líderança', desc: 'Técnica alta + Comportamental baixa', color: '#b45309', bg: '#fef9c3' },
-                      { label: 'Especialista sem Líderança', desc: 'Técnica média + Comportamental baixa', color: '#c2410c', bg: '#ffedd5' },
+                      { label: 'Risco de Liderança', desc: 'Técnica alta + Comportamental baixa', color: '#b45309', bg: '#fef9c3' },
+                      { label: 'Especialista sem Liderança', desc: 'Técnica média + Comportamental baixa', color: '#c2410c', bg: '#ffedd5' },
                       { label: 'Baixa Aderência', desc: 'Técnica baixa + Comportamental baixa', color: '#9f1239', bg: '#ffe4e6' },
                     ].map((q) => (
                       <div key={q.label} style={{ background: q.bg, borderRadius: 6, padding: '8px 12px', border: `1px solid ${q.color}30` }}>

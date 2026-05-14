@@ -7,7 +7,7 @@ const QUADRANT_INFO: Record<string, { color: string; bg: string; icon: string; d
   'Alta Prontidão':                          { color: '#065f46', bg: '#d1fae5', icon: '🏆', desc: 'Alta aderência técnica E comportamental. Candidato prioritário para sucessão.' },
   'Pronto em Desenvolvimento':              { color: '#1d4ed8', bg: '#dbeafe', icon: '⭐', desc: 'Boa aderência comportamental, em desenvolvimento técnico. Potencial elevado.' },
   'Potencial de Curto Prazo':               { color: '#0e7490', bg: '#cffafe', icon: '🚀', desc: 'Forte aderência comportamental, precisa desenvolver competências técnicas.' },
-  'Destaque Técnico, lapidar líderança':    { color: '#7c3aed', bg: '#ede9fe', icon: '🔧', desc: 'Excelente base técnica. Requer desenvolvimento de competências comportamentais.' },
+  'Destaque Técnico, lapidar liderança':    { color: '#7c3aed', bg: '#ede9fe', icon: '🔧', desc: 'Excelente base técnica. Requer desenvolvimento de competências comportamentais.' },
   'Potencial de Médio Prazo':               { color: '#b45309', bg: '#fef3c7', icon: '📈', desc: 'Aderência moderada em ambas as dimensões. Plano de desenvolvimento recomendado.' },
   'Desenvolvimento Direcionado':            { color: '#92400e', bg: '#fef9c3', icon: '🎯', desc: 'Boa aderência técnica, comportamental em desenvolvimento.' },
   'Potencial de Longo Prazo':               { color: '#6b7280', bg: '#f3f4f6', icon: '🌱', desc: 'Aderência inicial. Requer plano de desenvolvimento estruturado.' },

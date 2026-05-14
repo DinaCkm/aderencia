@@ -33,7 +33,7 @@ export default function AdminCatalogs() {
   }, [router]);
 
   const downloadTemplate = () => {
-    const template = `id,label,group,classification,area\nmba-strategic,MBA Estratégia Corporativa,postMBA,transversal,\ncurso-líderança,Cursó de Líderança Estratégica,course,transversal,\nprojeto-transformação,Projeto de Transformação Digital,project,transversal,\n`;
+    const template = `id,label,group,classification,area\nmba-strategic,MBA Estratégia Corporativa,postMBA,transversal,\ncurso-liderança,Curso de Liderança Estratégica,course,transversal,\nprojeto-transformação,Projeto de Transformação Digital,project,transversal,\n`;
     const blob = new Blob([template], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -109,11 +109,11 @@ export default function AdminCatalogs() {
             <div className="form-grid">
               <div className="form-group">
                 <label className="form-label">ID único *</label>
-                <input className="form-input" value={item.id} onChange={(e) => setItem({ ...item, id: e.target.value })} required placeholder="ex: curso-líderança" />
+                <input className="form-input" value={item.id} onChange={(e) => setItem({ ...item, id: e.target.value })} required placeholder="ex: curso-liderança" />
               </div>
               <div className="form-group">
                 <label className="form-label">Rotulo *</label>
-                <input className="form-input" value={item.label} onChange={(e) => setItem({ ...item, label: e.target.value })} required placeholder="ex: Cursó de Líderança" />
+                <input className="form-input" value={item.label} onChange={(e) => setItem({ ...item, label: e.target.value })} required placeholder="ex: Curso de Liderança" />
               </div>
             </div>
             <div className="form-grid">

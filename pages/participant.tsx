@@ -419,13 +419,13 @@ export default function ParticipantForm() {
                 </div>
 
                 <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 12px', opacity: 0.97 }}>
-                  O <strong>Programa de Desenvolvimento de Líderes e Sucessores</strong> é uma iniciativa estratégica do SEBRAE Tocantins voltada à preparação, valorização e desenvolvimento de talentos internos com potencial para assumir futuras posições de líderança.
+                  O <strong>Programa de Desenvolvimento de Líderes e Sucessores</strong> é uma iniciativa estratégica do SEBRAE Tocantins voltada à preparação, valorização e desenvolvimento de talentos internos com potencial para assumir futuras posições de liderança.
                 </p>
                 <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 12px', opacity: 0.97 }}>
                   Esta etapa marca o <strong>fechamento do ciclo de desenvolvimento</strong> dos participantes do Banco de Sucessores, contemplando as turmas <strong>BS1, BS2 e BS3</strong>, conforme o cronograma definido para encerramento da temporada atual do programa.
                 </p>
                 <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 12px', opacity: 0.97 }}>
-                  Ao longo da jornada, os participantes vivenciaram ações voltadas ao autoconhecimento, ampliação do repertório de líderança, mentorias, trilhas de aprendizagem, entregas práticas, projetos aplicados e fortalecimento da prontidão para sucessão.
+                  Ao longo da jornada, os participantes vivenciaram ações voltadas ao autoconhecimento, ampliação do repertório de liderança, mentorias, trilhas de aprendizagem, entregas práticas, projetos aplicados e fortalecimento da prontidão para sucessão.
                 </p>
                 <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 16px', opacity: 0.97 }}>
                   Neste momento, o objetivo é consolidar os resultados da trajetória realizada até aqui, considerando a performance, o engajamento e os elementos técnicos e comportamentais que compõem a análise de aderência de cada participante às áreas afins.
@@ -454,7 +454,7 @@ export default function ParticipantForm() {
                   Neste formulário, você poderá indicar até <strong>três áreas de interesse</strong> nas quais desejá ser considerado como possível sucessor. Para cada área escolhida, será calculado o seu <strong>Índice de Aderência</strong>, considerando critérios como formação acadêmica, experiência profissional, cursos realizados, participação em projetos, perfil comportamental e desempenho no programa de desenvolvimento.
                 </p>
                 <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 20px', opacity: 0.97 }}>
-                  A avaliação de aderência <strong>não possui caráter eliminatório</strong>. Ela representa uma fotografia do momento atual do participante e tem como finalidade apoiar a continuidade do seu desenvolvimento, oferecendo clareza sobre pontos fortes, oportunidades de evolução e caminhos possíveis para futuras posições de líderança. O resultado será disponibilizado com o detalhamento dos critérios utilizados no cálculo, reforçando a transparência do processó e o compromissó do SEBRAE Tocantins com o desenvolvimento de seus líderes e sucessores.
+                  A avaliação de aderência <strong>não possui caráter eliminatório</strong>. Ela representa uma fotografia do momento atual do participante e tem como finalidade apoiar a continuidade do seu desenvolvimento, oferecendo clareza sobre pontos fortes, oportunidades de evolução e caminhos possíveis para futuras posições de liderança. O resultado será disponibilizado com o detalhamento dos critérios utilizados no cálculo, reforçando a transparência do processo e o compromisso do SEBRAE Tocantins com o desenvolvimento de seus líderes e sucessores.
                 </p>
 
                 {/* Assinatura */}
@@ -532,7 +532,7 @@ export default function ParticipantForm() {
               <div className="form-group" style={{ marginTop: 8 }}>
                 <label className="form-label">Área em que atua atualmente *</label>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 10 }}>
-                  Selecione a área onde você trabalha hoje. Issó nos ajuda a entender quantas pessoas da mesma área têm aderência a cada destino.
+                  Selecione a área onde você trabalha hoje. Isso nos ajuda a entender quantas pessoas da mesma área têm aderência a cada destino.
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {OFFICIAL_AREAS.map((area) => {
@@ -574,7 +574,7 @@ export default function ParticipantForm() {
                 </div>
               </div>
               <CalcTutorial title="Como as Áreas de Interesse influenciam no cálculo?">
-                <p style={{ margin: '0 0 8px' }}>Cada área de interesse que você selecionar gerará uma <strong>análise de aderência independente</strong>. Issó significa que o sistema calculará uma nota de aderência técnica e comportamental separada para cada área.</p>
+                <p style={{ margin: '0 0 8px' }}>Cada área de interesse que você selecionar gerará uma <strong>análise de aderência independente</strong>. Isso significa que o sistema calculará uma nota de aderência técnica e comportamental separada para cada área.</p>
                 <p style={{ margin: '0 0 8px' }}>Para cada área, o sistema seleciona automaticamente a combinação de Pós/MBA e Projetos que gera a <strong>maior pontuação possível</strong> para aquela área específica, com base no catálogo oficial.</p>
                 <p style={{ margin: 0 }}>Você pode selecionar até <strong>3 áreas</strong>. Quanto mais áreas você escolher, mais oportunidades de análise serão geradas para o seu perfil.</p>
               </CalcTutorial>
@@ -648,17 +648,17 @@ export default function ParticipantForm() {
               {/* Texto de orientação da etapa */}
               <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: 10, padding: '14px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
                 <p style={{ margin: 0, marginBottom: 8 }}>
-                  Informe a área e o nome completo do seu cursó de graduação, conforme consta no diploma, certificado ou histórico acadêmico.
+                  Informe a área e o nome completo do seu curso de graduação, conforme consta no diploma, certificado ou histórico acadêmico.
                 </p>
                 <p style={{ margin: 0, marginBottom: 8 }}>
-                  Casó não identifique sua área de formação ou o nome do seu cursó nas opções disponíveis, selecione <strong>"Outro cursó / Área não identificada"</strong> e registre as informações no campo de exceção para análise da equipe responsável.
+                  Caso não identifique sua área de formação ou o nome do seu curso nas opções disponíveis, selecione <strong>"Outro curso / Área não identificada"</strong> e registre as informações no campo de exceção para análise da equipe responsável.
                 </p>
                 <p style={{ margin: 0 }}>
                   <strong>Atenção:</strong> Serão considerados apenas cursos de graduação (bacharelado, licenciatura ou tecnólogo) concluídos até 31/12/2025.
                 </p>
               </div>
 
-              {/* Avisó de validade */}
+              {/* Aviso de validade */}
               <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 8, padding: '10px 14px', marginBottom: 16, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '1rem', flexShrink: 0 }}>&#9888;&#65039;</span>
                 <p style={{ fontSize: '0.78rem', color: '#92400e', margin: 0, lineHeight: 1.6 }}>
@@ -676,7 +676,7 @@ export default function ParticipantForm() {
                     onChange={(e) => setProfile((p) => ({ ...p, graduation: e.target.value, graduationCourseName: '', graduationException: '' } as any))} required>
                     <option value="">Selecione a área da sua graduação</option>
                     {graduationOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
-                    <option value="__outro__">Outro cursó / Área não identificada</option>
+                    <option value="__outro__">Outro curso / Área não identificada</option>
                   </select>
                   <input className="form-input" type="number" min="1980" max="2025" placeholder="Ano de conclusão"
                     value={(profile as any).graduationYear || ''}
@@ -695,14 +695,14 @@ export default function ParticipantForm() {
                 )}
               </div>
 
-              {/* Nome completo do cursó de graduação */}
+              {/* Nome completo do curso de graduação */}
               <div className="form-group">
-                <label className="form-label">Nome do cursó de graduação *</label>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 6 }}>Digite o nome completo do cursó conforme consta no diploma, certificado ou histórico acadêmico.</p>
+                <label className="form-label">Nome do curso de graduação *</label>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 6 }}>Digite o nome completo do curso conforme consta no diploma, certificado ou histórico acadêmico.</p>
                 <input
                   className="form-input"
                   type="text"
-                  placeholder="Ex.: Bacharelado em Administração, Ciências Contábeis, Psicologia, Comúnicação Social – Publicidade e Propaganda"
+                  placeholder="Ex.: Bacharelado em Administração, Ciências Contábeis, Psicologia, Comunicação Social – Publicidade e Propaganda"
                   value={(profile as any).graduationCourseName || ''}
                   onChange={(e) => setProfile((p) => ({ ...p, graduationCourseName: e.target.value } as any))}
                   required
@@ -713,13 +713,13 @@ export default function ParticipantForm() {
               {profile.graduation === '__outro__' && (
                 <div className="form-group">
                   <div style={{ background: '#fef9ec', border: '1.5px solid #fbbf24', borderRadius: 10, padding: '14px 16px' }}>
-                    <label className="form-label" style={{ color: '#92400e', marginBottom: 6 }}>Cursó não encontrado / Exceção *</label>
+                    <label className="form-label" style={{ color: '#92400e', marginBottom: 6 }}>Curso não encontrado / Exceção *</label>
                     <p style={{ color: '#b45309', fontSize: '0.75rem', marginBottom: 8, lineHeight: 1.6 }}>
-                      Preencha este campo apenas se sua área ou cursó não estiver contemplado nas opções disponíveis. Sua informação será analisada pela equipe responsável.
+                      Preencha este campo apenas se sua área ou curso não estiver contemplado nas opções disponíveis. Sua informação será analisada pela equipe responsável.
                     </p>
                     <textarea
                       className="form-input form-textarea"
-                      placeholder="Informe o nome completo do cursó e descreva brevemente a área de formação para análise."
+                      placeholder="Informe o nome completo do curso e descreva brevemente a área de formação para análise."
                       value={(profile as any).graduationException || ''}
                       onChange={(e) => setProfile((p) => ({ ...p, graduationException: e.target.value } as any))}
                       rows={3}
@@ -750,17 +750,17 @@ export default function ParticipantForm() {
                         onChange={(e) => setProfile((p) => ({ ...p, graduation2: e.target.value, graduation2CourseName: '', graduation2Exception: '' } as any))}>
                         <option value="">Selecione a área da 2ª graduação</option>
                         {graduationOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
-                        <option value="__outro2__">Outro cursó / Área não identificada</option>
+                        <option value="__outro2__">Outro curso / Área não identificada</option>
                       </select>
                       <input className="form-input" type="number" min="1980" max="2025" placeholder="Ano de conclusão"
                         value={(profile as any).graduation2Year || ''}
                         onChange={(e) => setProfile((p) => ({ ...p, graduation2Year: e.target.value } as any))}
                         style={{ textAlign: 'center' }} />
                     </div>
-                    {/* Nome do cursó da 2ª graduação */}
+                    {/* Nome do curso da 2ª graduação */}
                     <div>
-                      <label className="form-label" style={{ fontSize: '0.78rem', marginBottom: 4 }}>Nome do cursó da 2ª graduação *</label>
-                      <p style={{ color: 'var(--text-muted)', fontSize: '0.73rem', marginBottom: 6 }}>Digite o nome completo do cursó conforme consta no diploma, certificado ou histórico acadêmico.</p>
+                      <label className="form-label" style={{ fontSize: '0.78rem', marginBottom: 4 }}>Nome do curso da 2ª graduação *</label>
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.73rem', marginBottom: 6 }}>Digite o nome completo do curso conforme consta no diploma, certificado ou histórico acadêmico.</p>
                       <input
                         className="form-input"
                         type="text"
@@ -783,13 +783,13 @@ export default function ParticipantForm() {
                     {/* Campo condicional de exceção da 2ª graduação */}
                     {(profile as any).graduation2 === '__outro2__' && (
                       <div style={{ background: '#fef9ec', border: '1.5px solid #fbbf24', borderRadius: 10, padding: '14px 16px' }}>
-                        <label className="form-label" style={{ color: '#92400e', marginBottom: 6 }}>Cursó não encontrado / Exceção — 2ª Graduação *</label>
+                        <label className="form-label" style={{ color: '#92400e', marginBottom: 6 }}>Curso não encontrado / Exceção — 2ª Graduação *</label>
                         <p style={{ color: '#b45309', fontSize: '0.75rem', marginBottom: 8, lineHeight: 1.6 }}>
-                          Preencha este campo apenas se sua área ou cursó não estiver contemplado nas opções disponíveis. Sua informação será analisada pela equipe responsável.
+                          Preencha este campo apenas se sua área ou curso não estiver contemplado nas opções disponíveis. Sua informação será analisada pela equipe responsável.
                         </p>
                         <textarea
                           className="form-input form-textarea"
-                          placeholder="Informe o nome completo do cursó e descreva brevemente a área de formação para análise."
+                          placeholder="Informe o nome completo do curso e descreva brevemente a área de formação para análise."
                           value={(profile as any).graduation2Exception || ''}
                           onChange={(e) => setProfile((p) => ({ ...p, graduation2Exception: e.target.value } as any))}
                           rows={3}
@@ -806,7 +806,7 @@ export default function ParticipantForm() {
                 <button type="button" className="btn-outline" onClick={() => setStep(2)}>← Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
                   if (!profile.graduation) { setStatus('Selecione a área da sua graduação.'); return; }
-                  if (!(profile as any).graduationCourseName?.trim()) { setStatus('Informe o nome completo do cursó de graduação.'); return; }
+                  if (!(profile as any).graduationCourseName?.trim()) { setStatus('Informe o nome completo do curso de graduação.'); return; }
                   if (profile.graduation === '__outro__' && !(profile as any).graduationException?.trim()) { setStatus('Preencha o campo de exceção com o nome e descrição do seu curso.'); return; }
                   if (profile.graduation !== '__outro__') {
                     const mode = profile.proofMode[`grad:${profile.graduation}`];
@@ -815,7 +815,7 @@ export default function ParticipantForm() {
                   }
                   if ((profile as any).graduation2HasField) {
                     if (!(profile as any).graduation2) { setStatus('Selecione a área da 2ª graduação.'); return; }
-                    if (!(profile as any).graduation2CourseName?.trim()) { setStatus('Informe o nome completo do cursó da 2ª graduação.'); return; }
+                    if (!(profile as any).graduation2CourseName?.trim()) { setStatus('Informe o nome completo do curso da 2ª graduação.'); return; }
                     if ((profile as any).graduation2 === '__outro2__' && !(profile as any).graduation2Exception?.trim()) { setStatus('Preencha o campo de exceção da 2ª graduação.'); return; }
                     if ((profile as any).graduation2 !== '__outro2__') {
                       const mode2 = profile.proofMode[`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`];
@@ -845,7 +845,7 @@ export default function ParticipantForm() {
                 <p style={{ margin: '0 0 8px' }}>A pontuação de Pós-graduação/MBA representa até <strong>40 pontos</strong> (metade da nota bruta) no cálculo da aderência técnica.</p>
                 <p style={{ margin: '0 0 8px' }}>O sistema avalia automaticamente os títulos que você informar e seleciona <strong>o de maior pontuação para cada área de interesse</strong> que você escolheu, conforme o catálogo oficial:</p>
                 <ul style={{ paddingLeft: 16, margin: '0 0 8px', lineHeight: 1.8 }}>
-                  <li><strong>Título Transversal (Prioritário):</strong> 40 pontos (foco em líderança, gestão, estratégia, inovação).</li>
+                  <li><strong>Título Transversal (Prioritário):</strong> 40 pontos (foco em liderança, gestão, estratégia, inovação).</li>
                   <li><strong>Título Específico da Área:</strong> 20 pontos (válido apenas para a área correspondente).</li>
                   <li><strong>Título Não Relacionado:</strong> 20 pontos.</li>
                 </ul>
@@ -855,7 +855,7 @@ export default function ParticipantForm() {
               {/* Instrucoes detalhadas */}
               <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: 10, padding: '14px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
                 <p style={{ margin: 0, marginBottom: 6 }}>Selecione até <strong>3 títulos</strong> de pós-graduação, MBA, especialização ou formação executiva que você <strong>concluiu até 31/12/2025</strong>. Para cada título selecionado, indique como vai comprová-lo.</p>
-                <p style={{ margin: 0 }}>Casó seu título não estejá na lista, utilize o campo de exceção ao final do formulário para registrar a informação para análise da equipe responsável.</p>
+                <p style={{ margin: 0 }}>Caso seu título não esteja na lista, utilize o campo de exceção ao final do formulário para registrar a informação para análise da equipe responsável.</p>
               </div>
 
               {/* Bloco didatico: transversal vs específico */}
@@ -866,26 +866,26 @@ export default function ParticipantForm() {
                     <InfoTooltip content={
                       <div>
                         <p style={{ fontWeight: 700, marginBottom: 6, color: '#065f46' }}>Critérios para Título Transversal</p>
-                        <p style={{ marginBottom: 8 }}>Será considerado Título Transversal apenas o cursó de pós-graduação, MBA, especialização ou formação executiva cujo nome indique claramente foco principal em:</p>
+                        <p style={{ marginBottom: 8 }}>Será considerado Título Transversal apenas o curso de pós-graduação, MBA, especialização ou formação executiva cujo nome indique claramente foco principal em:</p>
                         <ul style={{ paddingLeft: 16, marginBottom: 8, lineHeight: 1.8 }}>
-                          <li>Líderança ou gestão de pessoas</li>
+                          <li>Liderança ou gestão de pessoas</li>
                           <li>Desenvolvimento humano e organizacional</li>
                           <li>Estratégia organizacional</li>
                           <li>Gestão de projetos ou processos</li>
                           <li>Inovação ou transformação digital aplicada à gestão</li>
                           <li>Governança corporativa ou gestão da mudança</li>
                         </ul>
-                        <p style={{ marginBottom: 6 }}><strong>Exemplos:</strong> MBA em Gestão de Pessoas, Pós em Líderança, MBA em Gestão Estratégica de Pessoas, Especialização em Desenvolvimento Organizacional, MBA em Gestão de Projetos, MBA em Planejamento Estratégico, Pós em Governança Corporativa.</p>
-                        <p style={{ color: '#dc2626', marginBottom: 6 }}><strong>Não serão classificados como Transversal</strong> formações técnicas ou funcionais de área específica, como Marketing, Finanças, Controladoria, Auditoria, Direito, Comúnicação, Logística, Vendas ou Gestão Comercial — ainda que contenham disciplinas de gestão ou líderança.</p>
+                        <p style={{ marginBottom: 6 }}><strong>Exemplos:</strong> MBA em Gestão de Pessoas, Pós em Liderança, MBA em Gestão Estratégica de Pessoas, Especialização em Desenvolvimento Organizacional, MBA em Gestão de Projetos, MBA em Planejamento Estratégico, Pós em Governança Corporativa.</p>
+                        <p style={{ color: '#dc2626', marginBottom: 6 }}><strong>Não serão classificados como Transversal</strong> formações técnicas ou funcionais de área específica, como Marketing, Finanças, Controladoria, Auditoria, Direito, Comunicação, Logística, Vendas ou Gestão Comercial — ainda que contenham disciplinas de gestão ou liderança.</p>
                         <p style={{ color: '#7c3aed' }}>Nesses casos, a formação poderá ser considerada <strong>Título Específico da Área</strong> quando houver relação direta com a área de interesse escolhida.</p>
                       </div>
                     } />
                   </div>
                   <p style={{ fontSize: '0.75rem', color: '#047857', lineHeight: 1.6, margin: 0 }}>
-                    Vale para <strong>qualquer área</strong> de interesse. Títulos de gestão, líderança e competências gerais.
+                    Vale para <strong>qualquer área</strong> de interesse. Títulos de gestão, liderança e competências gerais.
                   </p>
                   <p style={{ fontSize: '0.7rem', color: '#059669', marginTop: 4, fontStyle: 'italic' }}>
-                    Ex.: MBA em Gestão de Pessoas, Líderança, Inovação.
+                    Ex.: MBA em Gestão de Pessoas, Liderança, Inovação.
                   </p>
                 </div>
                 <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '12px 14px' }}>
@@ -1045,7 +1045,7 @@ export default function ParticipantForm() {
                 <p style={{ margin: 0 }}>O sistema registrará os seus cursos e os classificará automaticamente em relação a cada área de interesse escolhida (como Transversal ou Específico), mas essa classificação tem caráter apenas informativo.</p>
               </CalcTutorial>
 
-              {/* Avisó de dados complementares */}
+              {/* Aviso de dados complementares */}
               <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '12px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#92400e', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                 <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>&#8505;&#65039;</span>
                 <p style={{ margin: 0, lineHeight: 1.7 }}>
@@ -1057,8 +1057,8 @@ export default function ParticipantForm() {
               <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: 10, padding: '14px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
                 <p style={{ margin: 0, marginBottom: 8, fontWeight: 700 }}>O que são cursos extracurriculares?</p>
                 <p style={{ margin: 0, marginBottom: 6 }}>São formações de desenvolvimento continuado — diferentes de Pós/MBA. Incluem cursos, workshops, treinamentos e certificações profissionais realizados fora do ambiente acadêmico formal.</p>
-                <p style={{ margin: 0, marginBottom: 6 }}><strong>Requisito mínimo:</strong> o cursó deve ter <strong>no mínimo 16 horas</strong> de carga horária para ser considerado válido para registro. Cursos com menos de 16h serão desconsiderados automaticamente.</p>
-                <p style={{ margin: 0, marginBottom: 6 }}>Para cada cursó selecionado, informe a carga horária e indique como vai comprová-lo (documento ou conhecimento da UGP).</p>
+                <p style={{ margin: 0, marginBottom: 6 }}><strong>Requisito mínimo:</strong> o curso deve ter <strong>no mínimo 16 horas</strong> de carga horária para ser considerado válido para registro. Cursos com menos de 16h serão desconsiderados automaticamente.</p>
+                <p style={{ margin: 0, marginBottom: 6 }}>Para cada curso selecionado, informe a carga horária e indique como vai comprová-lo (documento ou conhecimento da UGP).</p>
                 <p style={{ margin: 0 }}>A validação final é feita pelo RH/UGP. Cursos não listados podem ser registrados no campo de exceção da última etapa.</p>
               </div>
 
@@ -1066,21 +1066,21 @@ export default function ParticipantForm() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
                 <div style={{ background: '#f0fdf4', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '12px 14px' }}>
                   <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#065f46', marginBottom: 4, display: 'flex', alignItems: 'center' }}>
-                    &#127758; Cursó Transversal
+                    &#127758; Curso Transversal
                     <InfoTooltip content={
                       <div>
-                        <p style={{ fontWeight: 700, marginBottom: 6, color: '#065f46' }}>Critérios para Cursó Transversal</p>
-                        <p style={{ marginBottom: 8 }}>Será considerado Cursó Transversal apenas o cursó cujo nome indique claramente foco principal em:</p>
+                        <p style={{ fontWeight: 700, marginBottom: 6, color: '#065f46' }}>Critérios para Curso Transversal</p>
+                        <p style={{ marginBottom: 8 }}>Será considerado Curso Transversal apenas o curso cujo nome indique claramente foco principal em:</p>
                         <ul style={{ paddingLeft: 16, marginBottom: 8, lineHeight: 1.8 }}>
-                          <li>Líderança ou gestão de pessoas</li>
+                          <li>Liderança ou gestão de pessoas</li>
                           <li>Desenvolvimento humano e organizacional</li>
                           <li>Estratégia organizacional</li>
                           <li>Gestão de projetos ou processos</li>
                           <li>Inovação ou transformação digital aplicada à gestão</li>
                           <li>Governança corporativa ou gestão da mudança</li>
                         </ul>
-                        <p style={{ color: '#dc2626', marginBottom: 6 }}><strong>Não serão classificados como Transversal</strong> cursos técnicos ou funcionais de área específica, como Marketing, Finanças, Controladoria, Auditoria, Direito, Comúnicação, Logística, Vendas ou Gestão Comercial.</p>
-                        <p style={{ color: '#7c3aed' }}>Nesses casos, o cursó poderá ser considerado <strong>Cursó Específico da Área</strong> quando houver relação direta com a área de interesse escolhida.</p>
+                        <p style={{ color: '#dc2626', marginBottom: 6 }}><strong>Não serão classificados como Transversal</strong> cursos técnicos ou funcionais de área específica, como Marketing, Finanças, Controladoria, Auditoria, Direito, Comunicação, Logística, Vendas ou Gestão Comercial.</p>
+                        <p style={{ color: '#7c3aed' }}>Nesses casos, o curso poderá ser considerado <strong>Curso Específico da Área</strong> quando houver relação direta com a área de interesse escolhida.</p>
                       </div>
                     } />
                   </div>
@@ -1089,7 +1089,7 @@ export default function ParticipantForm() {
                   </p>
                 </div>
                 <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '12px 14px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#5B2D8E', marginBottom: 4 }}>🎯 Cursó Específico da Área</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#5B2D8E', marginBottom: 4 }}>🎯 Curso Específico da Área</div>
                   <p style={{ fontSize: '0.75rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
                     Cursos técnicos ligados a uma unidade específica. Pontuam <strong>somente na área correspondente</strong>.
                   </p>
@@ -1121,10 +1121,10 @@ export default function ParticipantForm() {
                         padding: '12px 14px',
                         transition: 'all 0.2s'
                       }}>
-                        <p style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--purple)', marginBottom: 10 }}>Cursó {idx + 1}</p>
+                        <p style={{ fontWeight: 700, fontSize: '0.78rem', color: 'var(--purple)', marginBottom: 10 }}>Curso {idx + 1}</p>
                         {/* Área */}
                         <div style={{ marginBottom: 8 }}>
-                          <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Área do cursó *</label>
+                          <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Área do curso *</label>
                           <select
                             value={course.area || ''}
                             onChange={(e) => updateCourse('area', e.target.value)}
@@ -1132,8 +1132,8 @@ export default function ParticipantForm() {
                           >
                             <option value="">Selecione a área...</option>
                             <option value="transversal">Transversal (qualquer área)</option>
-                            <optgroup label="Líderança e Gestão">
-                              <option value="Líderança e Gestão de Equipes">Líderança e Gestão de Equipes</option>
+                            <optgroup label="Liderança e Gestão">
+                              <option value="Liderança e Gestão de Equipes">Liderança e Gestão de Equipes</option>
                               <option value="Gestão de Pessoas / RH">Gestão de Pessoas / RH</option>
                               <option value="Gestão de Projetos">Gestão de Projetos</option>
                               <option value="Gestão de Processos">Gestão de Processos</option>
@@ -1161,10 +1161,10 @@ export default function ParticipantForm() {
                               <option value="Direito Empresarial">Direito Empresarial</option>
                               <option value="Compliance e Integridade">Compliance e Integridade</option>
                             </optgroup>
-                            <optgroup label="Marketing e Comúnicação">
-                              <option value="Marketing e Comúnicação">Marketing e Comúnicação</option>
+                            <optgroup label="Marketing e Comunicação">
+                              <option value="Marketing e Comunicação">Marketing e Comunicação</option>
                               <option value="Marketing Digital">Marketing Digital</option>
-                              <option value="Comúnicação Corporativa">Comúnicação Corporativa</option>
+                              <option value="Comunicação Corporativa">Comunicação Corporativa</option>
                             </optgroup>
                             <optgroup label="Negócios e Empreendedorismo">
                               <option value="Gestão de Pequenos Negócios">Gestão de Pequenos Negócios</option>
@@ -1185,12 +1185,12 @@ export default function ParticipantForm() {
                             <option value="Outro">Outro (não listado acima)</option>
                           </select>
                         </div>
-                        {/* Nome do cursó */}
+                        {/* Nome do curso */}
                         <div style={{ marginBottom: 8 }}>
-                          <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Nome do cursó conforme consta no certificado *</label>
+                          <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Nome do curso conforme consta no certificado *</label>
                           <input
                             type="text"
-                            placeholder="Ex.: Gestão de Projetos Ágeis, Líderança e Equipes..."
+                            placeholder="Ex.: Gestão de Projetos Ágeis, Liderança e Equipes..."
                             value={course.name || ''}
                             onChange={(e) => updateCourse('name', e.target.value)}
                             style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text)', background: 'white' }}
@@ -1236,8 +1236,8 @@ export default function ParticipantForm() {
                     if (c?.name?.trim() && c?.area && c?.hours >= 16) {
                       const key = `curso5_${i}:${c.name}`;
                       const mode = profile.proofMode[key];
-                      if (!mode) { setStatus(`Selecione como vai comprovar o Cursó ${i + 1}: "${c.name}".`); return; }
-                      if (mode === 'upload' && !profile.proofFiles[key]) { setStatus(`Você selecionou "Enviar documento" para o Cursó ${i + 1} — escolha o arquivo antes de continuar.`); return; }
+                      if (!mode) { setStatus(`Selecione como vai comprovar o Curso ${i + 1}: "${c.name}".`); return; }
+                      if (mode === 'upload' && !profile.proofFiles[key]) { setStatus(`Você selecionou "Enviar documento" para o Curso ${i + 1} — escolha o arquivo antes de continuar.`); return; }
                     }
                   }
                   setStatus(''); setStep(6);
@@ -1333,28 +1333,28 @@ export default function ParticipantForm() {
 
               {/* Definição didática */}
               <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.78rem', color: '#92400e' }}>
-                <strong>O que são cursos estratégicos?</strong> São formações de desenvolvimento continuado — diferentes de Pós/MBA. Incluem cursos, workshops, treinamentos e certificações profissionais. Para pontuar, o cursó deve ter <strong>no mínimo 16 horas</strong>. A validação final é feita pelo RH/UGP.
+                <strong>O que são cursos estratégicos?</strong> São formações de desenvolvimento continuado — diferentes de Pós/MBA. Incluem cursos, workshops, treinamentos e certificações profissionais. Para pontuar, o curso deve ter <strong>no mínimo 16 horas</strong>. A validação final é feita pelo RH/UGP.
               </div>
 
               {/* Transversal vs específico */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
                 <div style={{ background: '#f0fdf4', border: '1.5px solid #6ee7b7', borderRadius: 10, padding: '12px 14px' }}>
                   <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#065f46', marginBottom: 4, display: 'flex', alignItems: 'center' }}>
-                    &#127758; Cursó Transversal
+                    &#127758; Curso Transversal
                     <InfoTooltip content={
                       <div>
-                        <p style={{ fontWeight: 700, marginBottom: 6, color: '#065f46' }}>Critérios para Cursó Transversal</p>
-                        <p style={{ marginBottom: 8 }}>Será considerado Cursó Transversal apenas o cursó cujo nome indique claramente foco principal em:</p>
+                        <p style={{ fontWeight: 700, marginBottom: 6, color: '#065f46' }}>Critérios para Curso Transversal</p>
+                        <p style={{ marginBottom: 8 }}>Será considerado Curso Transversal apenas o curso cujo nome indique claramente foco principal em:</p>
                         <ul style={{ paddingLeft: 16, marginBottom: 8, lineHeight: 1.8 }}>
-                          <li>Líderança ou gestão de pessoas</li>
+                          <li>Liderança ou gestão de pessoas</li>
                           <li>Desenvolvimento humano e organizacional</li>
                           <li>Estratégia organizacional</li>
                           <li>Gestão de projetos ou processos</li>
                           <li>Inovação ou transformação digital aplicada à gestão</li>
                           <li>Governança corporativa ou gestão da mudança</li>
                         </ul>
-                        <p style={{ color: '#dc2626', marginBottom: 6 }}><strong>Não serão classificados como Transversal</strong> cursos técnicos ou funcionais de área específica, como Marketing, Finanças, Controladoria, Auditoria, Direito, Comúnicação, Logística, Vendas ou Gestão Comercial — ainda que contenham conteúdo de gestão ou líderança.</p>
-                        <p style={{ color: '#7c3aed' }}>Nesses casos, o cursó poderá ser considerado <strong>Cursó Específico da Área</strong> quando houver relação direta com a área de interesse escolhida.</p>
+                        <p style={{ color: '#dc2626', marginBottom: 6 }}><strong>Não serão classificados como Transversal</strong> cursos técnicos ou funcionais de área específica, como Marketing, Finanças, Controladoria, Auditoria, Direito, Comunicação, Logística, Vendas ou Gestão Comercial — ainda que contenham conteúdo de gestão ou liderança.</p>
+                        <p style={{ color: '#7c3aed' }}>Nesses casos, o curso poderá ser considerado <strong>Curso Específico da Área</strong> quando houver relação direta com a área de interesse escolhida.</p>
                       </div>
                     } />
                   </div>
@@ -1363,7 +1363,7 @@ export default function ParticipantForm() {
                   </p>
                 </div>
                 <div style={{ background: '#faf5ff', border: '1.5px solid #d8b4fe', borderRadius: 10, padding: '12px 14px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#5B2D8E', marginBottom: 4 }}>🎯 Cursó Específico da Área</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#5B2D8E', marginBottom: 4 }}>🎯 Curso Específico da Área</div>
                   <p style={{ fontSize: '0.75rem', color: '#6d28d9', lineHeight: 1.6, margin: 0 }}>
                     Cursos técnicos ligados a uma unidade específica. Pontuam <strong>somente na área correspondente</strong>.
                   </p>
@@ -1531,7 +1531,7 @@ export default function ParticipantForm() {
                 </label>
                 {profile.exceptionRequested && (
                   <textarea className="form-input" rows={3}
-                    placeholder="Descreva o projeto, seu papel e por que acredita que deve ser considerado no processó de avaliação..."
+                    placeholder="Descreva o projeto, seu papel e por que acredita que deve ser considerado no processo de avaliação..."
                     value={profile.exceptionJustification}
                     onChange={(e) => setProfile((p) => ({ ...p, exceptionJustification: e.target.value }))}
                     style={{ resize: 'vertical', fontSize: '0.82rem' }} />
