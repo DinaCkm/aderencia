@@ -451,7 +451,7 @@ export default function ParticipantForm() {
                 </div>
 
                 <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 12px', opacity: 0.97 }}>
-                  Neste formulário, você poderá indicar até <strong>três áreas de interesse</strong> nas quais desejá ser considerado como possível sucessor. Para cada área escolhida, será calculado o seu <strong>Índice de Aderência</strong>, considerando critérios como formação acadêmica, experiência profissional, cursos realizados, participação em projetos, perfil comportamental e desempenho no programa de desenvolvimento.
+                  Neste formulário, você poderá indicar até <strong>três áreas de interesse</strong> nas quais deseja ser considerado como possível sucessor. Para cada área escolhida, será calculado o seu <strong>Índice de Aderência</strong>, considerando critérios como formação acadêmica, experiência profissional, cursos realizados, participação em projetos, perfil comportamental e desempenho no programa de desenvolvimento.
                 </p>
                 <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 20px', opacity: 0.97 }}>
                   A avaliação de aderência <strong>não possui caráter eliminatório</strong>. Ela representa uma fotografia do momento atual do participante e tem como finalidade apoiar a continuidade do seu desenvolvimento, oferecendo clareza sobre pontos fortes, oportunidades de evolução e caminhos possíveis para futuras posições de liderança. O resultado será disponibilizado com o detalhamento dos critérios utilizados no cálculo, reforçando a transparência do processo e o compromisso do SEBRAE Tocantins com o desenvolvimento de seus líderes e sucessores.
@@ -465,7 +465,7 @@ export default function ParticipantForm() {
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '0.7rem', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Parceria</div>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700 }}>Ckm Talents</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700 }}>CKM Talents</div>
                   </div>
                 </div>
               </div>
@@ -581,7 +581,7 @@ export default function ParticipantForm() {
 
               <div style={{ background: 'linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%)', border: '1.5px solid #ddd6fe', borderRadius: 10, padding: '14px 18px', marginBottom: 20 }}>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text)', lineHeight: 1.8, margin: 0 }}>
-                  Escolha de <strong>1 a 3 áreas</strong> nas quais você desejá ser considerado como possível sucessor no <strong>Programa de Desenvolvimento de Líderes e Sucessores</strong>.
+                  Escolha de <strong>1 a 3 áreas</strong> nas quais você deseja ser considerado como possível sucessor no <strong>Programa de Desenvolvimento de Líderes e Sucessores</strong>.
                 </p>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text)', lineHeight: 1.8, margin: '8px 0 0' }}>
                   Cada área selecionada gerará uma <strong>análise de aderência independente</strong>, considerando sua trajetória, formação, experiências profissionais, participação em projetos, perfil comportamental e performance no programa.
@@ -645,8 +645,17 @@ export default function ParticipantForm() {
                 <p style={{ margin: 0 }}>O sistema registrará a sua formação e a classificará automaticamente em relação a cada área de interesse escolhida (como Prioritária, Específica ou Não Relacionada), mas essa classificação tem caráter apenas informativo.</p>
               </CalcTutorial>
 
+              {/* Aviso destacado: apenas Graduação aqui */}
+              <div style={{ background: '#faf5ff', border: '2px solid #c084fc', borderRadius: 10, padding: '14px 18px', marginBottom: 16 }}>
+                <p style={{ margin: 0, marginBottom: 6, fontSize: '0.88rem', fontWeight: 700, color: '#6b21a8' }}>
+                  &#127891; Esta etapa é exclusiva para <strong>Graduação</strong> (bacharelado, licenciatura ou tecnólogo).
+                </p>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#7c3aed', fontWeight: 600 }}>
+                  Pós-Graduação e MBA serão informados na <strong>próxima etapa</strong>.
+                </p>
+              </div>
               {/* Texto de orientação da etapa */}
-              <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: 10, padding: '14px 16px', marginBottom: 16, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
+              <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: 10, padding: '14px 16px', marginBottom: 16, fontSize: '0.82rem', color: '#0369a1', lineHeight: 1.7, fontWeight: 500 }}>
                 <p style={{ margin: 0, marginBottom: 8 }}>
                   Informe a área e o nome completo do seu curso de graduação, conforme consta no diploma, certificado ou histórico acadêmico.
                 </p>
