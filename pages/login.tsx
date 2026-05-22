@@ -49,6 +49,7 @@ export default function Login() {
           <h1 className="login-title">Banco de Sucessores</h1>
           <p className="login-subtitle">Aderência · EcoLider · SEBRAE Tocantins</p>
           <div style={{ textAlign: 'center', margin: '12px 0 20px' }}>
+            <p style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '6px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Leia antes de acessar</p>
             <a
               href="/comunicado_aderencia.pdf"
               target="_blank"
