@@ -78,7 +78,7 @@ export default function Login() {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label">E-mail</label>
-              <input className="form-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="seu@sebraeto.com.br" autoComplete="email" />
+              <input className="form-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="seu e-mail corporativo" autoComplete="email" />
             </div>
             {!isAdmin ? (
               <div className="form-group">
