@@ -42,6 +42,24 @@ export default function Login() {
     <>
       <Head><title>Banco de Sucessores Aderência | Login</title></Head>
       <div className="login-page">
+        <div style={{ textAlign: 'center', marginBottom: '18px' }}>
+          <a
+            href="/comunicado_aderencia.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              background: 'rgba(255,255,255,0.18)',
+              backdropFilter: 'blur(8px)',
+              color: 'white', textDecoration: 'none', fontWeight: 700,
+              fontSize: '0.85rem', padding: '11px 22px', borderRadius: '10px',
+              border: '1.5px solid rgba(255,255,255,0.45)',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.15)'
+            }}
+          >
+            📄 Leia o Comunicado de Levantamento de Aderência antes de preencher
+          </a>
+        </div>
         <div className="login-card">
           <div className="login-logo">
             <img src="/eco-logo.png" alt="EcoLider" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -84,23 +102,7 @@ export default function Login() {
             Participantes: use seu e-mail corporativo e CPF.<br />
             Em caso de dúvidas, contate o RH.
           </p>
-          <div style={{ marginTop: '20px', paddingTop: '18px', borderTop: '1px solid #e5e7eb', textAlign: 'center' }}>
-            <p style={{ fontSize: '0.78rem', color: '#6b7280', marginBottom: '10px' }}>Leia o comunicado oficial antes de iniciar o preenchimento</p>
-            <a
-              href="/comunicado_aderencia.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                background: 'linear-gradient(135deg, #1a3a6e, #0891b2)',
-                color: 'white', textDecoration: 'none', fontWeight: 700,
-                fontSize: '0.82rem', padding: '10px 20px', borderRadius: '8px',
-                boxShadow: '0 2px 8px rgba(8,145,178,0.3)'
-              }}
-            >
-              📄 Comunicado de Levantamento de Aderência
-            </a>
-          </div>
+
         </div>
       </div>
     </>
