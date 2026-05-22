@@ -42,30 +42,28 @@ export default function Login() {
     <>
       <Head><title>Banco de Sucessores Aderência | Login</title></Head>
       <div className="login-page">
-        <div style={{ textAlign: 'center', marginBottom: '18px' }}>
-          <a
-            href="/comunicado_aderencia.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              background: 'rgba(255,255,255,0.18)',
-              backdropFilter: 'blur(8px)',
-              color: 'white', textDecoration: 'none', fontWeight: 700,
-              fontSize: '0.85rem', padding: '11px 22px', borderRadius: '10px',
-              border: '1.5px solid rgba(255,255,255,0.45)',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.15)'
-            }}
-          >
-            📄 Leia o Comunicado de Levantamento de Aderência antes de preencher
-          </a>
-        </div>
         <div className="login-card">
           <div className="login-logo">
             <img src="/eco-logo.png" alt="EcoLider" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           </div>
           <h1 className="login-title">Banco de Sucessores</h1>
           <p className="login-subtitle">Aderência · EcoLider · SEBRAE Tocantins</p>
+          <div style={{ textAlign: 'center', margin: '12px 0 20px' }}>
+            <a
+              href="/comunicado_aderencia.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '7px',
+                background: '#f0f7ff', color: '#1a3a6e',
+                textDecoration: 'none', fontWeight: 700,
+                fontSize: '0.78rem', padding: '8px 16px', borderRadius: '8px',
+                border: '1.5px solid #0891b2'
+              }}
+            >
+              📄 Comunicado de Levantamento de Aderência
+            </a>
+          </div>
 
           <div style={{ display: 'flex', background: '#f3f4f6', borderRadius: '10px', padding: '4px', marginBottom: '24px', gap: '4px' }}>
             <button type="button" onClick={() => setIsAdmin(false)} style={{ flex: 1, padding: '8px', borderRadius: '7px', border: 'none', fontWeight: 600, fontSize: '0.83rem', cursor: 'pointer', background: !isAdmin ? 'white' : 'transparent', color: !isAdmin ? 'var(--purple)' : '#6b7280', boxShadow: !isAdmin ? '0 1px 4px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.2s' }}>
