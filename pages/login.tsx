@@ -84,6 +84,23 @@ export default function Login() {
             Participantes: use seu e-mail corporativo e CPF.<br />
             Em caso de dúvidas, contate o RH.
           </p>
+          <div style={{ marginTop: '20px', paddingTop: '18px', borderTop: '1px solid #e5e7eb', textAlign: 'center' }}>
+            <p style={{ fontSize: '0.78rem', color: '#6b7280', marginBottom: '10px' }}>Leia o comunicado oficial antes de iniciar o preenchimento</p>
+            <a
+              href="/comunicado_aderencia.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: 'linear-gradient(135deg, #1a3a6e, #0891b2)',
+                color: 'white', textDecoration: 'none', fontWeight: 700,
+                fontSize: '0.82rem', padding: '10px 20px', borderRadius: '8px',
+                boxShadow: '0 2px 8px rgba(8,145,178,0.3)'
+              }}
+            >
+              📄 Comunicado de Levantamento de Aderência
+            </a>
+          </div>
         </div>
       </div>
     </>
