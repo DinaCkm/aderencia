@@ -26,6 +26,7 @@ const initialProfile: ParticipantProfile = {
   proofMode: {},
   proofFiles: {},
   selectedProjects: [],
+  projectAreaMap: {},
   exceptionRequested: false,
   exceptionJustification: '',
   attachments: [],
@@ -1519,10 +1520,15 @@ export default function ParticipantForm() {
 
               <div className="form-group">
                 <label className="form-label">Projetos estratégicos participados <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(máx. 3 projetos)</span></label>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Selecione os projetos em que participou e indique como vai comprova-los.</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 8 }}>Selecione os projetos em que participou, escolha a área de interesse que deseja aplicar e indique como vai comprova-los.</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {projectOptions.map((o) => {
                     const selected = profile.selectedProjects.includes(o.label);
+                    const assignedArea = profile.projectAreaMap?.[o.label] || '';
+                    // Áreas já usadas por outros projetos
+                    const usedAreas = Object.entries(profile.projectAreaMap || {})
+                      .filter(([proj]) => proj !== o.label)
+                      .map(([, area]) => area);
                     return (
                       <div key={o.id} style={{
                         borderRadius: 'var(--radius-sm)',
@@ -1537,9 +1543,10 @@ export default function ParticipantForm() {
                               toggleMulti('selectedProjects', o.label);
                               if (selected) {
                                 setProfile((p) => {
-                                  const m = { ...p.proofMode }; delete m[o.label];
-                                  const f = { ...p.proofFiles }; delete f[o.label];
-                                  return { ...p, proofMode: m, proofFiles: f };
+                                  const m = { ...p.proofMode }; delete m[`proj:${o.label}`];
+                                  const f = { ...p.proofFiles }; delete f[`proj:${o.label}`];
+                                  const am = { ...p.projectAreaMap }; delete am[o.label];
+                                  return { ...p, proofMode: m, proofFiles: f, projectAreaMap: am };
                                 });
                               }
                             }}
@@ -1548,6 +1555,50 @@ export default function ParticipantForm() {
                             {o.label}
                           </span>
                         </label>
+                        {selected && (
+                          <div style={{ padding: '8px 12px 4px', background: '#f8fafc', borderTop: '1px solid var(--border)' }}>
+                            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>
+                              🎯 Para qual área de interesse você quer aplicar este projeto?
+                            </p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                              {profile.selectedAreas.map((areaCode) => {
+                                const areaLabel = INTEREST_AREAS.find(a => a.code === areaCode)?.label || areaCode;
+                                const isChosen = assignedArea === areaCode;
+                                const isDisabled = !isChosen && usedAreas.includes(areaCode);
+                                return (
+                                  <button
+                                    key={areaCode}
+                                    type="button"
+                                    disabled={isDisabled}
+                                    onClick={() => {
+                                      setProfile((p) => ({
+                                        ...p,
+                                        projectAreaMap: { ...p.projectAreaMap, [o.label]: areaCode as import('../lib/types').AreaCode },
+                                      }));
+                                    }}
+                                    style={{
+                                      padding: '4px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600,
+                                      cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                      border: `1.5px solid ${isChosen ? 'var(--purple)' : isDisabled ? '#d1d5db' : 'var(--border)'}`,
+                                      background: isChosen ? 'var(--purple)' : isDisabled ? '#f3f4f6' : 'white',
+                                      color: isChosen ? 'white' : isDisabled ? '#9ca3af' : 'var(--text)',
+                                      opacity: isDisabled ? 0.6 : 1,
+                                      transition: 'all 0.15s',
+                                    }}
+                                    title={isDisabled ? 'Esta área já está sendo usada por outro projeto' : ''}
+                                  >
+                                    {isChosen ? '✓ ' : ''}{areaLabel}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            {!assignedArea && (
+                              <p style={{ fontSize: '0.7rem', color: '#f59e0b', marginBottom: 6 }}>
+                                ⚠ Selecione a área de interesse para este projeto
+                              </p>
+                            )}
+                          </div>
+                        )}
                         {selected && (
                           <ProofSelector
                             itemLabel={`proj:${o.label}`}

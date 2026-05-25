@@ -68,6 +68,7 @@ export interface ParticipantProfile {
   proofFiles: Record<string, string>;
   // Projetos estratégicos — entram no cálculo (máx. 3 selecionados)
   selectedProjects: string[];
+  projectAreaMap: Record<string, AreaCode>; // projeto → área de interesse escolhida
   exceptionRequested: boolean;
   exceptionJustification: string;
   attachments: string[];

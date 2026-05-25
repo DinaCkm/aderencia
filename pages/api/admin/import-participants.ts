@@ -97,6 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       positionsHeld: parseList(positionsHeld),
       selectedCourses: parseList(selectedCourses),
       selectedProjects: parseList(selectedProjects),
+      projectAreaMap: {},
       exceptionRequested: exceptionRequested?.toLowerCase() === 'true',
       exceptionJustification: exceptionJustification || '',
       attachments: parseList(attachments),
