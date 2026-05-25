@@ -1478,6 +1478,39 @@ export default function ParticipantForm() {
                 <p style={{ margin: 0 }}>Você não precisa escolher qual projeto usar em qual área — basta informar até 3 projetos dos quais participou ativamente e o sistema fará a melhor combinação possível para você em cada área.</p>
               </CalcTutorial>
 
+              {/* Comunicado colapsável — Fundamentação da Lista de Projetos */}
+              <details style={{ marginBottom: 14, border: '1.5px solid #c7d2fe', borderRadius: 10, overflow: 'hidden' }}>
+                <summary style={{ cursor: 'pointer', background: '#eef2ff', padding: '10px 16px', fontWeight: 700, fontSize: '0.82rem', color: '#3730a3', listStyle: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span>📋</span> Fundamentação da Lista de Projetos por Área — clique para ler
+                </summary>
+                <div style={{ padding: '14px 16px', fontSize: '0.78rem', color: '#374151', lineHeight: 1.75, background: '#f8faff' }}>
+                  <p style={{ margin: '0 0 10px' }}>A lista de projetos foi construída como uma proposta de referência para enquadramento da experiência em projetos no processo de análise de aderência do Programa de Desenvolvimento de Líderes e Sucessores. Sua finalidade é apoiar o preenchimento do formulário e padronizar a análise das experiências informadas pelos participantes, considerando a relação entre o projeto realizado e a área de interesse escolhida no Banco de Sucessores.</p>
+                  <p style={{ margin: '0 0 10px' }}>A base metodológica utilizada está no próprio modelo de avaliação de aderência, que prevê a análise da experiência profissional, da participação em projetos estratégicos da área, das entregas práticas e da aplicação dos aprendizados ao longo da jornada de desenvolvimento.</p>
+                  <p style={{ margin: '0 0 10px' }}>Como a avaliação de aderência será realizada por área de interesse, os projetos também foram organizados por área, permitindo uma análise mais objetiva, transparente e coerente com a natureza de atuação de cada unidade.</p>
+                  <p style={{ margin: '0 0 10px' }}>A lista <strong>não deve ser entendida como uma relação exaustiva ou definitiva</strong>, mas como uma estrutura inicial de padronização para reduzir subjetividade no preenchimento e na análise. Caso o participante tenha atuado em projeto relevante que não esteja listado, poderá registrá-lo no campo destinado a exceções, para análise posterior pela equipe responsável.</p>
+                  <p style={{ margin: '0 0 10px' }}>Será considerado projeto relevante para fins de aderência aquele que apresentar relação com a área de interesse escolhida, com a atuação institucional do SEBRAE Tocantins ou com competências relevantes para liderança, gestão, inovação, melhoria de processos, desenvolvimento de pessoas, atendimento, governança ou resultados institucionais.</p>
+                  <p style={{ margin: '0 0 6px', fontWeight: 700 }}>O simples registro de um projeto não garante pontuação automática.</p>
+                  <p style={{ margin: '0 0 10px' }}>A análise considerará a relação do projeto com a área escolhida, o papel desempenhado pelo participante e a contribuição da iniciativa para os resultados institucionais.</p>
+                  <p style={{ margin: '0 0 6px', fontWeight: 700 }}>Critério utilizado para organização dos projetos</p>
+                  <p style={{ margin: '0 0 8px' }}>Os projetos foram agrupados de acordo com a natureza de atuação institucional de cada área, considerando os seguintes eixos:</p>
+                  <ul style={{ paddingLeft: 18, margin: '0 0 10px', lineHeight: 1.9 }}>
+                    <li><strong>Governança, deliberação e articulação institucional</strong> — apoio à alta gestão, conselhos, colegiados, processos decisórios e memória institucional.</li>
+                    <li><strong>Auditoria, controles internos, integridade e conformidade</strong> — gestão de riscos, auditoria baseada em riscos, controles, recomendações e compliance.</li>
+                    <li><strong>Planejamento estratégico, indicadores, riscos e sustentabilidade</strong> — OKRs, BSC, BI corporativo, ESG e acompanhamento de resultados.</li>
+                    <li><strong>Comunicação, marca, marketing e relacionamento institucional</strong> — comunicação pública, campanhas, presença digital e gestão de crises.</li>
+                    <li><strong>Gestão jurídica, mitigação de riscos e instrumentos normativos</strong> — análise jurídica, padronização de instrumentos, pareceres e conformidade normativa.</li>
+                    <li><strong>Gestão de pessoas, cultura, desempenho e desenvolvimento</strong> — sucessão, liderança, clima, cultura, engajamento, PDI e people analytics.</li>
+                    <li><strong>Administração, suprimentos, patrimônio e processos internos</strong> — cadeia de suprimentos, contratos, facilities, inventário e redesenho de processos.</li>
+                    <li><strong>Orçamento, contabilidade, controladoria e fluxo financeiro</strong> — planejamento orçamentário, fechamento contábil, conformidade financeira e custos.</li>
+                    <li><strong>Tecnologia, dados, segurança da informação e transformação digital</strong> — governança de TI, automação, LGPD e governança de dados.</li>
+                    <li><strong>Experiência do cliente, canais de atendimento e relacionamento</strong> — jornada do cliente, CRM, NPS, qualidade do atendimento e padronização.</li>
+                    <li><strong>Desenvolvimento territorial, pequenos negócios e atuação finalística</strong> — competitividade, inovação, políticas públicas, redes de cooperação e ecossistemas.</li>
+                    <li><strong>Atuação regional, articulação territorial e monitoramento de resultados</strong> — execução regional do portfólio, parcerias territoriais, interiorização e gestão de metas.</li>
+                  </ul>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic' }}>Essa organização permite que os projetos declarados sejam analisados de forma coerente com a área de interesse escolhida, reduzindo subjetividade e fortalecendo a rastreabilidade do processo de aderência.</p>
+                </div>
+              </details>
+
               <div style={{ background: '#f0f9ff', border: '1.5px solid #7dd3fc', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
                 <p style={{ margin: 0, marginBottom: 6, fontWeight: 700 }}>O que são projetos estratégicos?</p>
                 <p style={{ margin: 0, marginBottom: 6 }}>São iniciativas institucionais formais da organização nas quais você participou como membro, líder ou colaborador.</p>
