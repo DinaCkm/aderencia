@@ -1560,6 +1560,11 @@ export default function ParticipantForm() {
                             <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>
                               🎯 Para qual área de interesse você quer aplicar este projeto?
                             </p>
+                            {profile.selectedAreas.length === 0 && (
+                              <p style={{ fontSize: '0.75rem', color: '#ef4444', marginBottom: 8, padding: '6px 10px', background: '#fef2f2', borderRadius: 6, border: '1px solid #fecaca' }}>
+                                ⚠ Você ainda não selecionou suas áreas de interesse. Volte ao <strong>Step 2 — Áreas de Interesse</strong> e selecione antes de continuar.
+                              </p>
+                            )}
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                               {profile.selectedAreas.map((areaCode) => {
                                 const areaLabel = INTEREST_AREAS.find(a => a.code === areaCode)?.label || areaCode;
