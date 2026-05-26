@@ -178,6 +178,10 @@ function InfoTooltip({ content }: { content: React.ReactNode }) {
     </span>
   );
 }
+// Janela de acesso: 01/06/2026 00:01 até 12/06/2026 23:59 (horário de Brasília)
+const OPEN_DATE  = new Date('2026-06-01T00:01:00-03:00');
+const CLOSE_DATE = new Date('2026-06-12T23:59:00-03:00');
+
 export default function ParticipantForm() {
   const router = useRouter();
   const [profile, setProfile] = useState<ParticipantProfile>(initialProfile);
@@ -185,15 +189,26 @@ export default function ParticipantForm() {
   const [status, setStatus] = useState('');
   const [participantName, setParticipantName] = useState('');
   const [step, setStep] = useState(1);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [dateBlock, setDateBlock] = useState<'before' | 'after' | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const role = sessionStorage.getItem('aderenciaRole');
     const email = sessionStorage.getItem('aderenciaEmail');
     const name = sessionStorage.getItem('aderenciaName');
-    if (role !== 'participant' || !email) {
+    if (role !== 'participant' && role !== 'admin') {
       router.push('/login');
       return;
+    }
+    if (!email) { router.push('/login'); return; }
+    const adminUser = role === 'admin';
+    setIsAdmin(adminUser);
+    // Bloqueio por data apenas para participantes
+    if (!adminUser) {
+      const now = new Date();
+      if (now < OPEN_DATE) { setDateBlock('before'); }
+      else if (now > CLOSE_DATE) { setDateBlock('after'); }
     }
     setParticipantName(name || '');
     // Restaurar rascunho salvo no sessionStorage
@@ -333,6 +348,42 @@ export default function ParticipantForm() {
           </div>
         </main>
       </>
+    );
+  }
+
+  // Popup de bloqueio por data (apenas para participantes)
+  if (dateBlock) {
+    const isBefore = dateBlock === 'before';
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'linear-gradient(135deg, #3b1f6e 0%, #0ea5e9 100%)',
+        padding: '24px',
+      }}>
+        <div style={{
+          background: 'white', borderRadius: 16, padding: '40px 36px', maxWidth: 480, width: '100%',
+          textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+        }}>
+          <div style={{ fontSize: '3rem', marginBottom: 16 }}>{isBefore ? '🗓️' : '🔒'}</div>
+          <h2 style={{ color: '#3b1f6e', fontSize: '1.3rem', fontWeight: 700, marginBottom: 12 }}>
+            {isBefore ? 'Sistema ainda não está aberto' : 'Prazo de preenchimento encerrado'}
+          </h2>
+          <p style={{ color: '#555', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: 20 }}>
+            {isBefore
+              ? (<>O preenchimento do formulário estará disponível a partir de <strong>01/06/2026 às 00h01</strong> (horário de Brasília). Aguarde a abertura do sistema e tente novamente na data indicada.</>)
+              : (<>O prazo para preenchimento encerrou em <strong>12/06/2026 às 23h59</strong>. Não é mais possível alterar ou enviar informações. Em caso de dúvidas, entre em contato com a UGP ou a CKM Talents.</>)
+            }
+          </p>
+          <a href="https://ckmtalents.com.br/fale-conosco/" target="_blank" rel="noreferrer"
+            style={{
+              display: 'inline-block', padding: '10px 24px', borderRadius: 8,
+              background: 'linear-gradient(90deg, #3b1f6e, #0ea5e9)', color: 'white',
+              fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none',
+            }}>
+            💬 Fale Conosco
+          </a>
+        </div>
+      </div>
     );
   }
 
