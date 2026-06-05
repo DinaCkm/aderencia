@@ -3,13 +3,23 @@ import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import { buildAreaAssessment } from '../../../lib/business';
 import type { AuditReport, ParticipantProfile, AreaAssessment, DiscReport, PerformanceRecord } from '../../../lib/types';
 
+// Estende AreaAssessment com campos de UI (nome, detalhes de cálculo)
+type AreaAssessmentWithMeta = AreaAssessment & {
+  participantName: string;
+  technicalScore: number;
+  behavioralScore?: number;
+  postMBADetail?: import('../../../lib/types').PostMBADetail;
+  projectsDetail?: import('../../../lib/types').ProjectDetail[];
+  calculationSteps: import('../../../lib/types').AssessmentCalculation[];
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const participants = await readJsonAsync<ParticipantProfile[]>('participants', []);
   const performance = await readJsonAsync<PerformanceRecord[]>('performance', []);
   const discs = await readJsonAsync<DiscReport[]>('discReports', []);
   const audits = await readJsonAsync<AuditReport[]>('audits', []);
 
-  const report: Record<string, AreaAssessment[]> = {};
+  const report: Record<string, AreaAssessmentWithMeta[]> = {};
 
   for (const participant of participants) {
     const approvedExceptions =
@@ -21,7 +31,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
     assessments.forEach((assessment) => {
       report[assessment.area] = report[assessment.area] || [];
-      report[assessment.area].push(assessment);
+      // Calcula scores para UI
+      const techScore = assessment.technicalAdherence;
+      const behavScore = assessment.behavioralAdherence;
+      const enriched: AreaAssessmentWithMeta = {
+        ...assessment,
+        participantName: participant.name || participant.id,
+        technicalScore: techScore,
+        behavioralScore: behavScore,
+        postMBADetail: assessment.postMBADetail,
+        projectsDetail: assessment.projectsDetail,
+        calculationSteps: assessment.calculationSteps,
+      };
+      report[assessment.area].push(enriched);
     });
 
     const discDates = participant.selectedAreas.map((area) => {
