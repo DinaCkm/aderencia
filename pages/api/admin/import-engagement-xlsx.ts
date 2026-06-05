@@ -3,6 +3,14 @@ import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import type { PerformanceRecord, ParticipantProfile } from '../../../lib/types';
 import * as XLSX from 'xlsx';
 
+interface UserRecord {
+  id?: string;
+  email?: string;
+  name?: string;
+  role?: string;
+  selectedAreas?: string[];
+}
+
 export const config = { api: { bodyParser: false } };
 
 /** Normaliza nome: remove acentos, lowercase, espaços simples */
@@ -61,13 +69,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
-  // Carregar participantes do banco
+  // Carregar usuários do banco (todos os cadastrados, mesmo sem formulário preenchido)
+  const users: UserRecord[] = await readJsonAsync('users', []);
   const participants: ParticipantProfile[] = await readJsonAsync('participants', []);
 
-  // Índice por nome normalizado
-  const nameIndex = new Map<string, ParticipantProfile>();
+  // Índice de áreas de interesse por email (vem do formulário preenchido)
+  const areasIndex = new Map<string, string[]>();
   for (const p of participants) {
-    if (p.name) nameIndex.set(normalizeName(p.name), p);
+    const id = p.id || p.email;
+    if (id && p.selectedAreas?.length) areasIndex.set(id, p.selectedAreas);
+  }
+
+  // Índice por nome normalizado → usuário
+  const nameIndex = new Map<string, UserRecord>();
+  for (const u of users) {
+    if (u.role === 'participant' && u.name) {
+      nameIndex.set(normalizeName(u.name), u);
+    }
   }
 
   // Processar linhas de dados
@@ -97,17 +115,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       continue;
     }
 
-    const participant = nameIndex.get(normalizeName(rawName));
-    if (!participant) {
+    const user = nameIndex.get(normalizeName(rawName));
+    if (!user) {
       notFound.push(rawName);
       continue;
     }
 
-    const participantId = participant.id || participant.email;
-    const areas: string[] = participant.selectedAreas ?? [];
+    const participantId = user.id || user.email || '';
+    // Áreas: do formulário preenchido (se já submeteu) ou vazio (ainda vai preencher)
+    const areas: string[] = areasIndex.get(participantId) ?? [];
 
     if (areas.length === 0) {
-      skipped.push(`${rawName} (sem áreas de interesse cadastradas)`);
+      // Participante ainda não preencheu o formulário — registrar score sem área específica
+      // Usar área especial 'PENDING' para indicar que será vinculado quando o formulário for preenchido
+      const id = `${participantId}-PENDING-${date}`;
+      if (existingIds.has(id)) {
+        const idx = performance.findIndex((r) => r.id === id);
+        if (idx >= 0) performance[idx].score100 = score100;
+      } else {
+        performance.push({ id, participantId, area: 'PENDING' as any, score100, date });
+        existingIds.add(id);
+      }
+      imported.push(`${rawName} → PENDING (formulário ainda não preenchido, score: ${score100}%)`);
       continue;
     }
 
