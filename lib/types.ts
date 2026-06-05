@@ -70,7 +70,8 @@ export interface ParticipantProfile {
   selectedProjects: string[];
   projectAreaMap: Record<string, AreaCode>; // projeto → área de interesse escolhida
   exceptionRequested: boolean;
-  exceptionJustification: string;
+  exceptionJustification: string;  // legado — campo livre geral
+  exceptionItems?: ExceptionItem[]; // novo — lista estruturada de questionamentos
   attachments: string[];
   exceptionStatus: 'pending' | 'approved' | 'rejected';
   validationStatus: 'provisional' | 'validated' | 'adjusted'; // provisório até RH/UGP confirmar documentos
@@ -125,6 +126,21 @@ export interface AreaAssessment {
   projectsDetail?: ProjectDetail[];    // projetos considerados com pontuação
   calculationSteps: AssessmentCalculation[];
   exceptions: string[];
+}
+
+export type ExceptionItemType =
+  | 'projeto'       // Projeto estratégico fora do catálogo
+  | 'pos-mba'       // Título de Pós/MBA fora do catálogo
+  | 'curso'         // Curso extracurricular fora do catálogo
+  | 'experiencia'   // Experiência gerencial/interina não reconhecida
+  | 'outro';        // Outro questionamento
+
+export interface ExceptionItem {
+  type: ExceptionItemType;
+  itemName: string;       // nome do item questionado (ex: "Gestão da Secretaria DIREX")
+  targetArea?: string;    // área de interesse para a qual quer aplicar
+  objective: string;      // objetivo: o que o participante quer que seja reconhecido
+  justification: string;  // justificativa detalhada
 }
 
 export interface AuditReport {
