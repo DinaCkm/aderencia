@@ -3,7 +3,7 @@ import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import { buildAreaAssessment } from '../../../lib/business';
 import type { AuditReport, ParticipantProfile, AreaAssessment, DiscReport, PerformanceRecord } from '../../../lib/types';
 
-// Estende AreaAssessment com campos de UI (nome, detalhes de cálculo)
+// Estende AreaAssessment com campos de UI (nome, detalhes de cálculo e perfil completo para auditoria)
 type AreaAssessmentWithMeta = AreaAssessment & {
   participantName: string;
   technicalScore: number;
@@ -11,6 +11,7 @@ type AreaAssessmentWithMeta = AreaAssessment & {
   postMBADetail?: import('../../../lib/types').PostMBADetail;
   projectsDetail?: import('../../../lib/types').ProjectDetail[];
   calculationSteps: import('../../../lib/types').AssessmentCalculation[];
+  profile: import('../../../lib/types').ParticipantProfile;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -42,6 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         postMBADetail: assessment.postMBADetail,
         projectsDetail: assessment.projectsDetail,
         calculationSteps: assessment.calculationSteps,
+        profile: participant,
       };
       report[assessment.area].push(enriched);
     });

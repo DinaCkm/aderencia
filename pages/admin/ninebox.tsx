@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { OFFICIAL_AREAS } from '../../lib/constants';
-import type { AreaAssessment, AssessmentCalculation, PostMBADetail, ProjectDetail } from '../../lib/types';
+import type { AreaAssessment, AssessmentCalculation, PostMBADetail, ProjectDetail, ParticipantProfile } from '../../lib/types';
 
 type AssessmentWithMeta = AreaAssessment & {
   participantName: string;
@@ -12,19 +12,19 @@ type AssessmentWithMeta = AreaAssessment & {
   postMBADetail?: PostMBADetail;
   projectsDetail?: ProjectDetail[];
   calculationSteps: AssessmentCalculation[];
+  profile: ParticipantProfile;
 };
 
-// Nine Box grid layout
 const GRID_CELLS: { x: string; y: string; label: string; color: string; bg: string }[] = [
-  { x: 'low',  y: 'high', label: 'Potencial de Curto Prazo',          color: '#0369a1', bg: '#e0f2fe' },
-  { x: 'mid',  y: 'high', label: 'Pronto em Desenvolvimento',          color: '#7c3aed', bg: '#ede9fe' },
-  { x: 'high', y: 'high', label: 'Alta Prontidao',                     color: '#15803d', bg: '#dcfce7' },
-  { x: 'low',  y: 'mid',  label: 'Desenvolvimento Direcionado',        color: '#92400e', bg: '#fef3c7' },
-  { x: 'mid',  y: 'mid',  label: 'Potencial de Médio Prazo',           color: '#5B2D8E', bg: '#f3e8ff' },
-  { x: 'high', y: 'mid',  label: 'Destaque Técnico',                   color: '#0f766e', bg: '#ccfbf1' },
-  { x: 'low',  y: 'low',  label: 'Baixa Aderência',                    color: '#9f1239', bg: '#ffe4e6' },
-  { x: 'mid',  y: 'low',  label: 'Especialista sem Liderança',         color: '#c2410c', bg: '#ffedd5' },
-  { x: 'high', y: 'low',  label: 'Risco de Liderança',                 color: '#b45309', bg: '#fef9c3' },
+  { x: 'low',  y: 'high', label: 'Potencial de Curto Prazo',    color: '#0369a1', bg: '#e0f2fe' },
+  { x: 'mid',  y: 'high', label: 'Pronto em Desenvolvimento',   color: '#7c3aed', bg: '#ede9fe' },
+  { x: 'high', y: 'high', label: 'Alta Prontidao',              color: '#15803d', bg: '#dcfce7' },
+  { x: 'low',  y: 'mid',  label: 'Desenvolvimento Direcionado', color: '#92400e', bg: '#fef3c7' },
+  { x: 'mid',  y: 'mid',  label: 'Potencial de Médio Prazo',    color: '#5B2D8E', bg: '#f3e8ff' },
+  { x: 'high', y: 'mid',  label: 'Destaque Técnico',            color: '#0f766e', bg: '#ccfbf1' },
+  { x: 'low',  y: 'low',  label: 'Baixa Aderência',             color: '#9f1239', bg: '#ffe4e6' },
+  { x: 'mid',  y: 'low',  label: 'Especialista sem Liderança',  color: '#c2410c', bg: '#ffedd5' },
+  { x: 'high', y: 'low',  label: 'Risco de Liderança',          color: '#b45309', bg: '#fef9c3' },
 ];
 
 function getCell(quadrantLabel: string) {
@@ -94,6 +94,277 @@ function DetailRow({ label, score, maxScore, color, summary, details }: {
   );
 }
 
+function AuditSection({ profile, area }: { profile: ParticipantProfile; area: string }) {
+  const [open, setOpen] = useState(false);
+
+  const proofLabel = (mode: 'ugp-knows' | 'upload' | undefined) =>
+    mode === 'ugp-knows' ? 'A UGP já tem conhecimento' : mode === 'upload' ? 'Documento enviado' : '—';
+
+  return (
+    <div style={{ marginTop: 20, border: '2px solid #e5e7eb', borderRadius: 10 }}>
+      <button type="button" onClick={() => setOpen(o => !o)}
+        style={{ width: '100%', background: open ? '#f8f7fc' : '#fafafa', border: 'none', borderRadius: open ? '10px 10px 0 0' : 10, padding: '12px 16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#374151' }}>
+          🔍 Auditoria — Dados declarados pelo participante
+        </span>
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+          {open ? '▲ Ocultar' : '▼ Expandir para auditar'}
+        </span>
+      </button>
+
+      {open && (
+        <div style={{ padding: '16px 18px', borderTop: '1px solid #e5e7eb' }}>
+
+          {/* Identificação */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, borderBottom: '1px solid #e5e7eb', paddingBottom: 6 }}>
+              Identificação
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+              <tbody>
+                {[
+                  ['Nome completo', profile.name],
+                  ['E-mail', profile.email],
+                  ['Matrícula', profile.matrícula || '—'],
+                  ['Unidade atual', profile.unit || '—'],
+                  ['Cargo atual', profile.currentRole || '—'],
+                  ['Área atual', profile.currentArea || '—'],
+                  ['Áreas de interesse', profile.selectedAreas.join(', ')],
+                  ['Enviado em', profile.submittedAt ? new Date(profile.submittedAt).toLocaleString('pt-BR') : '—'],
+                  ['Status de validação', profile.validationStatus === 'validated' ? 'Validado pelo RH' : profile.validationStatus === 'adjusted' ? 'Ajustado' : 'Provisório'],
+                ].map(([label, value]) => (
+                  <tr key={label} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280', width: '35%', whiteSpace: 'nowrap' }}>{label}</td>
+                    <td style={{ padding: '5px 0', color: '#111827' }}>{value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Formação */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, borderBottom: '1px solid #e5e7eb', paddingBottom: 6 }}>
+              Formação Acadêmica
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+              <tbody>
+                <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280', width: '35%' }}>Graduação 1</td>
+                  <td style={{ padding: '5px 0', color: '#111827' }}>{profile.graduation || '—'}</td>
+                </tr>
+                {profile.graduation2 && (
+                  <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Graduação 2</td>
+                    <td style={{ padding: '5px 0', color: '#111827' }}>{profile.graduation2}</td>
+                  </tr>
+                )}
+                {profile.graduationCourseName && (
+                  <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Curso (nome livre)</td>
+                    <td style={{ padding: '5px 0', color: '#111827' }}>{profile.graduationCourseName}</td>
+                  </tr>
+                )}
+                {profile.postMBAs.length > 0 ? (
+                  profile.postMBAs.map((title, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Pós/MBA {i + 1}</td>
+                      <td style={{ padding: '5px 0', color: '#111827' }}>
+                        {title}
+                        <span style={{ marginLeft: 8, fontSize: '0.7rem', background: '#ede9fe', color: '#7c3aed', borderRadius: 4, padding: '1px 6px' }}>entra no cálculo</span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Pós/MBA</td>
+                    <td style={{ padding: '5px 0', color: '#9ca3af', fontStyle: 'italic' }}>Nenhum informado</td>
+                  </tr>
+                )}
+                {profile.certifications.length > 0 && (
+                  <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280', verticalAlign: 'top' }}>Certificações</td>
+                    <td style={{ padding: '5px 0', color: '#111827' }}>{profile.certifications.join(', ')}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Cursos extracurriculares */}
+          {profile.selectedCourses.length > 0 && (
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, borderBottom: '1px solid #e5e7eb', paddingBottom: 6 }}>
+                Cursos Extracurriculares <span style={{ fontWeight: 400, color: '#9ca3af' }}>(não entram na nota)</span>
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                <thead>
+                  <tr style={{ background: '#f9fafb' }}>
+                    <th style={{ padding: '5px 8px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem' }}>Curso</th>
+                    <th style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem' }}>Horas</th>
+                    <th style={{ padding: '5px 8px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem' }}>Comprovação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {profile.selectedCourses.map((course, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '5px 8px', color: '#111827' }}>{course}</td>
+                      <td style={{ padding: '5px 8px', textAlign: 'center', color: '#374151' }}>{profile.courseHours?.[course] ?? '—'}h</td>
+                      <td style={{ padding: '5px 8px', color: '#374151' }}>{proofLabel(profile.proofMode?.[course])}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Experiência gerencial */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, borderBottom: '1px solid #e5e7eb', paddingBottom: 6 }}>
+              Experiência Gerencial / Interina <span style={{ fontWeight: 400, color: '#9ca3af' }}>(entra no cálculo)</span>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+              <tbody>
+                <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280', width: '35%' }}>Meses gerencial efetivo</td>
+                  <td style={{ padding: '5px 0', color: '#111827' }}>{profile.managerialMonths ?? 0} meses ({((profile.managerialMonths ?? 0) / 12).toFixed(1)} anos)</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Meses interino</td>
+                  <td style={{ padding: '5px 0', color: '#111827' }}>{profile.interimMonths ?? 0} meses ({((profile.interimMonths ?? 0) / 12).toFixed(1)} anos)</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Total combinado</td>
+                  <td style={{ padding: '5px 0', color: '#111827', fontWeight: 700 }}>
+                    {(profile.managerialMonths ?? 0) + (profile.interimMonths ?? 0)} meses
+                  </td>
+                </tr>
+                {profile.positionsHeld.length > 0 && (
+                  <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280', verticalAlign: 'top' }}>Cargos exercidos</td>
+                    <td style={{ padding: '5px 0', color: '#111827' }}>{profile.positionsHeld.join(', ')}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Projetos estratégicos */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, borderBottom: '1px solid #e5e7eb', paddingBottom: 6 }}>
+              Projetos Estratégicos Selecionados <span style={{ fontWeight: 400, color: '#9ca3af' }}>(entram no cálculo)</span>
+            </div>
+            {profile.selectedProjects.length > 0 ? (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                <thead>
+                  <tr style={{ background: '#f9fafb' }}>
+                    <th style={{ padding: '5px 8px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem' }}>Projeto</th>
+                    <th style={{ padding: '5px 8px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem' }}>Área vinculada</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {profile.selectedProjects.map((proj, i) => {
+                    const projArea = profile.projectAreaMap?.[proj];
+                    const isForThisArea = projArea === area;
+                    return (
+                      <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', background: isForThisArea ? '#f0fdf4' : 'white' }}>
+                        <td style={{ padding: '5px 8px', color: '#111827' }}>
+                          {proj}
+                          {isForThisArea && (
+                            <span style={{ marginLeft: 8, fontSize: '0.68rem', background: '#dcfce7', color: '#15803d', borderRadius: 4, padding: '1px 6px', fontWeight: 600 }}>
+                              esta área
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: '5px 8px', color: '#374151' }}>{projArea || '—'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            ) : (
+              <p style={{ fontSize: '0.8rem', color: '#9ca3af', fontStyle: 'italic', margin: 0 }}>Nenhum projeto selecionado.</p>
+            )}
+          </div>
+
+          {/* Exceções */}
+          {profile.exceptionRequested && (
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, borderBottom: '1px solid #fde68a', paddingBottom: 6 }}>
+                Exceções / Questionamentos
+              </div>
+              <div style={{ background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 8, padding: '10px 14px', marginBottom: 8 }}>
+                <div style={{ fontSize: '0.78rem', color: '#92400e', marginBottom: 4 }}>
+                  <strong>Status:</strong>{' '}
+                  <span style={{
+                    background: profile.exceptionStatus === 'approved' ? '#dcfce7' : profile.exceptionStatus === 'rejected' ? '#fee2e2' : '#fef3c7',
+                    color: profile.exceptionStatus === 'approved' ? '#15803d' : profile.exceptionStatus === 'rejected' ? '#b91c1c' : '#92400e',
+                    borderRadius: 4, padding: '1px 8px', fontWeight: 700, fontSize: '0.75rem',
+                  }}>
+                    {profile.exceptionStatus === 'approved' ? 'Aprovada' : profile.exceptionStatus === 'rejected' ? 'Rejeitada' : 'Pendente'}
+                  </span>
+                </div>
+                {profile.exceptionJustification && (
+                  <div style={{ fontSize: '0.78rem', color: '#78350f', marginTop: 6 }}>
+                    <strong>Justificativa geral:</strong> {profile.exceptionJustification}
+                  </div>
+                )}
+              </div>
+              {profile.exceptionItems && profile.exceptionItems.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {profile.exceptionItems.map((item, i) => (
+                    <div key={i} style={{ background: '#fafafa', border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px 14px', fontSize: '0.78rem' }}>
+                      <div style={{ display: 'flex', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                        <span style={{ background: '#ede9fe', color: '#7c3aed', borderRadius: 4, padding: '1px 8px', fontWeight: 700, fontSize: '0.7rem' }}>
+                          {item.type === 'projeto' ? 'Projeto' : item.type === 'pos-mba' ? 'Pós/MBA' : item.type === 'curso' ? 'Curso' : item.type === 'experiencia' ? 'Experiência' : 'Outro'}
+                        </span>
+                        {item.targetArea && (
+                          <span style={{ background: '#dbeafe', color: '#1d4ed8', borderRadius: 4, padding: '1px 8px', fontSize: '0.7rem' }}>
+                            Área: {item.targetArea}
+                          </span>
+                        )}
+                      </div>
+                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <tbody>
+                          <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                            <td style={{ padding: '4px 8px 4px 0', fontWeight: 600, color: '#6b7280', width: '30%' }}>Item questionado</td>
+                            <td style={{ padding: '4px 0', color: '#111827' }}>{item.itemName}</td>
+                          </tr>
+                          <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                            <td style={{ padding: '4px 8px 4px 0', fontWeight: 600, color: '#6b7280' }}>Objetivo</td>
+                            <td style={{ padding: '4px 0', color: '#111827' }}>{item.objective}</td>
+                          </tr>
+                          <tr>
+                            <td style={{ padding: '4px 8px 4px 0', fontWeight: 600, color: '#6b7280', verticalAlign: 'top' }}>Justificativa</td>
+                            <td style={{ padding: '4px 0', color: '#111827', lineHeight: 1.5 }}>{item.justification}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Nota de validação do admin */}
+          {profile.validationNote && (
+            <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 8, padding: '10px 14px', fontSize: '0.78rem' }}>
+              <strong style={{ color: '#0369a1' }}>Nota do RH/Admin:</strong>{' '}
+              <span style={{ color: '#0c4a6e' }}>{profile.validationNote}</span>
+              {profile.validatedAt && (
+                <span style={{ marginLeft: 8, color: '#64748b', fontSize: '0.72rem' }}>
+                  ({new Date(profile.validatedAt).toLocaleDateString('pt-BR')})
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () => void }) {
   const techScore: number = p.technicalScore ?? 0;
   const behavScore: number | undefined = p.behavioralScore;
@@ -103,12 +374,12 @@ function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () =
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000,
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
     }} onClick={onClose}>
       <div style={{
-        background: 'white', borderRadius: 16, padding: '28px 28px 24px', maxWidth: 680, width: '100%',
-        maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+        background: 'white', borderRadius: 16, padding: '28px 28px 24px', maxWidth: 720, width: '100%',
+        maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
       }} onClick={(e) => e.stopPropagation()}>
 
         {/* Header */}
@@ -116,7 +387,15 @@ function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () =
           <div>
             <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Detalhamento de Pontuação</div>
             <h2 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--purple)', fontWeight: 800 }}>{p.participantName}</h2>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 2 }}>Área: <strong>{p.area}</strong> &nbsp;|&nbsp; Quadrante: <strong>{p.quadrant}</strong></div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 2 }}>
+              Área: <strong>{p.area}</strong> &nbsp;|&nbsp; Quadrante: <strong>{p.quadrant}</strong>
+              {p.profile?.validationStatus === 'validated' && (
+                <span style={{ marginLeft: 10, background: '#dcfce7', color: '#15803d', borderRadius: 4, padding: '1px 8px', fontSize: '0.7rem', fontWeight: 700 }}>✓ Validado</span>
+              )}
+              {p.profile?.validationStatus === 'provisional' && (
+                <span style={{ marginLeft: 10, background: '#fef3c7', color: '#92400e', borderRadius: 4, padding: '1px 8px', fontSize: '0.7rem', fontWeight: 700 }}>⚠ Provisório</span>
+              )}
+            </div>
           </div>
           <button type="button" onClick={onClose}
             style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, padding: '4px 10px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-muted)', flexShrink: 0 }}>
@@ -171,6 +450,7 @@ function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () =
                 { label: 'Título considerado', value: p.postMBADetail?.titleUsed ?? 'Nenhum' },
                 { label: 'Classificação', value: p.postMBADetail?.classification ?? '—' },
                 { label: 'Pontuação', value: `${p.postMBADetail?.score ?? 0} pts de 40 possíveis` },
+                { label: 'Todos os títulos declarados', value: p.profile?.postMBAs?.join(', ') || 'Nenhum' },
                 { label: 'Regra', value: 'Transversal = 40 pts | Específico da área = 20 pts | Não relacionado = 20 pts | Sem título = 0 pts' },
               ]}
             />
@@ -181,8 +461,12 @@ function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () =
               color="#0e7490"
               summary={expDetail || 'Sem experiência gerencial informada'}
               details={[
+                { label: 'Meses gerencial efetivo', value: `${p.profile?.managerialMonths ?? 0} meses` },
+                { label: 'Meses interino', value: `${p.profile?.interimMonths ?? 0} meses` },
+                { label: 'Total combinado', value: `${(p.profile?.managerialMonths ?? 0) + (p.profile?.interimMonths ?? 0)} meses` },
+                { label: 'Cargos exercidos', value: p.profile?.positionsHeld?.join(', ') || 'Nenhum informado' },
                 { label: 'Fórmula', value: '5 pts por ano, máx. 20 pts' },
-                { label: 'Detalhe', value: expDetail || 'Nenhum mês informado' },
+                { label: 'Cálculo', value: expDetail || 'Sem dados' },
               ]}
             />
             <DetailRow
@@ -199,7 +483,8 @@ function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () =
                       label: proj.label,
                       value: `${proj.points} pts (${proj.points === 20 ? 'Estruturante' : 'Relevante'})`
                     }))
-                  : [{ label: 'Projetos', value: 'Nenhum projeto desta área foi selecionado' }]),
+                  : [{ label: 'Projetos desta área', value: 'Nenhum' }]),
+                { label: 'Todos os projetos declarados', value: p.profile?.selectedProjects?.join(', ') || 'Nenhum' },
                 { label: 'Regra', value: 'Estruturante = 20 pts | Relevante = 15 pts | Máx. 20 pts por área' },
               ]}
             />
@@ -207,8 +492,8 @@ function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () =
               <span style={{ color: '#4338ca', fontWeight: 600 }}>Total bruto (0–80) → convertido para escala 0–10</span>
               <span style={{ fontWeight: 800, color: 'var(--purple)' }}>
                 {(() => {
-                  const raw = Number(p.calculationSteps?.find((s) => s.name.includes('bruto') || s.name.includes('Bruto') || s.name.includes('Total'))?.value ?? 0);
-                  return `${raw} pts brutos → ${techScore.toFixed(1)}`;
+                  const raw = Number(p.calculationSteps?.find((s) => s.name.toLowerCase().includes('bruto') || s.name.toLowerCase().includes('total'))?.value ?? 0);
+                  return `${raw} pts → ${techScore.toFixed(1)}`;
                 })()}
               </span>
             </div>
@@ -216,7 +501,7 @@ function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () =
         </div>
 
         {/* Aderência Comportamental — detalhamento */}
-        <div>
+        <div style={{ marginBottom: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#0e7490' }}>🧠 Detalhamento Comportamental</h3>
             <span style={{ fontSize: '1rem', fontWeight: 900, color: '#0e7490' }}>
@@ -224,7 +509,7 @@ function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () =
             </span>
           </div>
           {behavScore !== undefined && <ScoreBar value={behavScore} max={10} color="#0e7490" />}
-          <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>📈 Performance (Engajamento)</span>
@@ -233,9 +518,7 @@ function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () =
                 </span>
               </div>
               {perfRaw !== undefined && <ScoreBar value={Number(perfRaw)} max={10} color="#0e7490" />}
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 6 }}>
-                Score de engajamento (0–100) convertido para escala 0–10
-              </div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 6 }}>Score de engajamento (0–100) convertido para escala 0–10</div>
             </div>
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
@@ -245,9 +528,7 @@ function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () =
                 </span>
               </div>
               {discRaw !== undefined && <ScoreBar value={Number(discRaw)} max={10} color="#0e7490" />}
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 6 }}>
-                Nota DISC fornecida pelo RH (escala 0–10)
-              </div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 6 }}>Nota DISC fornecida pelo RH (escala 0–10)</div>
             </div>
             {behavScore !== undefined && (
               <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 8, padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem' }}>
@@ -258,15 +539,18 @@ function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () =
           </div>
         </div>
 
-        {/* Exceções */}
+        {/* Exceções aplicadas */}
         {p.exceptions && p.exceptions.length > 0 && (
-          <div style={{ marginTop: 20, background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 8, padding: '12px 14px' }}>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400e', marginBottom: 6 }}>⚠ Exceções aplicadas</div>
+          <div style={{ marginTop: 16, background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 8, padding: '12px 14px' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400e', marginBottom: 6 }}>⚠ Exceções aplicadas no cálculo</div>
             {p.exceptions.map((ex, i) => (
               <div key={i} style={{ fontSize: '0.75rem', color: '#78350f', marginBottom: 2 }}>• {ex}</div>
             ))}
           </div>
         )}
+
+        {/* Seção de auditoria completa */}
+        {p.profile && <AuditSection profile={p.profile} area={p.area} />}
       </div>
     </div>
   );
@@ -290,7 +574,6 @@ export default function AdminNineBox() {
   }, [router]);
 
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
-
   const areaData = report[selectedArea] || [];
 
   const cellParticipants = (x: string, y: string) =>
@@ -303,7 +586,6 @@ export default function AdminNineBox() {
     <>
       <Head><title>Nine Box | Admin | Banco de Sucessores</title></Head>
 
-      {/* Modal de detalhamento */}
       {selected && <ParticipantModal p={selected} onClose={() => setSelected(null)} />}
 
       <nav className="topbar">
@@ -329,7 +611,7 @@ export default function AdminNineBox() {
               <h2>Nine Box por Área</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                 Eixo X = Aderência Técnica &nbsp;|&nbsp; Eixo Y = Aderência Comportamental &nbsp;|&nbsp;
-                <span style={{ color: 'var(--purple)', fontWeight: 600 }}>Clique em um participante para ver o detalhamento completo</span>
+                <span style={{ color: 'var(--purple)', fontWeight: 600 }}>Clique em um participante para ver detalhamento e auditoria completa</span>
               </p>
             </div>
           </div>
@@ -340,7 +622,8 @@ export default function AdminNineBox() {
               <button key={area.code} type="button"
                 onClick={() => setSelectedArea(area.code)}
                 style={{
-                  padding: '6px 14px', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', fontWeight: selectedArea === area.code ? 700 : 400,
+                  padding: '6px 14px', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem',
+                  fontWeight: selectedArea === area.code ? 700 : 400,
                   border: `2px solid ${selectedArea === area.code ? 'var(--purple)' : 'var(--border)'}`,
                   background: selectedArea === area.code ? 'var(--gradient-soft)' : 'white',
                   color: selectedArea === area.code ? 'var(--purple)' : 'var(--text)', cursor: 'pointer', transition: 'all 0.2s',
@@ -361,7 +644,6 @@ export default function AdminNineBox() {
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
               <div style={{ fontSize: '2rem', marginBottom: 12 }}>📊</div>
               <p>Nenhuma avaliação processada para <strong>{selectedArea}</strong>.</p>
-              <p style={{ fontSize: '0.85rem', marginTop: 8 }}>Os participantes precisam preencher o formulário e ter dados de performance e DISC importados.</p>
             </div>
           ) : (
             <>
@@ -373,16 +655,12 @@ export default function AdminNineBox() {
                 }}>
                   Aderência Comportamental
                 </div>
-
                 <div style={{ marginLeft: 16 }}>
-                  {/* Cabeçalho X */}
                   <div style={{ display: 'flex', marginBottom: 4, marginLeft: 60 }}>
                     {['Baixo (0-3)', 'Médio (4-6)', 'Alto (7-10)'].map((l) => (
                       <div key={l} style={{ flex: 1, textAlign: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>{l}</div>
                     ))}
                   </div>
-
-                  {/* Linhas do grid */}
                   {(['high', 'mid', 'low'] as const).map((yVal) => (
                     <div key={yVal} style={{ display: 'flex', alignItems: 'stretch', marginBottom: 4 }}>
                       <div style={{ width: 60, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8, fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
@@ -410,14 +688,13 @@ export default function AdminNineBox() {
                                     key={`${p.participantId}-${p.area}`}
                                     type="button"
                                     onClick={() => setSelected(p)}
-                                    title="Clique para ver detalhamento completo"
+                                    title="Clique para ver detalhamento e auditoria completa"
                                     style={{
                                       background: 'white', borderRadius: 6, padding: '5px 8px',
                                       fontSize: '0.75rem', color: cellDef.color, fontWeight: 600,
                                       border: `1px solid ${cellDef.color}40`,
                                       display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6,
-                                      cursor: 'pointer', textAlign: 'left', width: '100%',
-                                      transition: 'all 0.15s',
+                                      cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'all 0.15s',
                                     }}
                                     onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = cellDef.bg; (e.currentTarget as HTMLButtonElement).style.borderColor = cellDef.color; }}
                                     onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'white'; (e.currentTarget as HTMLButtonElement).style.borderColor = `${cellDef.color}40`; }}
@@ -437,7 +714,6 @@ export default function AdminNineBox() {
                       })}
                     </div>
                   ))}
-
                   <div style={{ textAlign: 'center', marginTop: 8, fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginLeft: 60 }}>
                     Aderência Técnica
                   </div>
@@ -457,6 +733,7 @@ export default function AdminNineBox() {
                         <th style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--purple)', fontWeight: 700 }}>Técnica</th>
                         <th style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--purple)', fontWeight: 700 }}>Comportamental</th>
                         <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Quadrante</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--purple)', fontWeight: 700 }}>Status</th>
                         <th style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--purple)', fontWeight: 700 }}>Ação</th>
                       </tr>
                     </thead>
@@ -465,7 +742,14 @@ export default function AdminNineBox() {
                         .sort((a, b) => (b.technicalScore + (b.behavioralScore ?? 0)) - (a.technicalScore + (a.behavioralScore ?? 0)))
                         .map((a, i) => (
                           <tr key={`${a.participantId}-${a.area}`} style={{ background: i % 2 === 0 ? 'white' : 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-                            <td style={{ padding: '8px 12px', fontWeight: 600 }}>{a.participantName || a.participantId}</td>
+                            <td style={{ padding: '8px 12px', fontWeight: 600 }}>
+                              {a.participantName || a.participantId}
+                              {a.profile?.exceptionRequested && (
+                                <span style={{ marginLeft: 6, fontSize: '0.68rem', background: '#fef3c7', color: '#92400e', borderRadius: 4, padding: '1px 6px' }}>
+                                  {a.profile.exceptionStatus === 'approved' ? '✓ Exceção aprovada' : a.profile.exceptionStatus === 'rejected' ? '✗ Exceção rejeitada' : '⚠ Exceção pendente'}
+                                </span>
+                              )}
+                            </td>
                             <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                               <span style={{ background: 'var(--gradient-soft)', color: 'var(--purple)', borderRadius: 4, padding: '2px 8px', fontWeight: 700 }}>
                                 {a.technicalScore?.toFixed(1)}
@@ -481,6 +765,15 @@ export default function AdminNineBox() {
                               )}
                             </td>
                             <td style={{ padding: '8px 12px', color: 'var(--text-muted)', fontSize: '0.78rem' }}>{a.quadrant}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                              <span style={{
+                                fontSize: '0.7rem', borderRadius: 4, padding: '2px 8px', fontWeight: 700,
+                                background: a.profile?.validationStatus === 'validated' ? '#dcfce7' : '#fef3c7',
+                                color: a.profile?.validationStatus === 'validated' ? '#15803d' : '#92400e',
+                              }}>
+                                {a.profile?.validationStatus === 'validated' ? 'Validado' : 'Provisório'}
+                              </span>
+                            </td>
                             <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                               <button type="button" onClick={() => setSelected(a)}
                                 style={{ background: 'var(--gradient-soft)', border: '1px solid var(--purple)', borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontSize: '0.72rem', color: 'var(--purple)', fontWeight: 600 }}>
@@ -498,16 +791,14 @@ export default function AdminNineBox() {
 
           {/* Tutorial de cálculo */}
           <div style={{ marginTop: 32, borderTop: '2px solid var(--border)', paddingTop: 24 }}>
-            <h3 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--purple)', marginBottom: 16 }}>
-              Como o Nine Box é calculado?
-            </h3>
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--purple)', marginBottom: 16 }}>Como o Nine Box é calculado?</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
               <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '16px 20px', border: '1px solid var(--border)' }}>
                 <div style={{ fontWeight: 700, color: 'var(--purple)', fontSize: '0.88rem', marginBottom: 10 }}>Eixo X — Aderência Técnica (0 a 10 pts)</div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text)', lineHeight: 1.7 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginBottom: 4 }}><span>Pós-graduação / MBA concluído</span><strong style={{ color: 'var(--purple)' }}>até 40 pts</strong></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginBottom: 4 }}><span>Pós-graduação / MBA</span><strong style={{ color: 'var(--purple)' }}>até 40 pts</strong></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginBottom: 4 }}><span>Experiência gerencial/interina</span><strong style={{ color: 'var(--purple)' }}>até 20 pts</strong></div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 4 }}><span>Projetos estratégicos da área</span><strong style={{ color: 'var(--purple)' }}>até 20 pts</strong></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Projetos estratégicos da área</span><strong style={{ color: 'var(--purple)' }}>até 20 pts</strong></div>
                   <div style={{ marginTop: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }}>Total bruto 0–80 convertido para 0–10.</div>
                 </div>
               </div>
@@ -515,7 +806,7 @@ export default function AdminNineBox() {
                 <div style={{ fontWeight: 700, color: '#0f766e', fontSize: '0.88rem', marginBottom: 10 }}>Eixo Y — Aderência Comportamental (0 a 10 pts)</div>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text)', lineHeight: 1.7 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #99f6e4', paddingBottom: 4, marginBottom: 4 }}><span>Performance / Engajamento (0–100 → 0–10)</span><strong style={{ color: '#0f766e' }}>50%</strong></div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: 4 }}><span>Perfil DISC (0–10)</span><strong style={{ color: '#0f766e' }}>50%</strong></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Perfil DISC (0–10)</span><strong style={{ color: '#0f766e' }}>50%</strong></div>
                   <div style={{ marginTop: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }}>Fórmula: (Performance + DISC) ÷ 2</div>
                 </div>
               </div>
