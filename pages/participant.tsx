@@ -191,6 +191,7 @@ export default function ParticipantForm() {
   const [step, setStep] = useState(1);
   const [isAdmin, setIsAdmin] = useState(false);
   const [dateBlock, setDateBlock] = useState<'before' | 'after' | null>(null);
+  const [projectAreaAlert, setProjectAreaAlert] = useState(false); // projetos sem área vinculada
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -211,7 +212,7 @@ export default function ParticipantForm() {
       else if (now > CLOSE_DATE) { setDateBlock('after'); }
     }
     setParticipantName(name || '');
-    // Restaurar rascunho salvo no sessionStorage
+    // Restaurar rascunho salvo no sessionStorage ou buscar perfil salvo no servidor
     const draft = sessionStorage.getItem('aderenciaDraft');
     if (draft) {
       try {
@@ -219,9 +220,39 @@ export default function ParticipantForm() {
         setProfile(saved);
         const savedStep = sessionStorage.getItem('aderenciaStep');
         if (savedStep) setStep(parseInt(savedStep, 10));
+        // Verificar se há projetos sem área vinculada
+        if (saved.selectedProjects && saved.selectedProjects.length > 0) {
+          const hasUnmapped = saved.selectedProjects.some(
+            (proj) => !saved.projectAreaMap?.[proj]
+          );
+          if (hasUnmapped) setProjectAreaAlert(true);
+        }
       } catch { /* ignora rascunho inválido */ }
     } else {
-      setProfile((prev) => ({ ...prev, id: email, email, name: name || '' }));
+      // Tentar carregar perfil já enviado do servidor
+      fetch(`/api/participant/profile?id=${encodeURIComponent(email)}`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((data) => {
+          if (data?.profile) {
+            const saved = data.profile as ParticipantProfile;
+            setProfile(saved);
+            // Verificar se há projetos sem área vinculada
+            if (saved.selectedProjects && saved.selectedProjects.length > 0) {
+              const hasUnmapped = saved.selectedProjects.some(
+                (proj) => !saved.projectAreaMap?.[proj]
+              );
+              if (hasUnmapped) {
+                setProjectAreaAlert(true);
+                setStep(7); // Levar direto ao step de projetos
+              }
+            }
+          } else {
+            setProfile((prev) => ({ ...prev, id: email, email, name: name || '' }));
+          }
+        })
+        .catch(() => {
+          setProfile((prev) => ({ ...prev, id: email, email, name: name || '' }));
+        });
     }
   }, [router]);
 
@@ -454,6 +485,48 @@ export default function ParticipantForm() {
 
       <main style={{ marginLeft: 200, paddingTop: 80, paddingBottom: 48, minHeight: 'calc(100vh - 64px)' }}>
         <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 24px' }}>
+
+        {/* Banner de alerta: projetos sem área vinculada */}
+        {projectAreaAlert && (
+          <div style={{
+            background: '#fff7ed', border: '2px solid #f97316', borderRadius: 12,
+            padding: '16px 20px', marginBottom: 20,
+            display: 'flex', gap: 14, alignItems: 'flex-start',
+          }}>
+            <div style={{ fontSize: '1.5rem', flexShrink: 0, marginTop: 2 }}>⚠️</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#c2410c', marginBottom: 4 }}>
+                Ação necessária: informe a área de interesse dos seus projetos
+              </div>
+              <p style={{ fontSize: '0.82rem', color: '#7c2d12', lineHeight: 1.6, margin: '0 0 10px' }}>
+                Identificamos que você possui <strong>projetos estratégicos selecionados sem área de interesse vinculada</strong>.
+                Esse campo é obrigatório para que seus projetos sejam considerados no cálculo de aderência.
+                Por favor, acesse o <strong>Step 7 — Projetos</strong> e selecione a área para cada projeto.
+              </p>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <button type="button"
+                  onClick={() => { setStep(7); setProjectAreaAlert(false); }}
+                  style={{
+                    background: '#f97316', border: 'none', borderRadius: 8,
+                    padding: '8px 18px', cursor: 'pointer', fontSize: '0.82rem',
+                    color: 'white', fontWeight: 700,
+                  }}>
+                  Ir para Step 7 — Projetos
+                </button>
+                <button type="button"
+                  onClick={() => setProjectAreaAlert(false)}
+                  style={{
+                    background: 'none', border: '1px solid #f97316', borderRadius: 8,
+                    padding: '8px 14px', cursor: 'pointer', fontSize: '0.78rem',
+                    color: '#c2410c', fontWeight: 600,
+                  }}>
+                  Dispensar aviso
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
 
           {/* ── STEP 1: DADOS BASICOS ── */}
@@ -1692,6 +1765,13 @@ export default function ParticipantForm() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
                 <button type="button" className="btn-outline" onClick={() => setStep(6)}>← Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 180 }} onClick={(e) => {
+                  // Validar área vinculada a cada projeto (obrigatório)
+                  for (const item of profile.selectedProjects) {
+                    if (!profile.projectAreaMap?.[item]) {
+                      setStatus(`Informe a área de interesse para o projeto: "${item}". Clique no projeto e selecione a área.`);
+                      return;
+                    }
+                  }
                   // Validar comprovação dos projetos selecionados
                   for (const item of profile.selectedProjects) {
                     const key = `proj:${item}`;
