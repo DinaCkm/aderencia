@@ -11,8 +11,13 @@ const VALID_AREAS: AreaCode[] = [
   'RBP','RME','RMN','RNO','RPJ','RSG','RSU','RVA',
 ];
 
-function normalizeStr(s: string): string {
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+function norm(s: unknown): string {
+  return String(s ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 async function readRawBody(req: NextApiRequest): Promise<Buffer> {
@@ -29,73 +34,78 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const body = await readRawBody(req);
   if (!body.length) return res.status(400).json({ error: 'Arquivo vazio.' });
 
-  // Ler Excel
+  // Ler Excel — procura aba com "Dados" ou "DISC" no nome, senão usa a primeira
   let rows: any[][];
   try {
     const wb = XLSX.read(body, { type: 'buffer' });
-    // Procura aba "Dados DISC" ou usa a segunda aba, ou a primeira
-    let sheetName = wb.SheetNames.find(n => n.includes('Dados') || n.includes('DISC'));
-    if (!sheetName) sheetName = wb.SheetNames[1] ?? wb.SheetNames[0];
+    const sheetName =
+      wb.SheetNames.find(n => n.includes('Dados') || n.includes('DISC')) ??
+      wb.SheetNames[0];
     const ws = wb.Sheets[sheetName];
     rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) as any[][];
   } catch {
-    return res.status(400).json({ error: 'Não foi possível ler o arquivo Excel. Verifique o formato.' });
+    return res.status(400).json({ error: 'Não foi possível ler o arquivo Excel.' });
   }
 
-  // Encontrar linha de cabeçalho — deve ter pelo menos 5 colunas preenchidas
-  // E conter palavras-chave de cabeçalho real (não apenas título)
-  let headerRow = -1;
-  for (let i = 0; i < Math.min(rows.length, 10); i++) {
-    const row = rows[i].map(c => normalizeStr(String(c)));
-    const filledCols = row.filter(c => c.trim().length > 0).length;
-    if (filledCols < 3) continue; // linhas de título têm poucas colunas preenchidas
-    const hasNome = row.some(c => c.includes('nome completo') || c.includes('participante'));
-    const hasArea = row.some(c => c === 'codigo da area' || c.includes('codigo da') || c === 'area');
-    const hasDISC = row.some(c => c.includes('dominan') || c.includes('influenc'));
-    if (hasNome || (hasArea && hasDISC)) {
-      headerRow = i;
+  // Encontrar linha de cabeçalho: procura linha que tenha "nome" E ("area" OU "dominan")
+  // com pelo menos 5 colunas preenchidas (para não confundir com títulos)
+  let headerIdx = -1;
+  for (let i = 0; i < Math.min(rows.length, 15); i++) {
+    const r = rows[i];
+    const normed = r.map((c: unknown) => norm(c));
+    const filled = normed.filter((c: string) => c.length > 0).length;
+    if (filled < 5) continue;
+    const hasNome = normed.some((c: string) => c.includes('nome'));
+    const hasArea = normed.some((c: string) => c.includes('area') || c.includes('codigo'));
+    const hasDISC = normed.some((c: string) => c.includes('domin') || c.includes('influ') || c.includes('correla'));
+    if (hasNome && (hasArea || hasDISC)) {
+      headerIdx = i;
       break;
     }
   }
-  // Fallback: modelo padrão tem cabeçalho na linha 3 (índice 2)
-  if (headerRow === -1) {
-    if (rows.length >= 3 && rows[2].filter(c => String(c).trim()).length >= 5) {
-      headerRow = 2;
-    } else {
-      return res.status(400).json({ error: 'Cabeçalho não encontrado. Verifique se está usando o modelo correto (aba "📊 Dados DISC").' });
-    }
+
+  if (headerIdx === -1) {
+    // Debug: retornar as primeiras linhas para diagnóstico
+    const preview = rows.slice(0, 5).map((r, i) => ({
+      linha: i + 1,
+      colunas_preenchidas: r.filter((c: unknown) => String(c).trim()).length,
+      primeiros_valores: r.slice(0, 4).map((c: unknown) => String(c).slice(0, 30)),
+    }));
+    return res.status(400).json({
+      error: 'Cabeçalho não encontrado. Verifique se está usando a aba "📊 Dados DISC".',
+      debug_preview: preview,
+    });
   }
 
-  const headers = rows[headerRow].map(c => normalizeStr(String(c)));
+  const headers = rows[headerIdx].map((c: unknown) => norm(c));
 
-  // Mapeamento de colunas por palavra-chave
-  const findCol = (keyword: string, startAfter = -1) =>
-    headers.findIndex((h, idx) => idx > startAfter && h.includes(keyword));
+  // Mapear índices de colunas
+  const findCol = (kw: string, after = -1) =>
+    headers.findIndex((h: string, i: number) => i > after && h.includes(kw));
 
   const iNome = findCol('nome');
-  const iArea = headers.findIndex(h => h.includes('area') || h.includes('área'));
+  const iArea = headers.findIndex((h: string) => h.includes('area') || h === 'codigo da area' || h.includes('codigo'));
   const iCorr = findCol('correla');
 
-  // Pessoa: primeiras ocorrências de D/I/S/C
+  // D/I/S/C da pessoa (primeiras ocorrências)
   const iDP = findCol('domin');
   const iIP = findCol('influ');
   const iSP = findCol('estab');
   const iCP = findCol('confor');
 
-  // Cargo: segundas ocorrências (após as da pessoa)
-  const iDC = iDP !== -1 ? findCol('domin', iDP) : -1;
-  const iIC = iIP !== -1 ? findCol('influ', iIP) : -1;
-  const iSC = iSP !== -1 ? findCol('estab', iSP) : -1;
-  const iCC = iCP !== -1 ? findCol('confor', iCP) : -1;
+  // D/I/S/C do cargo (segundas ocorrências)
+  const iDC = iDP >= 0 ? findCol('domin', iDP) : -1;
+  const iIC = iIP >= 0 ? findCol('influ', iIP) : -1;
+  const iSC = iSP >= 0 ? findCol('estab', iSP) : -1;
+  const iCC = iCP >= 0 ? findCol('confor', iCP) : -1;
 
-  const iPosA = findCol('positiv');
-  const iPos = iPosA !== -1 ? iPosA : findCol('destac');
-  const iDevA = findCol('desenvolv');
-  const iDev = iDevA !== -1 ? iDevA : findCol('nao se destac');
+  // Características
+  const iPos = findCol('positiv') >= 0 ? findCol('positiv') : findCol('destac');
+  const iDev = findCol('desenvolv') >= 0 ? findCol('desenvolv') : findCol('nao se destac');
 
-  if (iNome === -1 || iArea === -1 || iCorr === -1) {
+  if (iNome < 0 || iArea < 0 || iCorr < 0) {
     return res.status(400).json({
-      error: `Colunas obrigatórias não encontradas. (nome:${iNome}, area:${iArea}, correlação:${iCorr}). Cabeçalho na linha ${headerRow + 1}. Headers: ${headers.slice(0, 5).join(' | ')}`
+      error: `Colunas obrigatórias não encontradas. nome:${iNome}, area:${iArea}, correlação:${iCorr}. Cabeçalho linha ${headerIdx + 1}: ${headers.slice(0, 6).join(' | ')}`,
     });
   }
 
@@ -106,10 +116,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     readJsonAsync<any[]>('users', []),
   ]);
 
-  // Mapa de normalizedName -> userId
+  // Mapa nome normalizado → participantId
   const userMap = new Map<string, string>();
   for (const u of users) {
-    if (u.name) userMap.set(normalizeStr(u.name), u.id || u.email);
+    if (u.name) userMap.set(norm(u.name), u.id || u.email);
   }
 
   const imported: string[] = [];
@@ -120,44 +130,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const updatedRecords = [...discRecords];
   const updatedReports = [...discReports];
 
-  for (let i = headerRow + 1; i < rows.length; i++) {
+  for (let i = headerIdx + 1; i < rows.length; i++) {
     const row = rows[i];
     const nome = String(row[iNome] ?? '').trim();
-    const areaRaw = String(row[iArea] ?? '').trim().toUpperCase();
+    const areaRaw = String(row[iArea] ?? '').trim().toUpperCase().replace(/\s+/g, '');
     const corrRaw = row[iCorr];
 
     if (!nome || !areaRaw) continue;
 
     const area = areaRaw as AreaCode;
     if (!VALID_AREAS.includes(area)) {
-      errors.push(`Linha ${i + 1}: área inválida "${areaRaw}"`);
+      errors.push(`Linha ${i + 1}: área inválida "${areaRaw}" para ${nome}`);
       continue;
     }
 
-    const corr = Number(corrRaw);
+    const corr = Number(String(corrRaw).replace('%', '').trim());
     if (isNaN(corr) || corr < 0 || corr > 100) {
       errors.push(`Linha ${i + 1}: correlação inválida "${corrRaw}" para ${nome}`);
       continue;
     }
 
-    // Cruzar nome com usuários
-    const participantId = userMap.get(normalizeStr(nome));
+    const participantId = userMap.get(norm(nome));
     if (!participantId) {
       notFound.push(`${nome} (${area})`);
       continue;
     }
 
-    const personD = iDP !== -1 ? (Number(row[iDP] ?? 0) || 0) : 0;
-    const personI = iIP !== -1 ? (Number(row[iIP] ?? 0) || 0) : 0;
-    const personS = iSP !== -1 ? (Number(row[iSP] ?? 0) || 0) : 0;
-    const personC = iCP !== -1 ? (Number(row[iCP] ?? 0) || 0) : 0;
-    const jobD    = iDC !== -1 ? (Number(row[iDC] ?? 0) || 0) : 0;
-    const jobI    = iIC !== -1 ? (Number(row[iIC] ?? 0) || 0) : 0;
-    const jobS    = iSC !== -1 ? (Number(row[iSC] ?? 0) || 0) : 0;
-    const jobC    = iCC !== -1 ? (Number(row[iCC] ?? 0) || 0) : 0;
+    const pD = iDP >= 0 ? (Number(row[iDP]) || 0) : 0;
+    const pI = iIP >= 0 ? (Number(row[iIP]) || 0) : 0;
+    const pS = iSP >= 0 ? (Number(row[iSP]) || 0) : 0;
+    const pC = iCP >= 0 ? (Number(row[iCP]) || 0) : 0;
+    const jD = iDC >= 0 ? (Number(row[iDC]) || 0) : 0;
+    const jI = iIC >= 0 ? (Number(row[iIC]) || 0) : 0;
+    const jS = iSC >= 0 ? (Number(row[iSC]) || 0) : 0;
+    const jC = iCC >= 0 ? (Number(row[iCC]) || 0) : 0;
 
-    const posRaw = iPos !== -1 ? String(row[iPos] ?? '').trim() : '';
-    const devRaw = iDev !== -1 ? String(row[iDev] ?? '').trim() : '';
+    const posRaw = iPos >= 0 ? String(row[iPos] ?? '').trim() : '';
+    const devRaw = iDev >= 0 ? String(row[iDev] ?? '').trim() : '';
     const strengths    = posRaw ? posRaw.split(';').map(s => s.trim()).filter(Boolean) : [];
     const developments = devRaw ? devRaw.split(';').map(s => s.trim()).filter(Boolean) : [];
 
@@ -167,48 +176,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       participantName: nome,
       area,
       correlationPct: corr,
-      personD, personI, personS, personC,
-      jobD, jobI, jobS, jobC,
+      personD: pD, personI: pI, personS: pS, personC: pC,
+      jobD: jD, jobI: jI, jobS: jS, jobC: jC,
       strengths,
       developments,
       importedAt: today,
     };
 
-    // Upsert em disc_records
-    const existingIdx = updatedRecords.findIndex(
+    // Upsert disc_records
+    const existIdx = updatedRecords.findIndex(
       r => r.participantId === participantId && r.area === area
     );
-    if (existingIdx >= 0) {
-      updatedRecords[existingIdx] = { ...record, id: updatedRecords[existingIdx].id };
+    if (existIdx >= 0) {
+      updatedRecords[existIdx] = { ...record, id: updatedRecords[existIdx].id };
     } else {
       updatedRecords.push(record);
     }
 
-    // Upsert em discReports (score10 = correlação / 10) — mantém compatibilidade com sistema legado
+    // Upsert discReports (compatibilidade legado)
     const score10 = Math.round(corr / 10 * 10) / 10;
-    const existingReportIdx = updatedReports.findIndex(
+    const existReportIdx = updatedReports.findIndex(
       r => r.participantId === participantId && r.area === area
     );
-    if (existingReportIdx >= 0) {
-      updatedReports[existingReportIdx] = {
-        ...updatedReports[existingReportIdx],
-        score10,
-        date: today,
-      };
+    if (existReportIdx >= 0) {
+      updatedReports[existReportIdx] = { ...updatedReports[existReportIdx], score10, date: today };
     } else {
-      updatedReports.push({
-        id: randomUUID(),
-        participantId,
-        area,
-        score10,
-        date: today,
-      });
+      updatedReports.push({ id: randomUUID(), participantId, area, score10, date: today });
     }
 
     imported.push(`${nome} → ${area} (${corr}%)`);
   }
 
-  // Persistir
   await Promise.all([
     writeJsonAsync('disc_records', updatedRecords),
     writeJsonAsync('discReports', updatedReports),
