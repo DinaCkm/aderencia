@@ -101,6 +101,152 @@ function ScoreRow({ label, value, max, color, detail, explain }: {
   );
 }
 
+// Barra comparativa DISC (pessoa vs cargo)
+function DISCBar({ label, personVal, jobVal }: { label: string; personVal: number; jobVal: number }) {
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: 4 }}>
+        <span style={{ fontWeight: 700, color: 'var(--text)' }}>{label}</span>
+        <span style={{ color: 'var(--text-muted)' }}>Você: <strong style={{ color: '#7c3aed' }}>{personVal}%</strong> | Cargo: <strong style={{ color: '#0e7490' }}>{jobVal}%</strong></span>
+      </div>
+      <div style={{ position: 'relative', height: 10, background: '#e5e7eb', borderRadius: 99, overflow: 'hidden' }}>
+        {/* Barra do cargo (fundo) */}
+        <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: jobVal + '%', background: '#0e7490', opacity: 0.25, borderRadius: 99 }} />
+        {/* Barra da pessoa */}
+        <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: personVal + '%', background: '#7c3aed', borderRadius: 99, transition: 'width 0.6s ease' }} />
+      </div>
+    </div>
+  );
+}
+
+function DISCDetailSection({ discDetail, area, discScore }: {
+  discDetail: {
+    correlationPct: number;
+    personD: number; personI: number; personS: number; personC: number;
+    jobD: number; jobI: number; jobS: number; jobC: number;
+    strengths: string[];
+    developments: string[];
+    importedAt: string;
+  };
+  area: string;
+  discScore?: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const corr = discDetail.correlationPct;
+  const corrColor = corr >= 70 ? '#065f46' : corr >= 50 ? '#92400e' : '#991b1b';
+  const corrBg = corr >= 70 ? '#d1fae5' : corr >= 50 ? '#fef3c7' : '#fee2e2';
+  const corrLabel = corr >= 70 ? 'Alta aderência' : corr >= 50 ? 'Aderência moderada' : 'Baixa aderência';
+
+  return (
+    <div style={{ marginTop: 16, background: '#f8f7fc', border: '1.5px solid #d8b4fe', borderRadius: 10, overflow: 'hidden' }}>
+      {/* Cabeçalho clicável */}
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '12px 16px', background: 'none', border: 'none', cursor: 'pointer',
+          textAlign: 'left',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#7c3aed' }}>&#128311; Detalhamento DISC — Correlação com o cargo da {area}</span>
+          <span style={{
+            fontSize: '0.75rem', fontWeight: 700, color: corrColor,
+            background: corrBg, borderRadius: 20, padding: '2px 10px',
+          }}>
+            {corr}% — {corrLabel}
+          </span>
+        </div>
+        <span style={{ fontSize: '0.75rem', color: '#7c3aed', fontWeight: 600 }}>{open ? '▲ Fechar' : '▼ Ver detalhamento'}</span>
+      </button>
+
+      {open && (
+        <div style={{ padding: '0 16px 16px' }}>
+          {/* Gráfico de correlação */}
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: 4 }}>ÍNDICE DE CORRELAÇÃO</div>
+                <div style={{ height: 14, background: '#e5e7eb', borderRadius: 99, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: corr + '%', background: `linear-gradient(90deg, ${corrColor}, #7c3aed)`, borderRadius: 99, transition: 'width 0.8s ease' }} />
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: 900, color: corrColor, lineHeight: 1 }}>{corr}%</div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>de correlação</div>
+              </div>
+            </div>
+            <div style={{ background: corrBg, borderRadius: 6, padding: '8px 12px', fontSize: '0.75rem', color: corrColor, lineHeight: 1.5 }}>
+              <strong>O que significa:</strong> O índice de correlação mede o quanto o seu perfil comportamental se alinha ao perfil ideal esperado para o cargo da {area}.
+              Valores acima de 70% indicam alta aderência natural; entre 50–70% indicam aderência moderada com pontos de desenvolvimento;
+              abaixo de 50% indicam que o cargo exige comportamentos que precisam ser desenvolvidos.
+              {discScore !== undefined && <span> Esse índice gerou a nota DISC de <strong>{discScore.toFixed(1)} / 10</strong> no cálculo comportamental.</span>}
+            </div>
+          </div>
+
+          {/* Gráfico comparativo D/I/S/C */}
+          {(discDetail.personD > 0 || discDetail.jobD > 0) && (
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>
+                Perfil comparativo: <span style={{ color: '#7c3aed' }}>■ Você</span> vs <span style={{ color: '#0e7490' }}>■ Cargo ideal</span>
+              </div>
+              <DISCBar label="D — Dominância" personVal={discDetail.personD} jobVal={discDetail.jobD} />
+              <DISCBar label="I — Influência" personVal={discDetail.personI} jobVal={discDetail.jobI} />
+              <DISCBar label="S — Estabilidade" personVal={discDetail.personS} jobVal={discDetail.jobS} />
+              <DISCBar label="C — Conformidade" personVal={discDetail.personC} jobVal={discDetail.jobC} />
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 6, lineHeight: 1.5 }}>
+                <strong>D (Dominância):</strong> orientação para resultados e desafios. &nbsp;
+                <strong>I (Influência):</strong> comunicação e persuasão. &nbsp;
+                <strong>S (Estabilidade):</strong> consistência e trabalho em equipe. &nbsp;
+                <strong>C (Conformidade):</strong> precisão e qualidade.
+              </div>
+            </div>
+          )}
+
+          {/* Pontos de destaque */}
+          {discDetail.strengths.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#065f46', marginBottom: 6 }}>✅ Características que se destacam</div>
+              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                {discDetail.strengths.map((s, i) => (
+                  <li key={i} style={{ fontSize: '0.78rem', color: '#374151', marginBottom: 3, lineHeight: 1.5 }}>{s}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {discDetail.strengths.length === 0 && (
+            <div style={{ marginBottom: 14, fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+              Nenhuma característica de destaque registrada para esta área.
+            </div>
+          )}
+
+          {/* Pontos de desenvolvimento */}
+          {discDetail.developments.length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400e', marginBottom: 6 }}>📈 Pontos de desenvolvimento</div>
+              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                {discDetail.developments.map((d, i) => (
+                  <li key={i} style={{ fontSize: '0.78rem', color: '#374151', marginBottom: 3, lineHeight: 1.5 }}>{d}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {discDetail.developments.length === 0 && (
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+              Nenhum ponto de desenvolvimento registrado para esta área.
+            </div>
+          )}
+
+          <div style={{ marginTop: 12, fontSize: '0.68rem', color: '#94a3b8', textAlign: 'right' }}>
+            Dados importados em: {discDetail.importedAt}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function MyResults() {
   const router = useRouter();
   const [results, setResults] = useState<any[]>([]);
@@ -441,6 +587,16 @@ export default function MyResults() {
                   {behavScore !== undefined && (
                     <div style={{ background: '#f0fdf4', borderRadius: 8, padding: '10px 14px', fontSize: '0.78rem', color: '#065f46', border: '1px solid #bbf7d0' }}>
                       <strong>Fórmula comportamental:</strong> (Performance 0–10 + DISC 0–10) / 2 = ({r.breakdown?.performance?.toFixed(1) ?? '?'} + {r.breakdown?.disc?.toFixed(1) ?? '?'}) / 2 = <strong>{behavScore.toFixed(1)}</strong>
+                    </div>
+                  )}
+
+                  {/* Detalhamento DISC */}
+                  {r.discDetail && (
+                    <DISCDetailSection discDetail={r.discDetail} area={r.area} discScore={r.breakdown?.disc} />
+                  )}
+                  {!r.discDetail && (
+                    <div style={{ marginTop: 14, background: '#f8fafc', border: '1px dashed #cbd5e0', borderRadius: 8, padding: '12px 16px', fontSize: '0.78rem', color: '#94a3b8', textAlign: 'center' }}>
+                      📊 Detalhamento DISC ainda não disponível para esta área. O RH importará os dados em breve.
                     </div>
                   )}
                 </div>

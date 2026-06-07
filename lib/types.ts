@@ -96,6 +96,29 @@ export interface DiscReport {
   date: string;
 }
 
+// Dados completos de correlação DISC importados via Excel
+export interface DISCRecord {
+  id: string;
+  participantId: string;        // e-mail do participante
+  participantName: string;      // nome para cruzamento
+  area: AreaCode;
+  correlationPct: number;       // índice de correlação (0-100)
+  // Perfil da pessoa (D/I/S/C)
+  personD: number;
+  personI: number;
+  personS: number;
+  personC: number;
+  // Perfil do cargo (D/I/S/C)
+  jobD: number;
+  jobI: number;
+  jobS: number;
+  jobC: number;
+  // Análise qualitativa
+  strengths: string[];          // características que se destacam
+  developments: string[];       // pontos de desenvolvimento
+  importedAt: string;
+}
+
 export interface AssessmentCalculation {
   name: string;
   value: number | string;
