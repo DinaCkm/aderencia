@@ -73,10 +73,13 @@ export default function AdminImportDisc() {
     setLoading(true);
     setMessage('');
     setResult(null);
-    const formData = new FormData();
-    formData.append('file', xlsxFile);
     try {
-      const res = await fetch('/api/admin/import-disc-xlsx', { method: 'POST', body: formData });
+      const arrayBuffer = await xlsxFile.arrayBuffer();
+      const res = await fetch('/api/admin/import-disc-xlsx', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: arrayBuffer,
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erro desconhecido');
       setResult(data);
