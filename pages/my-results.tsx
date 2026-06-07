@@ -262,7 +262,15 @@ export default function MyResults() {
     setParticipantName(name || '');
     fetch('/api/participant/results?email=' + encodeURIComponent(email))
       .then((r) => r.json())
-      .then((data) => { setResults(data.results || []); setLoading(false); })
+      .then((data) => {
+        const sorted = (data.results || []).sort((a: any, b: any) => {
+          const scoreA = (a.technicalScore ?? 0) + (a.behavioralScore ?? 0);
+          const scoreB = (b.technicalScore ?? 0) + (b.behavioralScore ?? 0);
+          return scoreB - scoreA;
+        });
+        setResults(sorted);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, [router]);
 
