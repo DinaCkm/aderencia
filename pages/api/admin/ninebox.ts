@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import { buildAreaAssessment } from '../../../lib/business';
-import type { AuditReport, ParticipantProfile, AreaAssessment, DiscReport, PerformanceRecord } from '../../../lib/types';
+import type { AuditReport, ParticipantProfile, AreaAssessment, DiscReport, PerformanceRecord, DISCRecord } from '../../../lib/types';
 
 // Estende AreaAssessment com campos de UI (nome, detalhes de cálculo e perfil completo para auditoria)
 type AreaAssessmentWithMeta = AreaAssessment & {
@@ -12,12 +12,14 @@ type AreaAssessmentWithMeta = AreaAssessment & {
   projectsDetail?: import('../../../lib/types').ProjectDetail[];
   calculationSteps: import('../../../lib/types').AssessmentCalculation[];
   profile: import('../../../lib/types').ParticipantProfile;
+  discRecord?: DISCRecord;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const participants = await readJsonAsync<ParticipantProfile[]>('participants', []);
   const performance = await readJsonAsync<PerformanceRecord[]>('performance', []);
   const discs = await readJsonAsync<DiscReport[]>('discReports', []);
+  const discRecords = await readJsonAsync<DISCRecord[]>('disc_records', []);
   const audits = await readJsonAsync<AuditReport[]>('audits', []);
 
   const report: Record<string, AreaAssessmentWithMeta[]> = {};
@@ -35,6 +37,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Calcula scores para UI
       const techScore = assessment.technicalAdherence;
       const behavScore = assessment.behavioralAdherence;
+      // Busca o DISCRecord mais recente do participante para esta área
+      const discRecord = discRecords
+        .filter((d) => d.participantId === participant.id && d.area === assessment.area)
+        .sort((a, b) => b.importedAt.localeCompare(a.importedAt))[0];
+
       const enriched: AreaAssessmentWithMeta = {
         ...assessment,
         participantName: participant.name || participant.id,
@@ -44,6 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         projectsDetail: assessment.projectsDetail,
         calculationSteps: assessment.calculationSteps,
         profile: participant,
+        discRecord,
       };
       report[assessment.area].push(enriched);
     });

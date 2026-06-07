@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { OFFICIAL_AREAS } from '../../lib/constants';
-import type { AreaAssessment, AssessmentCalculation, PostMBADetail, ProjectDetail, ParticipantProfile } from '../../lib/types';
+import type { AreaAssessment, AssessmentCalculation, PostMBADetail, ProjectDetail, ParticipantProfile, DISCRecord } from '../../lib/types';
 
 type AssessmentWithMeta = AreaAssessment & {
   participantName: string;
@@ -13,6 +13,7 @@ type AssessmentWithMeta = AreaAssessment & {
   projectsDetail?: ProjectDetail[];
   calculationSteps: AssessmentCalculation[];
   profile: ParticipantProfile;
+  discRecord?: DISCRecord;
 };
 
 const GRID_CELLS: { x: string; y: string; label: string; color: string; bg: string }[] = [
@@ -365,12 +366,82 @@ function AuditSection({ profile, area }: { profile: ParticipantProfile; area: st
   );
 }
 
+function DiscDetailSection({ disc }: { disc: DISCRecord }) {
+  const barStyle = (val: number, color: string) => ({
+    height: 10, borderRadius: 5, background: '#e5e7eb', overflow: 'hidden' as const, marginTop: 4,
+  });
+  const fillStyle = (val: number, color: string) => ({
+    height: '100%', width: `${Math.min(val, 100)}%`, background: color, borderRadius: 5, transition: 'width 0.4s',
+  });
+  const Row = ({ label, person, job }: { label: string; person: number; job: number }) => (
+    <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+      <td style={{ padding: '6px 8px 6px 0', fontWeight: 600, color: '#6b7280', fontSize: '0.78rem', width: '28%' }}>{label}</td>
+      <td style={{ padding: '6px 8px', width: '36%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#374151' }}>
+          <span>Pessoa</span><strong>{person}</strong>
+        </div>
+        <div style={barStyle(person, '#6366f1')}><div style={fillStyle(person, '#6366f1')} /></div>
+      </td>
+      <td style={{ padding: '6px 0', width: '36%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#374151' }}>
+          <span>Cargo</span><strong>{job}</strong>
+        </div>
+        <div style={barStyle(job, '#0e7490')}><div style={fillStyle(job, '#0e7490')} /></div>
+      </td>
+    </tr>
+  );
+  return (
+    <div style={{ marginTop: 16, background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 10, padding: '14px 16px' }}>
+      <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 12, borderBottom: '1px solid #bae6fd', paddingBottom: 8 }}>
+        🔷 Detalhamento DISC — Correlação: <strong style={{ fontSize: '0.88rem' }}>{disc.correlationPct}%</strong>
+        <span style={{ marginLeft: 12, fontWeight: 400, color: '#64748b', fontSize: '0.7rem' }}>Importado em {disc.importedAt}</span>
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 12 }}>
+        <thead>
+          <tr style={{ background: '#e0f2fe' }}>
+            <th style={{ padding: '5px 8px 5px 0', textAlign: 'left', fontSize: '0.72rem', color: '#0369a1', fontWeight: 700 }}>Fator</th>
+            <th style={{ padding: '5px 8px', textAlign: 'left', fontSize: '0.72rem', color: '#6366f1', fontWeight: 700 }}>Perfil Pessoa</th>
+            <th style={{ padding: '5px 0', textAlign: 'left', fontSize: '0.72rem', color: '#0e7490', fontWeight: 700 }}>Perfil Cargo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <Row label="D — Dominância" person={disc.personD} job={disc.jobD} />
+          <Row label="I — Influência" person={disc.personI} job={disc.jobI} />
+          <Row label="S — eStabilidade" person={disc.personS} job={disc.jobS} />
+          <Row label="C — Conformidade" person={disc.personC} job={disc.jobC} />
+        </tbody>
+      </table>
+      {disc.strengths && disc.strengths.length > 0 && (
+        <div style={{ marginBottom: 8 }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#15803d', marginBottom: 4 }}>✅ Características que se Destacam</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            {disc.strengths.map((s, i) => (
+              <span key={i} style={{ background: '#dcfce7', color: '#15803d', borderRadius: 4, padding: '2px 8px', fontSize: '0.72rem' }}>{s}</span>
+            ))}
+          </div>
+        </div>
+      )}
+      {disc.developments && disc.developments.length > 0 && (
+        <div>
+          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', marginBottom: 4 }}>⚠ Pontos de Desenvolvimento</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            {disc.developments.map((d, i) => (
+              <span key={i} style={{ background: '#fef3c7', color: '#92400e', borderRadius: 4, padding: '2px 8px', fontSize: '0.72rem' }}>{d}</span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () => void }) {
   const techScore: number = p.technicalScore ?? 0;
   const behavScore: number | undefined = p.behavioralScore;
-  const expDetail = p.calculationSteps?.find((s) => s.name.includes('Experi'))?.detail ?? '';
+
   const perfRaw = p.calculationSteps?.find((s) => s.name.includes('Performance'))?.value;
   const discRaw = p.calculationSteps?.find((s) => s.name.includes('DISC'))?.value;
+  const expDetail = p.calculationSteps?.find((s) => s.name.includes('Experi'))?.detail;
 
   return (
     <div style={{
@@ -537,6 +608,14 @@ function ParticipantModal({ p, onClose }: { p: AssessmentWithMeta; onClose: () =
               </div>
             )}
           </div>
+          {/* Detalhamento completo do DISC importado */}
+          {p.discRecord ? (
+            <DiscDetailSection disc={p.discRecord} />
+          ) : (
+            <div style={{ marginTop: 12, padding: '10px 14px', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: 8, fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
+              Nenhum dado DISC importado para esta área
+            </div>
+          )}
         </div>
 
         {/* Exceções aplicadas */}
