@@ -95,7 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (iNome === -1 || iArea === -1 || iCorr === -1) {
     return res.status(400).json({
-      error: `Colunas obrigatórias não encontradas. (nome:${iNome}, area:${iArea}, correlação:${iCorr}). Verifique o modelo.`
+      error: `Colunas obrigatórias não encontradas. (nome:${iNome}, area:${iArea}, correlação:${iCorr}). Cabeçalho na linha ${headerRow + 1}. Headers: ${headers.slice(0, 5).join(' | ')}`
     });
   }
 
