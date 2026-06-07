@@ -47,9 +47,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Não foi possível ler o arquivo Excel.' });
   }
 
-  // Encontrar linha de cabeçalho: procura linha que tenha "nome" E ("area" OU "dominan")
-  // com pelo menos 5 colunas preenchidas (para não confundir com títulos)
+  // Encontrar linha de cabeçalho — estratégia em camadas:
+  // 1) Busca dinâmica por linha com >= 5 colunas preenchidas contendo 'nome'
+  // 2) Fallback: linha 3 (índice 2) se tiver >= 5 colunas preenchidas
+  // 3) Fallback: qualquer linha com >= 8 colunas preenchidas
   let headerIdx = -1;
+
+  // Estratégia 1: busca dinâmica
   for (let i = 0; i < Math.min(rows.length, 15); i++) {
     const r = rows[i];
     const normed = r.map((c: unknown) => norm(c));
@@ -64,8 +68,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
+  // Estratégia 2: fallback linha 3 (índice 2) — posição padrão do modelo
+  if (headerIdx === -1 && rows.length >= 3) {
+    const r = rows[2];
+    const filled = r.filter((c: unknown) => String(c).trim().length > 0).length;
+    if (filled >= 5) headerIdx = 2;
+  }
+
+  // Estratégia 3: fallback — primeira linha com >= 8 colunas preenchidas
   if (headerIdx === -1) {
-    // Debug: retornar as primeiras linhas para diagnóstico
+    for (let i = 0; i < Math.min(rows.length, 15); i++) {
+      const filled = rows[i].filter((c: unknown) => String(c).trim().length > 0).length;
+      if (filled >= 8) { headerIdx = i; break; }
+    }
+  }
+
+  if (headerIdx === -1) {
     const preview = rows.slice(0, 5).map((r, i) => ({
       linha: i + 1,
       colunas_preenchidas: r.filter((c: unknown) => String(c).trim()).length,
