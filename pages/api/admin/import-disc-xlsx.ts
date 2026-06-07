@@ -42,17 +42,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Não foi possível ler o arquivo Excel. Verifique o formato.' });
   }
 
-  // Encontrar linha de cabeçalho (contém "Nome" e "Área")
+  // Encontrar linha de cabeçalho — deve ter pelo menos 5 colunas preenchidas
+  // E conter palavras-chave de cabeçalho real (não apenas título)
   let headerRow = -1;
   for (let i = 0; i < Math.min(rows.length, 10); i++) {
     const row = rows[i].map(c => normalizeStr(String(c)));
-    if (row.some(c => c.includes('nome')) && row.some(c => c.includes('area') || c.includes('área'))) {
+    const filledCols = row.filter(c => c.trim().length > 0).length;
+    if (filledCols < 3) continue; // linhas de título têm poucas colunas preenchidas
+    const hasNome = row.some(c => c.includes('nome completo') || c.includes('participante'));
+    const hasArea = row.some(c => c === 'codigo da area' || c.includes('codigo da') || c === 'area');
+    const hasDISC = row.some(c => c.includes('dominan') || c.includes('influenc'));
+    if (hasNome || (hasArea && hasDISC)) {
       headerRow = i;
       break;
     }
   }
+  // Fallback: modelo padrão tem cabeçalho na linha 3 (índice 2)
   if (headerRow === -1) {
-    return res.status(400).json({ error: 'Cabeçalho não encontrado. Verifique se está usando o modelo correto.' });
+    if (rows.length >= 3 && rows[2].filter(c => String(c).trim()).length >= 5) {
+      headerRow = 2;
+    } else {
+      return res.status(400).json({ error: 'Cabeçalho não encontrado. Verifique se está usando o modelo correto (aba "📊 Dados DISC").' });
+    }
   }
 
   const headers = rows[headerRow].map(c => normalizeStr(String(c)));
