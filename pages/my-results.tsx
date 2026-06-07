@@ -290,6 +290,9 @@ export default function MyResults() {
         </div>
         <div className="topbar-actions">
           {participantName && <span className="topbar-user">&#128100; {participantName}</span>}
+          <Link href="/ninebox-public">
+            <button className="btn-outline" style={{ fontSize: '0.78rem', padding: '5px 12px' }}>&#127919; Nine Box Geral</button>
+          </Link>
           <Link href="/participant">
             <button className="btn-outline" style={{ fontSize: '0.78rem', padding: '5px 12px' }}>Meu formulário</button>
           </Link>
