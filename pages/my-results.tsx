@@ -354,59 +354,7 @@ export default function MyResults() {
           </div>
         )}
 
-        {/* Resumo de notas em destaque — exibido quando há pelo menos um resultado */}
-        {!loading && results.length > 0 && (() => {
-          // Usa a primeira área como referência para o resumo geral
-          const first = results[0];
-          const techScore0: number = first.technicalScore ?? 0;
-          const behavScore0: number | undefined = first.behavioralScore;
-          const qi0 = QUADRANT_INFO[first.nineBoxClassification] || QUADRANT_INFO['Dados incompletos para definição do quadrante'];
-          return (
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 16 }}>
-                {/* Card Aderência Técnica */}
-                <div style={{ background: 'white', border: '2px solid var(--purple)', borderRadius: 14, padding: '20px 22px', textAlign: 'center', boxShadow: '0 2px 12px #7c3aed18' }}>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8 }}>📘 Aderência Técnica</div>
-                  <div style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--purple)', lineHeight: 1 }}>
-                    {techScore0.toFixed(1)}
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 4 }}>nota final em 0–10</div>
-                  <div style={{ marginTop: 10 }}><ScoreBar value={techScore0} max={10} color="var(--purple)" /></div>
-                </div>
-                {/* Card Aderência Comportamental */}
-                <div style={{ background: 'white', border: '2px solid #0e7490', borderRadius: 14, padding: '20px 22px', textAlign: 'center', boxShadow: '0 2px 12px #0e749018' }}>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#0e7490', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8 }}>🧠 Aderência Comportamental</div>
-                  {behavScore0 !== undefined ? (
-                    <>
-                      <div style={{ fontSize: '3rem', fontWeight: 900, color: '#0e7490', lineHeight: 1 }}>
-                        {behavScore0.toFixed(1)}
-                      </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 4 }}>nota final em 0–10</div>
-                      <div style={{ marginTop: 10 }}><ScoreBar value={behavScore0} max={10} color="#0e7490" /></div>
-                    </>
-                  ) : (
-                    <>
-                      <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#9ca3af', lineHeight: 1, marginTop: 8 }}>—</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 6 }}>Aguardando importação de performance e DISC</div>
-                    </>
-                  )}
-                </div>
-                {/* Card Nine Box */}
-                <div style={{ background: qi0.bg, border: `2px solid ${qi0.color}60`, borderRadius: 14, padding: '20px 22px', textAlign: 'center', boxShadow: '0 2px 12px #00000010' }}>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: qi0.color, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8 }}>Nine Box</div>
-                  <div style={{ fontSize: '2rem', marginBottom: 4 }}>{qi0.icon}</div>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 800, color: qi0.color, lineHeight: 1.3 }}>{first.nineBoxClassification}</div>
-                  <div style={{ fontSize: '0.72rem', color: qi0.color, opacity: 0.8, marginTop: 6, lineHeight: 1.4 }}>{qi0.desc}</div>
-                </div>
-              </div>
-              {results.length > 1 && (
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', background: '#f3f4f6', borderRadius: 6, padding: '8px 12px' }}>
-                  ℹ️ O resumo acima refere-se à sua primeira área de interesse. Veja o detalhamento completo por área abaixo.
-                </div>
-              )}
-            </div>
-          );
-        })()}
+
 
         {!loading && results.map((r: any) => {
           const qi = QUADRANT_INFO[r.nineBoxClassification] || QUADRANT_INFO['Dados incompletos para definição do quadrante'];
