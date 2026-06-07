@@ -47,54 +47,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Não foi possível ler o arquivo Excel.' });
   }
 
-  // Encontrar linha de cabeçalho — estratégia em camadas:
-  // 1) Busca dinâmica por linha com >= 5 colunas preenchidas contendo 'nome'
-  // 2) Fallback: linha 3 (índice 2) se tiver >= 5 colunas preenchidas
-  // 3) Fallback: qualquer linha com >= 8 colunas preenchidas
-  let headerIdx = -1;
-
-  // Estratégia 1: busca dinâmica
-  for (let i = 0; i < Math.min(rows.length, 15); i++) {
-    const r = rows[i];
-    const normed = r.map((c: unknown) => norm(c));
-    const filled = normed.filter((c: string) => c.length > 0).length;
-    if (filled < 5) continue;
-    const hasNome = normed.some((c: string) => c.includes('nome'));
-    const hasArea = normed.some((c: string) => c.includes('area') || c.includes('codigo'));
-    const hasDISC = normed.some((c: string) => c.includes('domin') || c.includes('influ') || c.includes('correla'));
-    if (hasNome && (hasArea || hasDISC)) {
-      headerIdx = i;
-      break;
-    }
+  if (rows.length < 2) {
+    return res.status(400).json({ error: 'O arquivo parece estar vazio ou sem dados.' });
   }
 
-  // Estratégia 2: fallback linha 3 (índice 2) — posição padrão do modelo
-  if (headerIdx === -1 && rows.length >= 3) {
-    const r = rows[2];
-    const filled = r.filter((c: unknown) => String(c).trim().length > 0).length;
-    if (filled >= 5) headerIdx = 2;
-  }
-
-  // Estratégia 3: fallback — primeira linha com >= 8 colunas preenchidas
-  if (headerIdx === -1) {
-    for (let i = 0; i < Math.min(rows.length, 15); i++) {
-      const filled = rows[i].filter((c: unknown) => String(c).trim().length > 0).length;
-      if (filled >= 8) { headerIdx = i; break; }
-    }
-  }
-
-  if (headerIdx === -1) {
-    const preview = rows.slice(0, 5).map((r, i) => ({
-      linha: i + 1,
-      colunas_preenchidas: r.filter((c: unknown) => String(c).trim()).length,
-      primeiros_valores: r.slice(0, 4).map((c: unknown) => String(c).slice(0, 30)),
-    }));
-    return res.status(400).json({
-      error: 'Cabeçalho não encontrado. Verifique se está usando a aba "📊 Dados DISC".',
-      debug_preview: preview,
-    });
-  }
-
+  // Com o novo modelo sem células mescladas, o cabeçalho está SEMPRE na linha 1 (índice 0)
+  const headerIdx = 0;
   const headers = rows[headerIdx].map((c: unknown) => norm(c));
 
   // Mapear índices de colunas
@@ -123,7 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (iNome < 0 || iArea < 0 || iCorr < 0) {
     return res.status(400).json({
-      error: `Colunas obrigatórias não encontradas. nome:${iNome}, area:${iArea}, correlação:${iCorr}. Cabeçalho linha ${headerIdx + 1}: ${headers.slice(0, 6).join(' | ')}`,
+      error: `Colunas obrigatórias não encontradas. nome:${iNome}, area:${iArea}, correlação:${iCorr}. Cabeçalho lido da linha 1: ${headers.slice(0, 6).join(' | ')}`,
     });
   }
 
