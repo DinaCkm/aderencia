@@ -212,48 +212,73 @@ export default function ParticipantForm() {
       else if (now > CLOSE_DATE) { setDateBlock('after'); }
     }
     setParticipantName(name || '');
-    // Restaurar rascunho salvo no sessionStorage ou buscar perfil salvo no servidor
-    const draft = sessionStorage.getItem('aderenciaDraft');
-    if (draft) {
-      try {
-        const saved = JSON.parse(draft) as ParticipantProfile;
-        setProfile(saved);
-        const savedStep = sessionStorage.getItem('aderenciaStep');
-        if (savedStep) setStep(parseInt(savedStep, 10));
-        // Verificar se há projetos sem área vinculada
-        if (saved.selectedProjects && saved.selectedProjects.length > 0) {
-          const hasUnmapped = saved.selectedProjects.some(
-            (proj) => !saved.projectAreaMap?.[proj]
-          );
-          if (hasUnmapped) setProjectAreaAlert(true);
-        }
-      } catch { /* ignora rascunho inválido */ }
-    } else {
-      // Tentar carregar perfil já enviado do servidor
-      fetch(`/api/participant/profile?id=${encodeURIComponent(email)}`)
-        .then((r) => r.ok ? r.json() : null)
-        .then((data) => {
-          if (data?.profile) {
-            const saved = data.profile as ParticipantProfile;
-            setProfile(saved);
-            // Verificar se há projetos sem área vinculada
-            if (saved.selectedProjects && saved.selectedProjects.length > 0) {
-              const hasUnmapped = saved.selectedProjects.some(
-                (proj) => !saved.projectAreaMap?.[proj]
-              );
-              if (hasUnmapped) {
-                setProjectAreaAlert(true);
-                setStep(7); // Levar direto ao step de projetos
+    // Sempre buscar perfil do servidor primeiro — tem prioridade sobre rascunho local
+    // O rascunho só é usado se o servidor não tiver dados (participante nunca submeteu)
+    fetch(`/api/participant/profile?email=${encodeURIComponent(email)}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.profile) {
+          // Dados já submetidos no servidor — usa eles e limpa rascunho antigo
+          const saved = data.profile as ParticipantProfile;
+          sessionStorage.removeItem('aderenciaDraft');
+          sessionStorage.removeItem('aderenciaStep');
+          setProfile(saved);
+          // Verificar se há projetos sem área vinculada
+          if (saved.selectedProjects && saved.selectedProjects.length > 0) {
+            const hasUnmapped = saved.selectedProjects.some(
+              (proj) => !saved.projectAreaMap?.[proj]
+            );
+            if (hasUnmapped) {
+              setProjectAreaAlert(true);
+              setStep(7);
+            }
+          }
+        } else {
+          // Nenhum dado no servidor — tentar restaurar rascunho local
+          const draft = sessionStorage.getItem('aderenciaDraft');
+          if (draft) {
+            try {
+              const saved = JSON.parse(draft) as ParticipantProfile;
+              // Só usa o rascunho se for do mesmo usuário
+              if (saved.id === email || saved.email === email) {
+                setProfile(saved);
+                const savedStep = sessionStorage.getItem('aderenciaStep');
+                if (savedStep) setStep(parseInt(savedStep, 10));
+                if (saved.selectedProjects && saved.selectedProjects.length > 0) {
+                  const hasUnmapped = saved.selectedProjects.some(
+                    (proj) => !saved.projectAreaMap?.[proj]
+                  );
+                  if (hasUnmapped) setProjectAreaAlert(true);
+                }
+              } else {
+                // Rascunho de outro usuário — descarta
+                sessionStorage.removeItem('aderenciaDraft');
+                sessionStorage.removeItem('aderenciaStep');
+                setProfile((prev) => ({ ...prev, id: email, email, name: name || '' }));
               }
+            } catch {
+              setProfile((prev) => ({ ...prev, id: email, email, name: name || '' }));
             }
           } else {
             setProfile((prev) => ({ ...prev, id: email, email, name: name || '' }));
           }
-        })
-        .catch(() => {
-          setProfile((prev) => ({ ...prev, id: email, email, name: name || '' }));
-        });
-    }
+        }
+      })
+      .catch(() => {
+        // Falha na API — tentar rascunho local como fallback
+        const draft = sessionStorage.getItem('aderenciaDraft');
+        if (draft) {
+          try {
+            const saved = JSON.parse(draft) as ParticipantProfile;
+            if (saved.id === email || saved.email === email) {
+              setProfile(saved);
+              const savedStep = sessionStorage.getItem('aderenciaStep');
+              if (savedStep) setStep(parseInt(savedStep, 10));
+            }
+          } catch { /* ignora */ }
+        }
+        setProfile((prev) => ({ ...prev, id: email, email, name: name || '' }));
+      });
   }, [router]);
 
   // Salvar rascunho automaticamente sempre que profile ou step mudar
