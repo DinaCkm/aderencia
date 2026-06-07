@@ -114,7 +114,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!nome || !areaRaw) continue;
 
-    const area = areaRaw as AreaCode;
+    // Aceitar REGIONAL como sinônimo de REGIONAIS
+    const areaNorm = areaRaw === 'REGIONAL' ? 'REGIONAIS' : areaRaw;
+    const area = areaNorm as AreaCode;
     if (!VALID_AREAS.includes(area)) {
       errors.push(`Linha ${i + 1}: área inválida "${areaRaw}" para ${nome}`);
       continue;
