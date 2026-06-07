@@ -112,6 +112,33 @@ export default function NineBoxPublic() {
 
       <main className="container" style={{ maxWidth: 1100, paddingTop: 96, paddingBottom: 60 }}>
 
+        {/* Banner de aviso de resultado provisório */}
+        <div style={{
+          background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+          border: '2.5px solid #f59e0b',
+          borderRadius: 14,
+          padding: '20px 24px',
+          marginBottom: 24,
+          display: 'flex',
+          gap: 18,
+          alignItems: 'flex-start',
+          boxShadow: '0 4px 20px rgba(245,158,11,0.18)',
+        }}>
+          <div style={{ fontSize: '2.2rem', flexShrink: 0, lineHeight: 1 }}>&#9888;&#65039;</div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: '1rem', color: '#92400e', marginBottom: 6, letterSpacing: '0.2px' }}>
+              RESULTADO PROVISÓRIO — SUJEITO A ANÁLISE E COMPROVAÇÃO
+            </div>
+            <p style={{ fontSize: '0.85rem', color: '#78350f', lineHeight: 1.7, margin: 0 }}>
+              As posições exibidas neste Nine Box são <strong>provisórias</strong> e foram geradas
+              automaticamente com base nas informações declaradas pelos próprios participantes.
+              Todos os dados estão sujeitos à <strong>validação, análise e comprovação documental
+              pelo RH/UGP</strong> antes de qualquer decisão oficial. A posição final pode ser
+              alterada após a conferência dos comprovantes entregues.
+            </p>
+          </div>
+        </div>
+
         {/* Cabeçalho */}
         <div className="section-card" style={{ marginBottom: 24 }}>
           <div className="section-title">
