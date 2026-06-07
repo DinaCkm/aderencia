@@ -1768,7 +1768,7 @@ export default function ParticipantForm() {
                   // Validar área vinculada a cada projeto (obrigatório)
                   for (const item of profile.selectedProjects) {
                     if (!profile.projectAreaMap?.[item]) {
-                      setStatus(`Informe a área de interesse para o projeto: "${item}". Clique no projeto e selecione a área.`);
+                      setStatus(`Informe a área de interesse para o projeto: "${item}". Clique no projeto e selecione a área ao qual o seu projeto tem aderência.`);
                       return;
                     }
                   }
