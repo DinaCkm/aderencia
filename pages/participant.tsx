@@ -1674,10 +1674,9 @@ export default function ParticipantForm() {
                   {projectOptions.map((o) => {
                     const selected = profile.selectedProjects.includes(o.label);
                     const assignedArea = profile.projectAreaMap?.[o.label] || '';
-                    // Áreas já usadas por outros projetos
-                    const usedAreas = Object.entries(profile.projectAreaMap || {})
-                      .filter(([proj]) => proj !== o.label)
-                      .map(([, area]) => area);
+                    // Nota: múltiplos projetos podem ser aplicados à mesma área
+                    // (a pontuação máxima de 20 pts é aplicada independentemente)
+                    const usedAreas: string[] = [];
                     return (
                       <div key={o.id} style={{
                         borderRadius: 'var(--radius-sm)',
