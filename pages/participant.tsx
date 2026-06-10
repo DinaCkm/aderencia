@@ -2036,7 +2036,7 @@ export default function ParticipantForm() {
 
               {status && <div style={{ background: status === 'Enviando...' ? '#eff6ff' : '#fef2f2', border: `1px solid ${status === 'Enviando...' ? '#bfdbfe' : '#fecaca'}`, borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: status === 'Enviando...' ? '#1d4ed8' : '#dc2626', fontSize: '0.85rem', marginTop: 12, fontWeight: 600, textAlign: 'center' }}>{status === 'Enviando...' ? '⏳ Enviando seus dados, aguarde...' : `⚠ ${status}`}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(6)} disabled={status === 'Enviando...'}}>← Voltar</button>
+                <button type="button" className="btn-outline" onClick={() => setStep(6)} disabled={status === 'Enviando...'}>← Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 180, opacity: status === 'Enviando...' ? 0.7 : 1 }} disabled={status === 'Enviando...'} onClick={(e) => {
                   // Validar área vinculada a cada projeto (obrigatório)
                   for (const item of profile.selectedProjects) {
