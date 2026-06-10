@@ -476,6 +476,23 @@ export default function AdminAudit() {
                   {p.graduationCourseName && p.graduation !== '__outro__' && <InfoField label="Nome do curso (livre)" value={p.graduationCourseName} />}
                   {p.graduationException && <InfoField label="Justificativa de exceção" value={p.graduationException} />}
                 </div>
+                {/* Badge de comprovação da graduação */}
+                {!p.proofMode?.['graduation'] ? (
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', margin: '8px 0 4px' }}>
+                    ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar
+                  </div>
+                ) : p.proofMode['graduation'] === 'ugp-knows' ? (
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 4, padding: '3px 8px', display: 'inline-block', margin: '8px 0 4px' }}>
+                    ✓ A UGP já tem conhecimento — aguarda validação interna pela UGP
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', background: '#dbeafe', border: '1px solid #93c5fd', borderRadius: 4, padding: '3px 8px', display: 'inline-block', margin: '8px 0 4px' }}>
+                    📎 Enviou documento para comprovação
+                  </div>
+                )}
+                {p.proofMode?.['graduation'] === 'upload' && p.proofFiles?.['graduation'] && (
+                  <FileViewer base64={p.proofFiles['graduation']} fileName="comprovante-graduacao" label="Comprovante de graduação" />
+                )}
                 <ValidationControls itemKey="graduacao" validation={getValidation('graduacao')} onSave={saveItemValidation} />
               </SectionCard>
 
@@ -488,9 +505,17 @@ export default function AdminAudit() {
                     <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
                       <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b', marginBottom: 4 }}>{title}</div>
                       {/* Comprovante */}
-                      {p.proofMode?.[title] && (
-                        <div style={{ fontSize: '0.72rem', color: '#64748b', marginBottom: 4 }}>
-                          Comprovação: {p.proofMode[title] === 'ugp-knows' ? '✓ A UGP já tem conhecimento' : '📎 Enviou documento'}
+                      {!p.proofMode?.[title] ? (
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
+                          ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar
+                        </div>
+                      ) : p.proofMode[title] === 'ugp-knows' ? (
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
+                          ✓ A UGP já tem conhecimento — aguarda validação interna pela UGP
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', background: '#dbeafe', border: '1px solid #93c5fd', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
+                          📎 Enviou documento para comprovação
                         </div>
                       )}
                       {p.proofMode?.[title] === 'upload' && p.proofFiles?.[title] && (
@@ -519,9 +544,17 @@ export default function AdminAudit() {
                           Carga horária: {p.courseHours[course]}h
                         </div>
                       )}
-                      {p.proofMode?.[course] && (
-                        <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>
-                          Comprovação: {p.proofMode[course] === 'ugp-knows' ? '✓ A UGP já tem conhecimento' : '📎 Enviou documento'}
+                      {!p.proofMode?.[course] ? (
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginTop: 4 }}>
+                          ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar
+                        </div>
+                      ) : p.proofMode[course] === 'ugp-knows' ? (
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginTop: 4 }}>
+                          ✓ A UGP já tem conhecimento — aguarda validação interna pela UGP
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', background: '#dbeafe', border: '1px solid #93c5fd', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginTop: 4 }}>
+                          📎 Enviou documento para comprovação
                         </div>
                       )}
                       {p.proofMode?.[course] === 'upload' && p.proofFiles?.[course] && (
@@ -568,9 +601,17 @@ export default function AdminAudit() {
                           🎯 Área de aplicação: {AREA_LABELS[p.projectAreaMap[proj]] || p.projectAreaMap[proj]}
                         </div>
                       )}
-                      {p.proofMode?.[proj] && (
-                        <div style={{ fontSize: '0.72rem', color: '#64748b', marginBottom: 4 }}>
-                          Comprovação: {p.proofMode[proj] === 'ugp-knows' ? '✓ A UGP já tem conhecimento' : '📎 Enviou documento'}
+                      {!p.proofMode?.[proj] ? (
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
+                          ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar
+                        </div>
+                      ) : p.proofMode[proj] === 'ugp-knows' ? (
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
+                          ✓ A UGP já tem conhecimento — aguarda validação interna pela UGP
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', background: '#dbeafe', border: '1px solid #93c5fd', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
+                          📎 Enviou documento para comprovação
                         </div>
                       )}
                       {p.proofMode?.[proj] === 'upload' && p.proofFiles?.[proj] && (
