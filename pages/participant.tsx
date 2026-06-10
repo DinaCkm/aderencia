@@ -288,6 +288,12 @@ export default function ParticipantForm() {
       return;
     }
     if (!email) { router.push('/login'); return; }
+    // Se acabou de submeter nesta sessão, mostrar tela de sucesso sem recarregar
+    if (sessionStorage.getItem('aderenciaSubmitted') === '1') {
+      sessionStorage.removeItem('aderenciaSubmitted');
+      setSubmitted(true);
+      return;
+    }
     const adminUser = role === 'admin';
     setIsAdmin(adminUser);
     // Bloqueio por data apenas para participantes
@@ -435,6 +441,7 @@ export default function ParticipantForm() {
         // Limpar rascunho após envio bem-sucedido
         sessionStorage.removeItem('aderenciaDraft');
         sessionStorage.removeItem('aderenciaStep');
+        sessionStorage.setItem('aderenciaSubmitted', '1');
         setSubmitted(true);
         setStatus('');
       } else {
