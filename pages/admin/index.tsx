@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: '/admin/ninebox', label: 'Nine Box', icon: '🎯' },
   { href: '/admin/employees', label: 'Empregados', icon: '👤' },
   { href: '/admin/validation', label: 'Validação', icon: '✅' },
+  { href: '/admin/audit', label: 'Auditoria de Fichas', icon: '🔎' },
 ];
 
 const MENU_CARDS = [
@@ -26,6 +27,7 @@ const MENU_CARDS = [
   { href: '/admin/import-participants', icon: '📥', title: 'Importar Colaboradores', desc: 'Adicione novos participantes em lote via CSV', color: '#ec4899' },
   { href: '/admin/employees', icon: '👤', title: 'Gestão de Empregados', desc: 'Crie, edite e exclua empregados individualmente', color: '#0e7490' },
   { href: '/admin/validation', icon: '✅', title: 'Validação de Pontuações', desc: 'Confirme pontuações provisórias após checagem dos documentos', color: '#15803d' },
+  { href: '/admin/audit', icon: '🔎', title: 'Auditoria de Fichas', desc: 'Leia a ficha completa de cada candidato, valide item por item e solicite informações por e-mail', color: '#7c3aed' },
 ];
 
 export default function AdminDashboard() {
