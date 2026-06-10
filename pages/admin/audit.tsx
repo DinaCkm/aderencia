@@ -142,11 +142,28 @@ function FileViewer({ base64, fileName, fileType, label }: { base64: string; fil
   const isPdf = mime === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf');
   const isImage = mime.startsWith('image/');
 
+  // Usa Blob URL para download — evita bloqueio do Edge/Chrome com data: URLs
   const download = () => {
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = fileName;
-    a.click();
+    try {
+      const raw = base64.startsWith('data:') ? base64.split(',')[1] : base64;
+      const bytes = atob(raw);
+      const arr = new Uint8Array(bytes.length);
+      for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+      const blob = new Blob([arr], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(url); document.body.removeChild(a); }, 1000);
+    } catch {
+      // fallback para data URL
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = fileName;
+      a.click();
+    }
   };
 
   return (

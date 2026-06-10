@@ -870,7 +870,7 @@ export default function ParticipantForm() {
                       itemLabel={`grad:${profile.graduation}`}
                       proofMode={profile.proofMode}
                       proofFiles={profile.proofFiles}
-                      onChange={(mode, fileName) => setProof(`grad:${profile.graduation}`, mode, fileName)}
+                      onChange={(mode, fileData, fileName, fileType) => setProof(`grad:${profile.graduation}`, mode, fileData, fileName, fileType)}
                     />
                   </div>
                 )}
@@ -957,7 +957,7 @@ export default function ParticipantForm() {
                           itemLabel={`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`}
                           proofMode={profile.proofMode}
                           proofFiles={profile.proofFiles}
-                          onChange={(mode, fileName) => setProof(`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`, mode, fileName)}
+                          onChange={(mode, fileData, fileName, fileType) => setProof(`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`, mode, fileData, fileName, fileType)}
                         />
                       </div>
                     )}
@@ -1156,7 +1156,7 @@ export default function ParticipantForm() {
                               itemLabel={proofKey}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
-                              onChange={(mode, fileName) => setProof(proofKey, mode, fileName)}
+                              onChange={(mode, fileData, fileName, fileType) => setProof(proofKey, mode, fileData, fileName, fileType)}
                             />
                           </div>
                         )}
@@ -1397,7 +1397,7 @@ export default function ParticipantForm() {
                               itemLabel={`curso5_${idx}:${course.name}`}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
-                              onChange={(mode, fileName) => setProof(`curso5_${idx}:${course.name}`, mode, fileName)}
+                              onChange={(mode, fileData, fileName, fileType) => setProof(`curso5_${idx}:${course.name}`, mode, fileData, fileName, fileType)}
                             />
                           </div>
                         )}
@@ -1601,7 +1601,7 @@ export default function ParticipantForm() {
                               itemLabel={`curso7:${o.label}`}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
-                              onChange={(mode, fileName) => setProof(`curso7:${o.label}`, mode, fileName)}
+                              onChange={(mode, fileData, fileName, fileType) => setProof(`curso7:${o.label}`, mode, fileData, fileName, fileType)}
                             />
                           </>
                         )}
@@ -1778,7 +1778,7 @@ export default function ParticipantForm() {
                             itemLabel={`proj:${o.label}`}
                             proofMode={profile.proofMode}
                             proofFiles={profile.proofFiles}
-                            onChange={(mode, fileName) => setProof(`proj:${o.label}`, mode, fileName)}
+                            onChange={(mode, fileData, fileName, fileType) => setProof(`proj:${o.label}`, mode, fileData, fileName, fileType)}
                           />
                         )}
                       </div>
