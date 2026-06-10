@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, FormEvent } from 'react';
+import React, { useState, useEffect, useMemo, useRef, FormEvent } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -49,9 +49,32 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, onChange }: {
   itemLabel: string;
   proofMode: Record<string, 'ugp-knows' | 'upload'>;
   proofFiles: Record<string, string>;
-  onChange: (mode: 'ugp-knows' | 'upload', fileName?: string) => void;
+  onChange: (mode: 'ugp-knows' | 'upload', fileData?: string, fileName?: string, fileType?: string) => void;
 }) {
   const mode = proofMode[itemLabel];
+  const [uploading, setUploading] = useState(false);
+  // Verifica se já tem arquivo salvo (base64 ou nome)
+  const savedFile = proofFiles[itemLabel];
+  const hasFile = savedFile && (savedFile.startsWith('data:') || savedFile.length > 100);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) {
+      alert('Arquivo muito grande. O limite é 8 MB.');
+      return;
+    }
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string; // data:mime;base64,...
+      onChange('upload', base64, file.name, file.type);
+      setUploading(false);
+    };
+    reader.onerror = () => { setUploading(false); alert('Erro ao ler o arquivo. Tente novamente.'); };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div style={{ padding: '8px 12px 10px', background: '#f8fafc', borderTop: '1px solid var(--border)' }}>
       <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>Como comprovar este item:</p>
@@ -84,22 +107,20 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, onChange }: {
       {mode === 'upload' && (
         <div style={{ marginTop: 8 }}>
           <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) onChange('upload', file.name);
-            }}
+            onChange={handleFileChange}
             style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }} />
-          {proofFiles[itemLabel] && (
-            <span style={{ fontSize: '0.72rem', color: '#16a34a', marginLeft: 8 }}>
-              &#10003; {proofFiles[itemLabel]}
+          {uploading && (
+            <span style={{ fontSize: '0.72rem', color: '#f59e0b', marginLeft: 8 }}>⏳ Carregando arquivo...</span>
+          )}
+          {!uploading && hasFile && (
+            <span style={{ fontSize: '0.72rem', color: '#16a34a', marginLeft: 8, fontWeight: 600 }}>
+              ✓ Arquivo carregado e pronto para envio
             </span>
           )}
+          {!uploading && !hasFile && mode === 'upload' && (
+            <span style={{ fontSize: '0.7rem', color: '#f59e0b', marginLeft: 8 }}>⚠ Selecione o arquivo acima</span>
+          )}
         </div>
-      )}
-      {!mode && (
-        <p style={{ fontSize: '0.7rem', color: '#f59e0b', marginTop: 4 }}>
-          ⚠ Selecione como vai comprovar este item
-        </p>
       )}
     </div>
   );
@@ -323,11 +344,11 @@ export default function ParticipantForm() {
     });
   };
 
-  const setProof = (itemLabel: string, mode: 'ugp-knows' | 'upload', fileName?: string) => {
+  const setProof = (itemLabel: string, mode: 'ugp-knows' | 'upload', fileData?: string, _fileName?: string, _fileType?: string) => {
     setProfile((p) => ({
       ...p,
       proofMode: { ...p.proofMode, [itemLabel]: mode },
-      proofFiles: fileName ? { ...p.proofFiles, [itemLabel]: fileName } : p.proofFiles,
+      proofFiles: fileData ? { ...p.proofFiles, [itemLabel]: fileData } : p.proofFiles,
     }));
   };
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -130,6 +130,59 @@ function SectionCard({ title, icon, children }: { title: string; icon: string; c
         <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1e293b' }}>{title}</span>
       </div>
       <div style={{ padding: '14px 16px' }}>{children}</div>
+    </div>
+  );
+}
+
+// ─── Visualizador de arquivo inline ──────────────────────────────────────────
+function FileViewer({ base64, fileName, fileType, label }: { base64: string; fileName: string; fileType?: string; label?: string }) {
+  const [open, setOpen] = React.useState(false);
+  const mime = fileType || (fileName.endsWith('.pdf') ? 'application/pdf' : fileName.match(/\.(jpe?g|png|gif|webp)$/i) ? 'image/' + fileName.split('.').pop() : 'application/octet-stream');
+  const dataUrl = base64.startsWith('data:') ? base64 : `data:${mime};base64,${base64}`;
+  const isPdf = mime === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf');
+  const isImage = mime.startsWith('image/');
+
+  const download = () => {
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = fileName;
+    a.click();
+  };
+
+  return (
+    <div style={{ marginTop: 8 }}>
+      {label && <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>}
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+        <button type="button" onClick={() => setOpen(!open)}
+          style={{ fontSize: '0.72rem', background: open ? '#5b21b6' : '#0891b2', color: 'white', border: 'none', borderRadius: 5, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
+          {open ? '▲ Fechar visualizador' : (isPdf ? '📄 Visualizar PDF' : isImage ? '🖼 Visualizar imagem' : '📎 Ver arquivo')}
+        </button>
+        <button type="button" onClick={download}
+          style={{ fontSize: '0.72rem', background: '#16a34a', color: 'white', border: 'none', borderRadius: 5, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
+          ⬇ Baixar: {fileName}
+        </button>
+      </div>
+      {open && (
+        <div style={{ marginTop: 8, border: '1.5px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#f8fafc' }}>
+          {isImage && (
+            <img src={dataUrl} alt={fileName}
+              style={{ maxWidth: '100%', maxHeight: 500, display: 'block', margin: '0 auto', padding: 8 }} />
+          )}
+          {isPdf && (
+            <iframe src={dataUrl} title={fileName}
+              style={{ width: '100%', height: 520, border: 'none', display: 'block' }} />
+          )}
+          {!isImage && !isPdf && (
+            <div style={{ padding: 16, textAlign: 'center', color: '#64748b', fontSize: '0.82rem' }}>
+              Pré-visualização não disponível para este tipo de arquivo.<br />
+              <button type="button" onClick={download}
+                style={{ marginTop: 8, fontSize: '0.78rem', background: '#0891b2', color: 'white', border: 'none', borderRadius: 5, padding: '6px 16px', cursor: 'pointer', fontWeight: 600 }}>
+                ⬇ Baixar arquivo
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -441,23 +494,11 @@ export default function AdminAudit() {
                         </div>
                       )}
                       {p.proofMode?.[title] === 'upload' && p.proofFiles?.[title] && (
-                        <button type="button"
-                          onClick={() => {
-                            const raw = p.proofFiles[title];
-                            // Pode ser base64 puro ou data URL
-                            const isDataUrl = raw.startsWith('data:');
-                            if (isDataUrl) {
-                              const link = document.createElement('a');
-                              link.href = raw;
-                              link.download = `comprovante-pos-${i + 1}`;
-                              link.click();
-                            } else {
-                              window.open(raw, '_blank');
-                            }
-                          }}
-                          style={{ fontSize: '0.7rem', background: '#0891b2', color: 'white', border: 'none', borderRadius: 5, padding: '3px 10px', cursor: 'pointer', fontWeight: 600 }}>
-                          ⬇ Ver/Baixar comprovante
-                        </button>
+                        <FileViewer
+                          base64={p.proofFiles[title]}
+                          fileName={`comprovante-pos-${i + 1}`}
+                          label="Comprovante enviado"
+                        />
                       )}
                       <ValidationControls itemKey={`postmba-${i}`} validation={getValidation(`postmba-${i}`)} onSave={saveItemValidation} />
                     </div>
@@ -484,11 +525,11 @@ export default function AdminAudit() {
                         </div>
                       )}
                       {p.proofMode?.[course] === 'upload' && p.proofFiles?.[course] && (
-                        <button type="button"
-                          onClick={() => { window.open(p.proofFiles[course], '_blank'); }}
-                          style={{ fontSize: '0.7rem', background: '#0891b2', color: 'white', border: 'none', borderRadius: 5, padding: '3px 10px', cursor: 'pointer', fontWeight: 600, marginTop: 4 }}>
-                          ⬇ Ver/Baixar comprovante
-                        </button>
+                        <FileViewer
+                          base64={p.proofFiles[course]}
+                          fileName={`comprovante-curso-${i + 1}`}
+                          label="Comprovante enviado"
+                        />
                       )}
                       <ValidationControls itemKey={`curso-${i}`} validation={getValidation(`curso-${i}`)} onSave={saveItemValidation} />
                     </div>
@@ -533,11 +574,11 @@ export default function AdminAudit() {
                         </div>
                       )}
                       {p.proofMode?.[proj] === 'upload' && p.proofFiles?.[proj] && (
-                        <button type="button"
-                          onClick={() => { window.open(p.proofFiles[proj], '_blank'); }}
-                          style={{ fontSize: '0.7rem', background: '#0891b2', color: 'white', border: 'none', borderRadius: 5, padding: '3px 10px', cursor: 'pointer', fontWeight: 600, marginBottom: 4 }}>
-                          ⬇ Ver/Baixar comprovante
-                        </button>
+                        <FileViewer
+                          base64={p.proofFiles[proj]}
+                          fileName={`comprovante-projeto-${i + 1}`}
+                          label="Comprovante enviado"
+                        />
                       )}
                       <ValidationControls itemKey={`projeto-${i}`} validation={getValidation(`projeto-${i}`)} onSave={saveItemValidation} />
                     </div>
@@ -567,17 +608,12 @@ export default function AdminAudit() {
                       </div>
                       <InfoField label="Justificativa" value={item.justification} />
                       {item.fileBase64 && item.fileName && (
-                        <div style={{ marginTop: 8 }}>
-                          {item.fileType?.startsWith('image/') && (
-                            <img src={`data:${item.fileType};base64,${item.fileBase64}`} alt={item.fileName}
-                              style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 6, border: '1px solid #e2e8f0', marginBottom: 6 }} />
-                          )}
-                          <button type="button"
-                            onClick={() => downloadFile(item.fileBase64!, item.fileName!, item.fileType || 'application/octet-stream')}
-                            style={{ fontSize: '0.72rem', background: '#16a34a', color: 'white', border: 'none', borderRadius: 5, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
-                            ⬇ Baixar: {item.fileName}
-                          </button>
-                        </div>
+                        <FileViewer
+                          base64={item.fileBase64}
+                          fileName={item.fileName}
+                          fileType={item.fileType}
+                          label="Comprovante da exceção"
+                        />
                       )}
                       <ValidationControls itemKey={`excecao-${i}`} validation={getValidation(`excecao-${i}`)} onSave={saveItemValidation} />
                     </div>
