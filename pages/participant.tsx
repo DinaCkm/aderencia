@@ -112,20 +112,38 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
 
       {mode === 'upload' && (
         <div style={{ marginTop: 8 }}>
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+          {/* Input file oculto — acionado pelo botão abaixo */}
+          <input
+            id={`file-input-${itemLabel}`}
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
             onChange={handleFileChange}
-            style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }} />
-          {uploading && (
-            <span style={{ fontSize: '0.72rem', color: '#f59e0b', marginLeft: 8 }}>⏳ Carregando arquivo...</span>
-          )}
-          {!uploading && hasFile && !fileTooLarge && (
-            <span style={{ fontSize: '0.72rem', color: '#16a34a', marginLeft: 8, fontWeight: 600 }}>
-              ✓ Arquivo carregado e pronto para envio
-            </span>
-          )}
-          {!uploading && !hasFile && !fileTooLarge && mode === 'upload' && (
-            <span style={{ fontSize: '0.7rem', color: '#f59e0b', marginLeft: 8 }}>⚠ Selecione o arquivo acima</span>
-          )}
+            style={{ display: 'none' }}
+          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => document.getElementById(`file-input-${itemLabel}`)?.click()}
+              style={{
+                padding: '5px 12px', fontSize: '0.72rem', fontWeight: 600,
+                border: '1.5px solid var(--purple)', borderRadius: 6,
+                background: 'white', color: 'var(--purple)', cursor: 'pointer'
+              }}
+            >
+              📎 Escolher arquivo
+            </button>
+            {uploading && (
+              <span style={{ fontSize: '0.72rem', color: '#f59e0b', fontWeight: 600 }}>⏳ Carregando arquivo...</span>
+            )}
+            {!uploading && hasFile && !fileTooLarge && (
+              <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 600 }}>
+                ✓ Arquivo carregado e pronto para envio
+              </span>
+            )}
+            {!uploading && !hasFile && !fileTooLarge && mode === 'upload' && (
+              <span style={{ fontSize: '0.7rem', color: '#f59e0b' }}>⚠ Selecione o arquivo acima</span>
+            )}
+          </div>
 
           {/* Aviso de arquivo grande demais */}
           {fileTooLarge && (
