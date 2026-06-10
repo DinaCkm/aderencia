@@ -464,16 +464,54 @@ export default function AdminAudit() {
               </div>
 
               {/* Botão de e-mail geral */}
-              <div style={{ marginBottom: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button type="button"
-                  onClick={() => openEmailModal(
-                    `Análise da sua ficha — Banco de Sucessores — ${p.name}`,
-                    `Olá, ${p.name?.split(' ')[0]}!\n\nEstamos analisando sua ficha no Banco de Sucessores e precisamos de mais informações.\n\nPor favor, responda este e-mail com os esclarecimentos necessários.\n\nAtenciosamente,\nEquipe RH/UGP — SEBRAE Tocantins`
-                  )}
-                  style={{ fontSize: '0.78rem', background: 'white', border: '1.5px solid #0891b2', borderRadius: 7, padding: '7px 16px', cursor: 'pointer', color: '#0891b2', fontWeight: 600 }}>
-                  ✉️ Solicitar informações por e-mail
-                </button>
-              </div>
+              {(() => {
+                // Detectar arquivos legários (apenas nome salvo, sem base64)
+                const legacyFiles = Object.entries(p.proofFiles || {}).filter(([, v]) => {
+                  if (!v || typeof v !== 'string') return false;
+                  if (v.startsWith('data:')) return false;
+                  if (v.length >= 50) { try { atob(v.slice(0, 100)); return false; } catch { /* não é base64 */ } }
+                  return true;
+                });
+
+                // Formatar lista de itens para o e-mail
+                const formatKey = (key: string) => {
+                  if (key.startsWith('grad:')) return `Graduação — ${key.replace('grad:', '')}`;
+                  if (key.startsWith('grad2:')) return `2ª Graduação — ${key.replace('grad2:', '')}`;
+                  if (key.startsWith('mba_')) return `Pós/MBA — ${key.replace(/^mba_\d+:/, '')}`;
+                  if (key.startsWith('curso5_')) return `Curso — ${key.replace(/^curso5_\d+:/, '')}`;
+                  if (key.startsWith('curso7:')) return `Curso — ${key.replace('curso7:', '')}`;
+                  if (key.startsWith('proj:')) return `Projeto — ${key.replace('proj:', '')}`;
+                  return key;
+                };
+
+                const itemList = legacyFiles.map(([key, filename]) =>
+                  `  • ${formatKey(key)} (arquivo: ${filename})`
+                ).join('\n');
+
+                return (
+                  <div style={{ marginBottom: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button type="button"
+                      onClick={() => openEmailModal(
+                        `Análise da sua ficha — Banco de Sucessores — ${p.name}`,
+                        `Olá, ${p.name?.split(' ')[0]}!\n\nEstamos analisando sua ficha no Banco de Sucessores e precisamos de mais informações.\n\nPor favor, responda este e-mail com os esclarecimentos necessários.\n\nAtenciosamente,\nEquipe RH/UGP — SEBRAE Tocantins`
+                      )}
+                      style={{ fontSize: '0.78rem', background: 'white', border: '1.5px solid #0891b2', borderRadius: 7, padding: '7px 16px', cursor: 'pointer', color: '#0891b2', fontWeight: 600 }}>
+                      ✉️ Solicitar informações por e-mail
+                    </button>
+
+                    {legacyFiles.length > 0 && (
+                      <button type="button"
+                        onClick={() => openEmailModal(
+                          `Banco de Sucessores — Reenvio de documento necessário`,
+                          `Prezado(a) ${p.name?.split(' ')[0]},\n\nIdentificamos uma instabilidade técnica no sistema de envio de documentos do Banco de Sucessores que afetou o registro dos comprovantes que você anexou ao seu formulário. O arquivo foi recebido, porém o conteúdo não foi armazenado corretamente.\n\nPara garantir que sua inscrição seja analisada com todos os documentos necessários, pedimos que acesse novamente o formulário e reenvie o(s) comprovante(s) indicado(s) abaixo:\n\n${itemList}\n\nO prazo de envio permanece até 12/06/2026 às 23h59.\n\nAcesse o formulário pelo link: https://aderencia.ecodobem.com\n\nPedimos desculpas pelo transtorno e agradecemos a compreensão.\n\nAtenciosamente,\nEquipe UGP — Eco ao Bem`
+                        )}
+                        style={{ fontSize: '0.78rem', background: '#fef3c7', border: '1.5px solid #f59e0b', borderRadius: 7, padding: '7px 16px', cursor: 'pointer', color: '#92400e', fontWeight: 700 }}>
+                        ⚠️ Solicitar reenvio de {legacyFiles.length} documento{legacyFiles.length > 1 ? 's' : ''}
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* ── 1. Dados Básicos ── */}
               <SectionCard title="1. Dados Básicos" icon="👤">
