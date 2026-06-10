@@ -45,29 +45,34 @@ const getOptions = (group: CatalogItem['group']) => {
 };
 
 // Componente reutilizavel de comprovação por item
-function ProofSelector({ itemLabel, proofMode, proofFiles, onChange }: {
+function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange, onLinkChange }: {
   itemLabel: string;
   proofMode: Record<string, 'ugp-knows' | 'upload'>;
   proofFiles: Record<string, string>;
+  proofLinks: Record<string, string>;
   onChange: (mode: 'ugp-knows' | 'upload', fileData?: string, fileName?: string, fileType?: string) => void;
+  onLinkChange: (link: string) => void;
 }) {
   const mode = proofMode[itemLabel];
   const [uploading, setUploading] = useState(false);
-  // Verifica se já tem arquivo salvo (base64 ou nome)
+  const [fileTooLarge, setFileTooLarge] = useState(false);
   const savedFile = proofFiles[itemLabel];
   const hasFile = savedFile && (savedFile.startsWith('data:') || savedFile.length > 100);
+  const savedLink = (proofLinks || {})[itemLabel] || '';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setFileTooLarge(false);
     if (file.size > 8 * 1024 * 1024) {
-      alert('Arquivo muito grande. O limite é 8 MB.');
+      setFileTooLarge(true);
+      e.target.value = '';
       return;
     }
     setUploading(true);
     const reader = new FileReader();
     reader.onload = () => {
-      const base64 = reader.result as string; // data:mime;base64,...
+      const base64 = reader.result as string;
       onChange('upload', base64, file.name, file.type);
       setUploading(false);
     };
@@ -104,6 +109,7 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, onChange }: {
           📎 Enviar documento
         </label>
       </div>
+
       {mode === 'upload' && (
         <div style={{ marginTop: 8 }}>
           <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
@@ -112,13 +118,53 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, onChange }: {
           {uploading && (
             <span style={{ fontSize: '0.72rem', color: '#f59e0b', marginLeft: 8 }}>⏳ Carregando arquivo...</span>
           )}
-          {!uploading && hasFile && (
+          {!uploading && hasFile && !fileTooLarge && (
             <span style={{ fontSize: '0.72rem', color: '#16a34a', marginLeft: 8, fontWeight: 600 }}>
               ✓ Arquivo carregado e pronto para envio
             </span>
           )}
-          {!uploading && !hasFile && mode === 'upload' && (
+          {!uploading && !hasFile && !fileTooLarge && mode === 'upload' && (
             <span style={{ fontSize: '0.7rem', color: '#f59e0b', marginLeft: 8 }}>⚠ Selecione o arquivo acima</span>
+          )}
+
+          {/* Aviso de arquivo grande demais */}
+          {fileTooLarge && (
+            <div style={{ marginTop: 8, padding: '10px 12px', background: '#fff7ed', border: '1.5px solid #fb923c', borderRadius: 8 }}>
+              <p style={{ fontSize: '0.75rem', color: '#9a3412', fontWeight: 700, marginBottom: 4 }}>⚠️ Arquivo muito grande (limite: 8 MB)</p>
+              <p style={{ fontSize: '0.72rem', color: '#7c2d12', marginBottom: 8 }}>
+                Você pode <strong>dividir o arquivo em partes menores</strong>, ou salvar no <strong>Google Drive</strong> / <strong>OneDrive</strong> com acesso público e colar o link abaixo.
+              </p>
+              <p style={{ fontSize: '0.7rem', color: '#9a3412', marginBottom: 4, fontWeight: 600 }}>Cole o link do Google Drive ou OneDrive (com acesso público):</p>
+              <input
+                type="url"
+                placeholder="https://drive.google.com/... ou https://1drv.ms/..."
+                value={savedLink}
+                onChange={(e) => onLinkChange(e.target.value)}
+                style={{ width: '100%', padding: '6px 10px', fontSize: '0.72rem', border: '1.5px solid #fb923c', borderRadius: 6, outline: 'none', boxSizing: 'border-box' }}
+              />
+              {savedLink && (
+                <span style={{ fontSize: '0.7rem', color: '#16a34a', fontWeight: 600, marginTop: 4, display: 'block' }}>✓ Link salvo</span>
+              )}
+            </div>
+          )}
+
+          {/* Campo de link opcional (mesmo sem erro) */}
+          {!fileTooLarge && (
+            <div style={{ marginTop: 6 }}>
+              <p style={{ fontSize: '0.68rem', color: '#94a3b8', marginBottom: 3 }}>
+                Prefere enviar por link? Cole o link do Google Drive ou OneDrive (com acesso público):
+              </p>
+              <input
+                type="url"
+                placeholder="https://drive.google.com/... ou https://1drv.ms/..."
+                value={savedLink}
+                onChange={(e) => onLinkChange(e.target.value)}
+                style={{ width: '100%', padding: '5px 10px', fontSize: '0.7rem', border: '1.5px solid #e2e8f0', borderRadius: 6, outline: 'none', boxSizing: 'border-box', color: '#64748b' }}
+              />
+              {savedLink && (
+                <span style={{ fontSize: '0.7rem', color: '#16a34a', fontWeight: 600, marginTop: 3, display: 'block' }}>✓ Link salvo</span>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -349,6 +395,13 @@ export default function ParticipantForm() {
       ...p,
       proofMode: { ...p.proofMode, [itemLabel]: mode },
       proofFiles: fileData ? { ...p.proofFiles, [itemLabel]: fileData } : p.proofFiles,
+    }));
+  };
+
+  const setProofLink = (itemLabel: string, link: string) => {
+    setProfile((p) => ({
+      ...p,
+      proofLinks: { ...(p.proofLinks || {}), [itemLabel]: link },
     }));
   };
 
@@ -870,7 +923,9 @@ export default function ParticipantForm() {
                       itemLabel={`grad:${profile.graduation}`}
                       proofMode={profile.proofMode}
                       proofFiles={profile.proofFiles}
+                      proofLinks={profile.proofLinks || {}}
                       onChange={(mode, fileData, fileName, fileType) => setProof(`grad:${profile.graduation}`, mode, fileData, fileName, fileType)}
+                      onLinkChange={(link) => setProofLink(`grad:${profile.graduation}`, link)}
                     />
                   </div>
                 )}
@@ -957,7 +1012,9 @@ export default function ParticipantForm() {
                           itemLabel={`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`}
                           proofMode={profile.proofMode}
                           proofFiles={profile.proofFiles}
+                          proofLinks={profile.proofLinks || {}}
                           onChange={(mode, fileData, fileName, fileType) => setProof(`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`, mode, fileData, fileName, fileType)}
+                          onLinkChange={(link) => setProofLink(`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`, link)}
                         />
                       </div>
                     )}
@@ -1156,7 +1213,9 @@ export default function ParticipantForm() {
                               itemLabel={proofKey}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
+                              proofLinks={profile.proofLinks || {}}
                               onChange={(mode, fileData, fileName, fileType) => setProof(proofKey, mode, fileData, fileName, fileType)}
+                              onLinkChange={(link) => setProofLink(proofKey, link)}
                             />
                           </div>
                         )}
@@ -1397,7 +1456,9 @@ export default function ParticipantForm() {
                               itemLabel={`curso5_${idx}:${course.name}`}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
+                              proofLinks={profile.proofLinks || {}}
                               onChange={(mode, fileData, fileName, fileType) => setProof(`curso5_${idx}:${course.name}`, mode, fileData, fileName, fileType)}
+                              onLinkChange={(link) => setProofLink(`curso5_${idx}:${course.name}`, link)}
                             />
                           </div>
                         )}
@@ -1601,7 +1662,9 @@ export default function ParticipantForm() {
                               itemLabel={`curso7:${o.label}`}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
+                              proofLinks={profile.proofLinks || {}}
                               onChange={(mode, fileData, fileName, fileType) => setProof(`curso7:${o.label}`, mode, fileData, fileName, fileType)}
+                              onLinkChange={(link) => setProofLink(`curso7:${o.label}`, link)}
                             />
                           </>
                         )}
@@ -1778,7 +1841,9 @@ export default function ParticipantForm() {
                             itemLabel={`proj:${o.label}`}
                             proofMode={profile.proofMode}
                             proofFiles={profile.proofFiles}
+                            proofLinks={profile.proofLinks || {}}
                             onChange={(mode, fileData, fileName, fileType) => setProof(`proj:${o.label}`, mode, fileData, fileName, fileType)}
+                            onLinkChange={(link) => setProofLink(`proj:${o.label}`, link)}
                           />
                         )}
                       </div>

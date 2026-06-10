@@ -580,6 +580,12 @@ export default function AdminAudit() {
                       {mode === 'upload' && p.proofFiles?.[fileKey] && (
                         <FileViewer base64={p.proofFiles[fileKey]} fileName="comprovante-graduacao" label="Comprovante de graduação" />
                       )}
+                      {mode === 'upload' && (p as any).proofLinks?.[fileKey] && (
+                        <div style={{ marginTop: 6, padding: '6px 10px', background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 6 }}>
+                          <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#1e40af' }}>🔗 Link externo (Google Drive / OneDrive): </span>
+                          <a href={(p as any).proofLinks[fileKey]} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.7rem', color: '#1d4ed8', wordBreak: 'break-all' }}>{(p as any).proofLinks[fileKey]}</a>
+                        </div>
+                      )}
                     </>
                   );
                 })()}
@@ -624,6 +630,12 @@ export default function AdminAudit() {
                                 fileName={`comprovante-pos-${i + 1}`}
                                 label="Comprovante enviado"
                               />
+                            )}
+                            {mode === 'upload' && (p as any).proofLinks?.[mbaKey] && (
+                              <div style={{ marginTop: 6, padding: '6px 10px', background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 6 }}>
+                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#1e40af' }}>🔗 Link externo: </span>
+                                <a href={(p as any).proofLinks[mbaKey]} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.7rem', color: '#1d4ed8', wordBreak: 'break-all' }}>{(p as any).proofLinks[mbaKey]}</a>
+                              </div>
                             )}
                             <ValidationControls itemKey={`postmba-${i}`} validation={getValidation(`postmba-${i}`)} onSave={saveItemValidation} />
                           </div>
@@ -675,6 +687,12 @@ export default function AdminAudit() {
                             {mode === 'upload' && p.proofFiles?.[key] && (
                               <FileViewer base64={p.proofFiles[key]} fileName={`comprovante-curso-${i + 1}`} label="Comprovante enviado" />
                             )}
+                            {mode === 'upload' && (p as any).proofLinks?.[key] && (
+                              <div style={{ marginTop: 6, padding: '6px 10px', background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 6 }}>
+                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#1e40af' }}>🔗 Link externo: </span>
+                                <a href={(p as any).proofLinks[key]} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.7rem', color: '#1d4ed8', wordBreak: 'break-all' }}>{(p as any).proofLinks[key]}</a>
+                              </div>
+                            )}
                             <ValidationControls itemKey={`curso-free-${i}`} validation={getValidation(`curso-free-${i}`)} onSave={saveItemValidation} />
                           </div>
                         );
@@ -691,6 +709,12 @@ export default function AdminAudit() {
                             <ProofBadge mode={mode} />
                             {mode === 'upload' && p.proofFiles?.[key] && (
                               <FileViewer base64={p.proofFiles[key]} fileName={`comprovante-curso-cat-${i + 1}`} label="Comprovante enviado" />
+                            )}
+                            {mode === 'upload' && (p as any).proofLinks?.[key] && (
+                              <div style={{ marginTop: 6, padding: '6px 10px', background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 6 }}>
+                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#1e40af' }}>🔗 Link externo: </span>
+                                <a href={(p as any).proofLinks[key]} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.7rem', color: '#1d4ed8', wordBreak: 'break-all' }}>{(p as any).proofLinks[key]}</a>
+                              </div>
                             )}
                             <ValidationControls itemKey={`curso-cat-${i}`} validation={getValidation(`curso-cat-${i}`)} onSave={saveItemValidation} />
                           </div>
@@ -755,6 +779,12 @@ export default function AdminAudit() {
                             fileName={`comprovante-projeto-${i + 1}`}
                             label="Comprovante enviado"
                           />
+                        )}
+                        {mode === 'upload' && (p as any).proofLinks?.[projKey] && (
+                          <div style={{ marginTop: 6, padding: '6px 10px', background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 6 }}>
+                            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#1e40af' }}>🔗 Link externo: </span>
+                            <a href={(p as any).proofLinks[projKey]} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.7rem', color: '#1d4ed8', wordBreak: 'break-all' }}>{(p as any).proofLinks[projKey]}</a>
+                          </div>
                         )}
                         <ValidationControls itemKey={`projeto-${i}`} validation={getValidation(`projeto-${i}`)} onSave={saveItemValidation} />
                       </div>

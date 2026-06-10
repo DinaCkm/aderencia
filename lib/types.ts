@@ -66,6 +66,7 @@ export interface ParticipantProfile {
   courseHours: Record<string, number>;
   proofMode: Record<string, 'ugp-knows' | 'upload'>;
   proofFiles: Record<string, string>;
+  proofLinks?: Record<string, string>;  // links externos (Google Drive / OneDrive) por itemLabel
   // Projetos estratégicos — entram no cálculo (máx. 3 selecionados)
   selectedProjects: string[];
   projectAreaMap: Record<string, AreaCode>; // projeto → área de interesse escolhida
