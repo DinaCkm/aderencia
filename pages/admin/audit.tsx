@@ -28,6 +28,7 @@ interface ParticipantSummary {
   selectedAreas: string[];
   exceptionRequested: boolean;
   exceptionStatus: string | null;
+  hasLegacyFiles?: boolean;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -391,6 +392,11 @@ export default function AdminAudit() {
                 <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>{pt.name}</div>
                 <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{pt.email}</div>
                 <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
+                  {pt.hasLegacyFiles && (
+                    <span style={{ fontSize: '0.62rem', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 3, padding: '1px 5px', color: '#991b1b', fontWeight: 700 }}>
+                      📧 Reenviar docs
+                    </span>
+                  )}
                   {pt.exceptionRequested && (
                     <span style={{ fontSize: '0.62rem', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 3, padding: '1px 5px', color: '#92400e', fontWeight: 700 }}>
                       ⚠️ Exceção

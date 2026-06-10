@@ -35,6 +35,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         selectedAreas: p?.selectedAreas ?? [],
         exceptionRequested: p?.exceptionRequested ?? false,
         exceptionStatus: p?.exceptionStatus ?? null,
+        hasLegacyFiles: p ? Object.values(p.proofFiles || {}).some((v: any) => {
+          if (!v || typeof v !== 'string') return false;
+          if (v.startsWith('data:')) return false;
+          if (v.length >= 50) { try { Buffer.from(v.slice(0, 100), 'base64'); return false; } catch { /* não é base64 */ } }
+          return true;
+        }) : false,
       };
     });
 
