@@ -908,7 +908,17 @@ export default function ParticipantForm() {
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 6 }}>Selecione a área mais próxima da sua formação.</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
                   <select className="form-input" value={profile.graduation}
-                    onChange={(e) => setProfile((p) => ({ ...p, graduation: e.target.value, graduationCourseName: '', graduationException: '' } as any))} required>
+                    onChange={(e) => setProfile((p) => {
+                      // Limpar proofMode e proofFiles da graduação anterior ao trocar a área
+                      const oldKey = `grad:${p.graduation}`;
+                      const newProofMode = { ...p.proofMode };
+                      const newProofFiles = { ...p.proofFiles };
+                      const newProofLinks = { ...(p.proofLinks || {}) };
+                      delete newProofMode[oldKey];
+                      delete newProofFiles[oldKey];
+                      delete newProofLinks[oldKey];
+                      return { ...p, graduation: e.target.value, graduationCourseName: '', graduationException: '', proofMode: newProofMode, proofFiles: newProofFiles, proofLinks: newProofLinks } as any;
+                    })} required>
                     <option value="">Selecione a área da sua graduação</option>
                     {graduationOptions.map((o) => <option key={o.id} value={o.label}>{o.label}</option>)}
                     <option value="__outro__">Outro curso / Área não identificada</option>
@@ -2024,15 +2034,15 @@ export default function ParticipantForm() {
                 )}
               </div>
 
-              {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginTop: 12 }}>{status}</div>}
+              {status && <div style={{ background: status === 'Enviando...' ? '#eff6ff' : '#fef2f2', border: `1px solid ${status === 'Enviando...' ? '#bfdbfe' : '#fecaca'}`, borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: status === 'Enviando...' ? '#1d4ed8' : '#dc2626', fontSize: '0.85rem', marginTop: 12, fontWeight: 600, textAlign: 'center' }}>{status === 'Enviando...' ? '⏳ Enviando seus dados, aguarde...' : `⚠ ${status}`}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
-                <button type="button" className="btn-outline" onClick={() => setStep(6)}>← Voltar</button>
-                <button type="button" className="btn-primary" style={{ minWidth: 180 }} onClick={(e) => {
+                <button type="button" className="btn-outline" onClick={() => setStep(6)} disabled={status === 'Enviando...'}}>← Voltar</button>
+                <button type="button" className="btn-primary" style={{ minWidth: 180, opacity: status === 'Enviando...' ? 0.7 : 1 }} disabled={status === 'Enviando...'} onClick={(e) => {
                   // Validar área vinculada a cada projeto (obrigatório)
                   for (const item of profile.selectedProjects) {
                     if (!profile.projectAreaMap?.[item]) {
                       setStatus(`Informe a área de interesse para o projeto: "${item}". Clique no projeto e selecione a área ao qual o seu projeto tem aderência.`);
-                      return;
+                      window.scrollTo({ top: 0, behavior: 'smooth' }); return;
                     }
                   }
                   // Validar comprovação dos projetos selecionados
@@ -2046,7 +2056,7 @@ export default function ParticipantForm() {
                   }
                   handleSubmit(e as any);
                 }}>
-                  ✓ Enviar formulário
+                  {status === 'Enviando...' ? '⏳ Enviando...' : '✓ Enviar formulário'}
                 </button>
               </div>
             </div>
