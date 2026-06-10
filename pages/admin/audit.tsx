@@ -137,6 +137,16 @@ function SectionCard({ title, icon, children }: { title: string; icon: string; c
 // ─── Visualizador de arquivo inline ──────────────────────────────────────────
 function FileViewer({ base64, fileName, fileType, label }: { base64: string; fileName: string; fileType?: string; label?: string }) {
   const [open, setOpen] = React.useState(false);
+
+  // Detecta se o valor salvo é base64 real ou apenas nome de arquivo (bug legado)
+  const isValidBase64 = React.useMemo(() => {
+    if (!base64) return false;
+    if (base64.startsWith('data:')) return true; // data URL válida
+    if (base64.length < 50) return false; // muito curto para ser base64
+    // Testa se é base64 válido
+    try { atob(base64.slice(0, 100)); return true; } catch { return false; }
+  }, [base64]);
+
   const mime = fileType || (fileName.endsWith('.pdf') ? 'application/pdf' : fileName.match(/\.(jpe?g|png|gif|webp)$/i) ? 'image/' + fileName.split('.').pop() : 'application/octet-stream');
   const dataUrl = base64.startsWith('data:') ? base64 : `data:${mime};base64,${base64}`;
   const isPdf = mime === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf');
@@ -158,13 +168,22 @@ function FileViewer({ base64, fileName, fileType, label }: { base64: string; fil
       a.click();
       setTimeout(() => { URL.revokeObjectURL(url); document.body.removeChild(a); }, 1000);
     } catch {
-      // fallback para data URL
-      const a = document.createElement('a');
-      a.href = dataUrl;
-      a.download = fileName;
-      a.click();
+      alert('Não foi possível baixar: o arquivo não foi salvo corretamente. O participante precisa reenviar o formulário.');
     }
   };
+
+  // Arquivo não salvo corretamente (bug legado — apenas nome foi armazenado)
+  if (!isValidBase64) {
+    return (
+      <div style={{ marginTop: 8 }}>
+        {label && <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>}
+        <div style={{ fontSize: '0.72rem', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 6, padding: '6px 10px', color: '#92400e' }}>
+          ⚠️ Arquivo registrado como <strong>{base64}</strong>, mas o conteúdo não foi salvo.
+          O participante precisa acessar o formulário e reenviar o documento.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ marginTop: 8 }}>
