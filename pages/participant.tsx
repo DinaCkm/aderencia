@@ -854,6 +854,7 @@ export default function ParticipantForm() {
           {/* ── STEP 3: FORMAÇÃO ── */}
           {step === 3 && (
             <div className="section-card">
+              {status && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: '#dc2626', fontSize: '0.82rem', marginBottom: 12, fontWeight: 600 }}>⚠ {status}</div>}
               <div className="section-title">
                 <span className="section-icon">&#127891;</span>
                 <div>
@@ -1043,13 +1044,15 @@ export default function ParticipantForm() {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
                 <button type="button" className="btn-outline" onClick={() => setStep(2)}>← Voltar</button>
                 <button type="button" className="btn-primary" style={{ minWidth: 140 }} onClick={() => {
-                  if (!profile.graduation) { setStatus('Selecione a área da sua graduação.'); return; }
-                  if (!(profile as any).graduationCourseName?.trim()) { setStatus('Informe o nome completo do curso de graduação.'); return; }
-                  if (profile.graduation === '__outro__' && !(profile as any).graduationException?.trim()) { setStatus('Preencha o campo de exceção com o nome e descrição do seu curso.'); return; }
+                  if (!profile.graduation) { setStatus('Selecione a área da sua graduação.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                  if (!(profile as any).graduationCourseName?.trim()) { setStatus('Informe o nome completo do curso de graduação.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                  if (profile.graduation === '__outro__' && !(profile as any).graduationException?.trim()) { setStatus('Preencha o campo de exceção com o nome e descrição do seu curso.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                   if (profile.graduation !== '__outro__') {
                     const mode = profile.proofMode[`grad:${profile.graduation}`];
-                    if (!mode) { setStatus('Selecione como vai comprovar sua graduação (A UGP já tem conhecimento ou Enviar documento).'); return; }
-                    if (mode === 'upload' && !profile.proofFiles[`grad:${profile.graduation}`]) { setStatus('Você selecionou "Enviar documento" para a graduação — escolha o arquivo antes de continuar.'); return; }
+                    if (!mode) { setStatus('Selecione como vai comprovar sua graduação (A UGP já tem conhecimento ou Enviar documento).'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                    const hasFile = !!profile.proofFiles[`grad:${profile.graduation}`];
+                    const hasLink = !!(profile.proofLinks || {})[`grad:${profile.graduation}`];
+                    if (mode === 'upload' && !hasFile && !hasLink) { setStatus('Você selecionou "Enviar documento" para a graduação — escolha o arquivo ou cole um link do Google Drive antes de continuar.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                   }
                   if ((profile as any).graduation2HasField) {
                     if (!(profile as any).graduation2) { setStatus('Selecione a área da 2ª graduação.'); return; }
