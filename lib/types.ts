@@ -164,6 +164,9 @@ export interface ExceptionItem {
   targetArea?: string;    // área de interesse para a qual quer aplicar
   objective: string;      // objetivo: o que o participante quer que seja reconhecido
   justification: string;  // justificativa detalhada
+  fileBase64?: string;    // arquivo comprobatório em base64
+  fileName?: string;      // nome original do arquivo
+  fileType?: string;      // mime type do arquivo
 }
 
 export interface AuditReport {

@@ -1776,12 +1776,155 @@ export default function ParticipantForm() {
                     Tenho um projeto que não tem correspondência acima
                   </span>
                 </label>
+
                 {profile.exceptionRequested && (
-                  <textarea className="form-input" rows={3}
-                    placeholder="Descreva o projeto, seu papel e por que acredita que deve ser considerado no processo de avaliação..."
-                    value={profile.exceptionJustification}
-                    onChange={(e) => setProfile((p) => ({ ...p, exceptionJustification: e.target.value }))}
-                    style={{ resize: 'vertical', fontSize: '0.82rem' }} />
+                  <div style={{ background: '#fefce8', border: '1.5px solid #fde68a', borderRadius: 10, padding: '16px 18px', marginTop: 4 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#92400e', marginBottom: 6 }}>&#9888; Solicitação de Análise de Exceção</div>
+                    <p style={{ fontSize: '0.78rem', color: '#78350f', lineHeight: 1.6, marginBottom: 14 }}>
+                      Preencha os campos abaixo com o máximo de detalhes possível. Sua solicitação será analisada pelo RH/UGP antes da pontuação final ser confirmada.
+                      <strong> Quanto mais detalhada for sua descrição, maior a chance de o item ser reconhecido.</strong>
+                    </p>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                      {/* Nome do projeto/item */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#92400e', marginBottom: 4 }}>
+                          1. Nome do projeto ou iniciativa *
+                        </label>
+                        <input className="form-input"
+                          placeholder="Ex: Gestão da Secretaria DIREX — Elaboração do Manual Operacional"
+                          value={(profile as any).exceptionItemName || ''}
+                          onChange={(e) => setProfile((p) => ({ ...p, exceptionItemName: e.target.value } as any))}
+                          style={{ fontSize: '0.82rem' }} />
+                        <p style={{ fontSize: '0.7rem', color: '#78350f', marginTop: 3 }}>Informe o nome completo e oficial do projeto, programa ou iniciativa.</p>
+                      </div>
+
+                      {/* Área de interesse */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#92400e', marginBottom: 4 }}>
+                          2. Para qual área de interesse você quer aplicar este projeto? *
+                        </label>
+                        <select className="form-input"
+                          value={(profile as any).exceptionTargetArea || ''}
+                          onChange={(e) => setProfile((p) => ({ ...p, exceptionTargetArea: e.target.value } as any))}
+                          style={{ fontSize: '0.82rem' }}>
+                          <option value="">Selecione a área...</option>
+                          {profile.selectedAreas.map((code) => {
+                            const area = INTEREST_AREAS.find(a => a.code === code);
+                            return <option key={code} value={code}>{area?.label || code}</option>;
+                          })}
+                        </select>
+                        <p style={{ fontSize: '0.7rem', color: '#78350f', marginTop: 3 }}>Escolha a área de interesse para a qual este projeto demonstra aderência.</p>
+                      </div>
+
+                      {/* Seu papel */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#92400e', marginBottom: 4 }}>
+                          3. Qual foi o seu papel neste projeto? *
+                        </label>
+                        <select className="form-input"
+                          value={(profile as any).exceptionRole || ''}
+                          onChange={(e) => setProfile((p) => ({ ...p, exceptionRole: e.target.value } as any))}
+                          style={{ fontSize: '0.82rem' }}>
+                          <option value="">Selecione seu papel...</option>
+                          <option value="lider">Líder do projeto</option>
+                          <option value="membro">Membro da equipe</option>
+                          <option value="colaborador">Colaborador pontual</option>
+                          <option value="coordenador">Coordenador</option>
+                          <option value="outro">Outro</option>
+                        </select>
+                      </div>
+
+                      {/* Período */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#92400e', marginBottom: 4 }}>
+                          4. Período de participação *
+                        </label>
+                        <input className="form-input"
+                          placeholder="Ex: Jan/2023 a Dez/2023"
+                          value={(profile as any).exceptionPeriod || ''}
+                          onChange={(e) => setProfile((p) => ({ ...p, exceptionPeriod: e.target.value } as any))}
+                          style={{ fontSize: '0.82rem' }} />
+                      </div>
+
+                      {/* O que foi entregue */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#92400e', marginBottom: 4 }}>
+                          5. O que foi entregue / qual foi o resultado do projeto? *
+                        </label>
+                        <textarea className="form-input" rows={3}
+                          placeholder="Descreva as principais entregas, resultados alcançados e impacto do projeto para a área ou organização..."
+                          value={(profile as any).exceptionDelivery || ''}
+                          onChange={(e) => setProfile((p) => ({ ...p, exceptionDelivery: e.target.value } as any))}
+                          style={{ resize: 'vertical', fontSize: '0.82rem' }} />
+                      </div>
+
+                      {/* Por que deve ser reconhecido */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#92400e', marginBottom: 4 }}>
+                          6. Por que este projeto deve ser reconhecido como aderênte à área escolhida? *
+                        </label>
+                        <textarea className="form-input" rows={3}
+                          placeholder="Explique a relação entre o projeto e as competências e responsabilidades da área de interesse selecionada..."
+                          value={profile.exceptionJustification}
+                          onChange={(e) => setProfile((p) => ({ ...p, exceptionJustification: e.target.value }))}
+                          style={{ resize: 'vertical', fontSize: '0.82rem' }} />
+                      </div>
+
+                      {/* Como comprovar */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#92400e', marginBottom: 4 }}>
+                          7. Como você pode comprovar sua participação? *
+                        </label>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                          {['A UGP já tem conhecimento', 'Tenho documento comprobatório', 'Posso indicar um gestor que confirme'].map((opt) => (
+                            <label key={opt} style={{
+                              display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
+                              padding: '5px 10px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 500,
+                              border: `1.5px solid ${ (profile as any).exceptionProofType === opt ? '#92400e' : 'var(--border)'}`,
+                              background: (profile as any).exceptionProofType === opt ? '#fef3c7' : 'white',
+                              color: (profile as any).exceptionProofType === opt ? '#92400e' : 'var(--text)'
+                            }}>
+                              <input type="radio" name="exceptionProofType" value={opt}
+                                checked={(profile as any).exceptionProofType === opt}
+                                onChange={() => setProfile((p) => ({ ...p, exceptionProofType: opt } as any))}
+                                style={{ accentColor: '#92400e', width: 13, height: 13 }} />
+                              {opt}
+                            </label>
+                          ))}
+                        </div>
+                        {(profile as any).exceptionProofType === 'Tenho documento comprobatório' && (
+                          <div style={{ marginTop: 8 }}>
+                            <p style={{ fontSize: '0.72rem', color: '#78350f', marginBottom: 6 }}>
+                              Anexe um documento que comprove sua participação (portaria, ata, certificado, e-mail, etc.).
+                              Formatos aceitos: PDF, JPG, PNG, DOC, DOCX. Tamanho máximo: 5 MB.
+                            </p>
+                            <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                if (file.size > 5 * 1024 * 1024) {
+                                  alert('Arquivo muito grande. O tamanho máximo é 5 MB.');
+                                  return;
+                                }
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  const base64 = (ev.target?.result as string).split(',')[1];
+                                  setProfile((p) => ({ ...p, exceptionFileBase64: base64, exceptionFileName: file.name, exceptionFileType: file.type } as any));
+                                };
+                                reader.readAsDataURL(file);
+                              }}
+                              style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }} />
+                            {(profile as any).exceptionFileName && (
+                              <span style={{ fontSize: '0.72rem', color: '#16a34a', marginLeft: 8 }}>
+                                &#10003; {(profile as any).exceptionFileName}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
 
