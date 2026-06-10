@@ -405,8 +405,7 @@ export default function ParticipantForm() {
     }));
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const doSubmit = async () => {
     setStatus('Enviando...');
     try {
       const res = await fetch('/api/participant/submit', {
@@ -427,6 +426,10 @@ export default function ParticipantForm() {
     } catch {
       setStatus('Erro de conexão. Tente novamente.');
     }
+  };
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    await doSubmit();
   };
 
   const TOTAL_STEPS = 7;
@@ -2054,7 +2057,7 @@ export default function ParticipantForm() {
                     const hasLink = !!(profile.proofLinks || {})[key];
                     if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                   }
-                  handleSubmit(e as any);
+                  doSubmit();
                 }}>
                   {status === 'Enviando...' ? '⏳ Enviando...' : '✓ Enviar formulário'}
                 </button>
