@@ -476,98 +476,149 @@ export default function AdminAudit() {
                   {p.graduationCourseName && p.graduation !== '__outro__' && <InfoField label="Nome do curso (livre)" value={p.graduationCourseName} />}
                   {p.graduationException && <InfoField label="Justificativa de exceção" value={p.graduationException} />}
                 </div>
-                {/* Badge de comprovação da graduação */}
-                {!p.proofMode?.['graduation'] ? (
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', margin: '8px 0 4px' }}>
-                    ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar
-                  </div>
-                ) : p.proofMode['graduation'] === 'ugp-knows' ? (
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 4, padding: '3px 8px', display: 'inline-block', margin: '8px 0 4px' }}>
-                    ✓ A UGP já tem conhecimento — aguarda validação interna pela UGP
-                  </div>
-                ) : (
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', background: '#dbeafe', border: '1px solid #93c5fd', borderRadius: 4, padding: '3px 8px', display: 'inline-block', margin: '8px 0 4px' }}>
-                    📎 Enviou documento para comprovação
-                  </div>
-                )}
-                {p.proofMode?.['graduation'] === 'upload' && p.proofFiles?.['graduation'] && (
-                  <FileViewer base64={p.proofFiles['graduation']} fileName="comprovante-graduacao" label="Comprovante de graduação" />
-                )}
+                {/* Badge de comprovação da graduação — chave: grad:<area> */}
+                {(() => {
+                  const gradKey = `grad:${p.graduation}`;
+                  const gradKey2 = p.graduation2 ? `grad2:${(p as any).graduation2CourseName?.trim() || p.graduation2}` : null;
+                  const mode = p.proofMode?.[gradKey] || (gradKey2 ? p.proofMode?.[gradKey2] : undefined);
+                  const fileKey = mode === 'upload' ? (p.proofFiles?.[gradKey] ? gradKey : gradKey2 || gradKey) : gradKey;
+                  return (
+                    <>
+                      {!mode ? (
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', margin: '8px 0 4px' }}>
+                          ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar
+                        </div>
+                      ) : mode === 'ugp-knows' ? (
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 4, padding: '3px 8px', display: 'inline-block', margin: '8px 0 4px' }}>
+                          ✓ A UGP já tem conhecimento — aguarda validação interna pela UGP
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', background: '#dbeafe', border: '1px solid #93c5fd', borderRadius: 4, padding: '3px 8px', display: 'inline-block', margin: '8px 0 4px' }}>
+                          📎 Enviou documento para comprovação
+                        </div>
+                      )}
+                      {mode === 'upload' && p.proofFiles?.[fileKey] && (
+                        <FileViewer base64={p.proofFiles[fileKey]} fileName="comprovante-graduacao" label="Comprovante de graduação" />
+                      )}
+                    </>
+                  );
+                })()}
                 <ValidationControls itemKey="graduacao" validation={getValidation('graduacao')} onSave={saveItemValidation} />
               </SectionCard>
 
               {/* ── 4. Pós/MBA ── */}
               <SectionCard title="4. Pós-Graduação / MBA" icon="📚">
-                {(p.postMBAs || []).length === 0 ? (
-                  <p style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Nenhum título declarado.</p>
-                ) : (
-                  (p.postMBAs || []).map((title, i) => (
-                    <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-                      <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b', marginBottom: 4 }}>{title}</div>
-                      {/* Comprovante */}
-                      {!p.proofMode?.[title] ? (
-                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
-                          ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar
-                        </div>
-                      ) : p.proofMode[title] === 'ugp-knows' ? (
-                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
-                          ✓ A UGP já tem conhecimento — aguarda validação interna pela UGP
-                        </div>
-                      ) : (
-                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', background: '#dbeafe', border: '1px solid #93c5fd', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
-                          📎 Enviou documento para comprovação
-                        </div>
-                      )}
-                      {p.proofMode?.[title] === 'upload' && p.proofFiles?.[title] && (
-                        <FileViewer
-                          base64={p.proofFiles[title]}
-                          fileName={`comprovante-pos-${i + 1}`}
-                          label="Comprovante enviado"
-                        />
-                      )}
-                      <ValidationControls itemKey={`postmba-${i}`} validation={getValidation(`postmba-${i}`)} onSave={saveItemValidation} />
-                    </div>
-                  ))
-                )}
+                {(() => {
+                  // Usar mbaBlocks (com nome completo) para construir a chave correta: mba_i:nome
+                  const blocks: Array<{area?: string; name?: string; year?: string}> = (p as any).mbaBlocks || [];
+                  const validBlocks = blocks.filter((b) => b.area && b.area !== '__outro_mba__' && b.name?.trim());
+                  if (validBlocks.length === 0) {
+                    return <p style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Nenhum título declarado.</p>;
+                  }
+                  return (
+                    <>
+                      {validBlocks.map((mba, i) => {
+                        const mbaKey = `mba_${i}:${mba.name!.trim()}`;
+                        const mode = p.proofMode?.[mbaKey];
+                        return (
+                          <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+                            <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b', marginBottom: 2 }}>{mba.name}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#64748b', marginBottom: 4 }}>Área: {mba.area}{mba.year ? ` • ${mba.year}` : ''}</div>
+                            {/* Comprovante — chave: mba_i:nome */}
+                            {!mode ? (
+                              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
+                                ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar
+                              </div>
+                            ) : mode === 'ugp-knows' ? (
+                              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
+                                ✓ A UGP já tem conhecimento — aguarda validação interna pela UGP
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', background: '#dbeafe', border: '1px solid #93c5fd', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
+                                📎 Enviou documento para comprovação
+                              </div>
+                            )}
+                            {mode === 'upload' && p.proofFiles?.[mbaKey] && (
+                              <FileViewer
+                                base64={p.proofFiles[mbaKey]}
+                                fileName={`comprovante-pos-${i + 1}`}
+                                label="Comprovante enviado"
+                              />
+                            )}
+                            <ValidationControls itemKey={`postmba-${i}`} validation={getValidation(`postmba-${i}`)} onSave={saveItemValidation} />
+                          </div>
+                        );
+                      })}
+                    </>
+                  );
+                })()}
               </SectionCard>
 
               {/* ── 5. Cursos Extracurriculares ── */}
               <SectionCard title="5. Cursos Extracurriculares" icon="📖">
-                {(p.selectedCourses || []).length === 0 ? (
-                  <p style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Nenhum curso declarado.</p>
-                ) : (
-                  (p.selectedCourses || []).map((course, i) => (
-                    <div key={i} style={{ marginBottom: 10, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-                      <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>{course}</div>
-                      {p.courseHours?.[course] && (
-                        <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>
-                          Carga horária: {p.courseHours[course]}h
-                        </div>
-                      )}
-                      {!p.proofMode?.[course] ? (
-                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginTop: 4 }}>
-                          ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar
-                        </div>
-                      ) : p.proofMode[course] === 'ugp-knows' ? (
-                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginTop: 4 }}>
-                          ✓ A UGP já tem conhecimento — aguarda validação interna pela UGP
-                        </div>
-                      ) : (
-                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', background: '#dbeafe', border: '1px solid #93c5fd', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginTop: 4 }}>
-                          📎 Enviou documento para comprovação
-                        </div>
-                      )}
-                      {p.proofMode?.[course] === 'upload' && p.proofFiles?.[course] && (
-                        <FileViewer
-                          base64={p.proofFiles[course]}
-                          fileName={`comprovante-curso-${i + 1}`}
-                          label="Comprovante enviado"
-                        />
-                      )}
-                      <ValidationControls itemKey={`curso-${i}`} validation={getValidation(`curso-${i}`)} onSave={saveItemValidation} />
-                    </div>
-                  ))
-                )}
+                {(() => {
+                  // Cursos livres (entrada manual) — chave: curso5_i:nome
+                  const freeCourses: Array<{name?: string; area?: string; hours?: number}> = (p as any).freeCourses || [];
+                  const validFree = freeCourses.filter((c) => c.name?.trim() && c.area && (c.hours || 0) >= 16);
+                  // Cursos do catálogo — chave: curso7:nome
+                  const catCourses: string[] = p.selectedCourses || [];
+                  if (validFree.length === 0 && catCourses.length === 0) {
+                    return <p style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Nenhum curso declarado.</p>;
+                  }
+                  const ProofBadge = ({ mode }: { mode: string | undefined }) => {
+                    if (!mode) return (
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginTop: 4 }}>
+                        ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar
+                      </div>
+                    );
+                    if (mode === 'ugp-knows') return (
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginTop: 4 }}>
+                        ✓ A UGP já tem conhecimento — aguarda validação interna pela UGP
+                      </div>
+                    );
+                    return (
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', background: '#dbeafe', border: '1px solid #93c5fd', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginTop: 4 }}>
+                        📎 Enviou documento para comprovação
+                      </div>
+                    );
+                  };
+                  return (
+                    <>
+                      {validFree.map((course, i) => {
+                        const key = `curso5_${i}:${course.name!.trim()}`;
+                        const mode = p.proofMode?.[key];
+                        return (
+                          <div key={`free-${i}`} style={{ marginBottom: 10, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+                            <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>{course.name}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>Área: {course.area} • {course.hours}h</div>
+                            <ProofBadge mode={mode} />
+                            {mode === 'upload' && p.proofFiles?.[key] && (
+                              <FileViewer base64={p.proofFiles[key]} fileName={`comprovante-curso-${i + 1}`} label="Comprovante enviado" />
+                            )}
+                            <ValidationControls itemKey={`curso-free-${i}`} validation={getValidation(`curso-free-${i}`)} onSave={saveItemValidation} />
+                          </div>
+                        );
+                      })}
+                      {catCourses.map((course, i) => {
+                        const key = `curso7:${course}`;
+                        const mode = p.proofMode?.[key];
+                        return (
+                          <div key={`cat-${i}`} style={{ marginBottom: 10, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+                            <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>{course}</div>
+                            {p.courseHours?.[course] && (
+                              <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>Carga horária: {p.courseHours[course]}h</div>
+                            )}
+                            <ProofBadge mode={mode} />
+                            {mode === 'upload' && p.proofFiles?.[key] && (
+                              <FileViewer base64={p.proofFiles[key]} fileName={`comprovante-curso-cat-${i + 1}`} label="Comprovante enviado" />
+                            )}
+                            <ValidationControls itemKey={`curso-cat-${i}`} validation={getValidation(`curso-cat-${i}`)} onSave={saveItemValidation} />
+                          </div>
+                        );
+                      })}
+                    </>
+                  );
+                })()}
               </SectionCard>
 
               {/* ── 6. Experiência ── */}
@@ -593,37 +644,42 @@ export default function AdminAudit() {
                 {(p.selectedProjects || []).length === 0 ? (
                   <p style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Nenhum projeto selecionado.</p>
                 ) : (
-                  (p.selectedProjects || []).map((proj, i) => (
-                    <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-                      <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b', marginBottom: 4 }}>{proj}</div>
-                      {p.projectAreaMap?.[proj] && (
-                        <div style={{ fontSize: '0.72rem', color: '#5b21b6', marginBottom: 4 }}>
-                          🎯 Área de aplicação: {AREA_LABELS[p.projectAreaMap[proj]] || p.projectAreaMap[proj]}
-                        </div>
-                      )}
-                      {!p.proofMode?.[proj] ? (
-                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
-                          ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar
-                        </div>
-                      ) : p.proofMode[proj] === 'ugp-knows' ? (
-                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
-                          ✓ A UGP já tem conhecimento — aguarda validação interna pela UGP
-                        </div>
-                      ) : (
-                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', background: '#dbeafe', border: '1px solid #93c5fd', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
-                          📎 Enviou documento para comprovação
-                        </div>
-                      )}
-                      {p.proofMode?.[proj] === 'upload' && p.proofFiles?.[proj] && (
-                        <FileViewer
-                          base64={p.proofFiles[proj]}
-                          fileName={`comprovante-projeto-${i + 1}`}
-                          label="Comprovante enviado"
-                        />
-                      )}
-                      <ValidationControls itemKey={`projeto-${i}`} validation={getValidation(`projeto-${i}`)} onSave={saveItemValidation} />
-                    </div>
-                  ))
+                  (p.selectedProjects || []).map((proj, i) => {
+                    // Chave correta: proj:<nome do projeto>
+                    const projKey = `proj:${proj}`;
+                    const mode = p.proofMode?.[projKey];
+                    return (
+                      <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b', marginBottom: 4 }}>{proj}</div>
+                        {p.projectAreaMap?.[proj] && (
+                          <div style={{ fontSize: '0.72rem', color: '#5b21b6', marginBottom: 4 }}>
+                            🎯 Área de aplicação: {AREA_LABELS[p.projectAreaMap[proj]] || p.projectAreaMap[proj]}
+                          </div>
+                        )}
+                        {!mode ? (
+                          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
+                            ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar
+                          </div>
+                        ) : mode === 'ugp-knows' ? (
+                          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#065f46', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
+                            ✓ A UGP já tem conhecimento — aguarda validação interna pela UGP
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e40af', background: '#dbeafe', border: '1px solid #93c5fd', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
+                            📎 Enviou documento para comprovação
+                          </div>
+                        )}
+                        {mode === 'upload' && p.proofFiles?.[projKey] && (
+                          <FileViewer
+                            base64={p.proofFiles[projKey]}
+                            fileName={`comprovante-projeto-${i + 1}`}
+                            label="Comprovante enviado"
+                          />
+                        )}
+                        <ValidationControls itemKey={`projeto-${i}`} validation={getValidation(`projeto-${i}`)} onSave={saveItemValidation} />
+                      </div>
+                    );
+                  })
                 )}
               </SectionCard>
 
