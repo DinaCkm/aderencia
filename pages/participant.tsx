@@ -271,6 +271,7 @@ export default function ParticipantForm() {
   const router = useRouter();
   const [profile, setProfile] = useState<ParticipantProfile>(initialProfile);
   const [submitted, setSubmitted] = useState(false);
+  const submittedRef = useRef(false);
   const [status, setStatus] = useState('');
   const [participantName, setParticipantName] = useState('');
   const [step, setStep] = useState(1);
@@ -280,6 +281,7 @@ export default function ParticipantForm() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (submittedRef.current) return;
     const role = sessionStorage.getItem('aderenciaRole');
     const email = sessionStorage.getItem('aderenciaEmail');
     const name = sessionStorage.getItem('aderenciaName');
@@ -442,6 +444,7 @@ export default function ParticipantForm() {
         sessionStorage.removeItem('aderenciaDraft');
         sessionStorage.removeItem('aderenciaStep');
         sessionStorage.setItem('aderenciaSubmitted', '1');
+        submittedRef.current = true;
         setSubmitted(true);
         setStatus('');
       } else {
