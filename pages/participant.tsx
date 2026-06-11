@@ -91,40 +91,44 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
     reader.readAsDataURL(file);
   };
 
+  // Se há arquivo legado, mostrar APENAS o bloco de reenvio obrigatório — sem rádios
+  if (hasLegacyFile) {
+    return (
+      <div style={{ padding: '8px 12px 10px', background: '#fff7ed', borderTop: '2px solid #fb923c' }}>
+        <p style={{ fontSize: '0.73rem', color: '#9a3412', fontWeight: 700, marginBottom: 4 }}>⚠️ Comprovante anterior não pôde ser recuperado</p>
+        <p style={{ fontSize: '0.71rem', color: '#7c2d12', marginBottom: 10 }}>
+          O arquivo <strong>{savedFile}</strong> foi registrado anteriormente, mas o conteúdo não foi salvo.
+          Selecione o arquivo novamente para continuar.
+        </p>
+        <input
+          id={`file-input-legacy-${itemLabel}`}
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
+        <button
+          type="button"
+          onClick={() => document.getElementById(`file-input-legacy-${itemLabel}`)?.click()}
+          style={{
+            padding: '8px 18px', fontSize: '0.78rem', fontWeight: 700,
+            border: '2px solid #ea580c', borderRadius: 8,
+            background: '#ea580c', color: 'white', cursor: 'pointer'
+          }}
+        >
+          📎 Selecionar arquivo novamente
+        </button>
+        {uploading && <span style={{ marginLeft: 10, fontSize: '0.72rem', color: '#92400e', fontWeight: 600 }}>⏳ Carregando...</span>}
+        {!uploading && hasFile && (
+          <span style={{ marginLeft: 10, fontSize: '0.73rem', color: '#15803d', fontWeight: 700 }}>✓ Arquivo carregado com sucesso!</span>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: '8px 12px 10px', background: '#f8fafc', borderTop: '1px solid var(--border)' }}>
       <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>Como comprovar este item:</p>
-
-      {/* Aviso de arquivo legado — aparece ANTES dos botões de modo */}
-      {hasLegacyFile && (
-        <div style={{ marginBottom: 8, padding: '8px 12px', background: '#fff7ed', border: '1.5px solid #fb923c', borderRadius: 8 }}>
-          <p style={{ fontSize: '0.73rem', color: '#9a3412', fontWeight: 700, marginBottom: 4 }}>⚠️ Comprovante anterior não pôde ser recuperado</p>
-          <p style={{ fontSize: '0.71rem', color: '#7c2d12', marginBottom: 8 }}>
-            O arquivo <strong>{savedFile}</strong> foi registrado anteriormente, mas o conteúdo não foi salvo corretamente.
-            Por favor, selecione o arquivo novamente abaixo.
-          </p>
-          <input
-            id={`file-input-${itemLabel}`}
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-            onChange={handleFileChange}
-            style={{ display: 'none' }}
-          />
-          <button
-            type="button"
-            onClick={() => document.getElementById(`file-input-${itemLabel}`)?.click()}
-            style={{
-              padding: '6px 14px', fontSize: '0.73rem', fontWeight: 700,
-              border: '2px solid #fb923c', borderRadius: 6,
-              background: '#fff7ed', color: '#9a3412', cursor: 'pointer'
-            }}
-          >
-            📎 Selecionar arquivo novamente
-          </button>
-          {uploading && <span style={{ marginLeft: 8, fontSize: '0.72rem', color: '#f59e0b', fontWeight: 600 }}>⏳ Carregando...</span>}
-          {!uploading && hasFile && <span style={{ marginLeft: 8, fontSize: '0.72rem', color: '#16a34a', fontWeight: 700 }}>✓ Arquivo carregado com sucesso!</span>}
-        </div>
-      )}
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <label style={{
