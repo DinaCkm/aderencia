@@ -66,6 +66,8 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
   const [fileTooLarge, setFileTooLarge] = useState(false);
   const savedFile = proofFiles[itemLabel];
   const hasFile = isValidFile(savedFile);
+  // Arquivo legado = tem valor salvo mas não é base64 válido (apenas nome de arquivo)
+  const hasLegacyFile = !!savedFile && !hasFile;
   const savedLink = (proofLinks || {})[itemLabel] || '';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,16 +83,49 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result as string;
+      // Garante que o modo upload está ativo E salva o arquivo
       onChange('upload', base64, file.name, file.type);
       setUploading(false);
     };
-    reader.onerror = () => { setUploading(false); alert('Erro ao ler o arquivo. Tente novamente.'); };
+    reader.onerror = () => { setUploading(false); };
     reader.readAsDataURL(file);
   };
 
   return (
     <div style={{ padding: '8px 12px 10px', background: '#f8fafc', borderTop: '1px solid var(--border)' }}>
       <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>Como comprovar este item:</p>
+
+      {/* Aviso de arquivo legado — aparece ANTES dos botões de modo */}
+      {hasLegacyFile && (
+        <div style={{ marginBottom: 8, padding: '8px 12px', background: '#fff7ed', border: '1.5px solid #fb923c', borderRadius: 8 }}>
+          <p style={{ fontSize: '0.73rem', color: '#9a3412', fontWeight: 700, marginBottom: 4 }}>⚠️ Comprovante anterior não pôde ser recuperado</p>
+          <p style={{ fontSize: '0.71rem', color: '#7c2d12', marginBottom: 8 }}>
+            O arquivo <strong>{savedFile}</strong> foi registrado anteriormente, mas o conteúdo não foi salvo corretamente.
+            Por favor, selecione o arquivo novamente abaixo.
+          </p>
+          <input
+            id={`file-input-${itemLabel}`}
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+          />
+          <button
+            type="button"
+            onClick={() => document.getElementById(`file-input-${itemLabel}`)?.click()}
+            style={{
+              padding: '6px 14px', fontSize: '0.73rem', fontWeight: 700,
+              border: '2px solid #fb923c', borderRadius: 6,
+              background: '#fff7ed', color: '#9a3412', cursor: 'pointer'
+            }}
+          >
+            📎 Selecionar arquivo novamente
+          </button>
+          {uploading && <span style={{ marginLeft: 8, fontSize: '0.72rem', color: '#f59e0b', fontWeight: 600 }}>⏳ Carregando...</span>}
+          {!uploading && hasFile && <span style={{ marginLeft: 8, fontSize: '0.72rem', color: '#16a34a', fontWeight: 700 }}>✓ Arquivo carregado com sucesso!</span>}
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <label style={{
           display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
@@ -118,9 +153,9 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
         </label>
       </div>
 
-      {mode === 'upload' && (
+      {/* Área de upload — aparece quando modo é upload E não é arquivo legado (legado tem área própria acima) */}
+      {mode === 'upload' && !hasLegacyFile && (
         <div style={{ marginTop: 8 }}>
-          {/* Input file oculto — acionado pelo botão abaixo */}
           <input
             id={`file-input-${itemLabel}`}
             type="file"
@@ -148,12 +183,11 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
                 ✓ Arquivo carregado e pronto para envio
               </span>
             )}
-            {!uploading && !hasFile && !fileTooLarge && mode === 'upload' && (
+            {!uploading && !hasFile && !fileTooLarge && (
               <span style={{ fontSize: '0.7rem', color: '#f59e0b' }}>⚠ Selecione o arquivo acima</span>
             )}
           </div>
 
-          {/* Aviso de arquivo grande demais */}
           {fileTooLarge && (
             <div style={{ marginTop: 8, padding: '10px 12px', background: '#fff7ed', border: '1.5px solid #fb923c', borderRadius: 8 }}>
               <p style={{ fontSize: '0.75rem', color: '#9a3412', fontWeight: 700, marginBottom: 4 }}>⚠️ Arquivo muito grande (limite: 8 MB)</p>
@@ -174,7 +208,6 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
             </div>
           )}
 
-          {/* Campo de link opcional (mesmo sem erro) */}
           {!fileTooLarge && (
             <div style={{ marginTop: 6 }}>
               <p style={{ fontSize: '0.68rem', color: '#94a3b8', marginBottom: 3 }}>
