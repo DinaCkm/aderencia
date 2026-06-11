@@ -383,11 +383,22 @@ export default function ParticipantForm() {
   }, [router]);
 
   // Salvar rascunho automaticamente sempre que profile ou step mudar
+  // Nota: proofFiles com base64 grande pode exceder o limite do sessionStorage (~5MB)
+  // Nesse caso, salvamos o rascunho sem os arquivos base64 para não perder o restante
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (profile.id) {
+    if (!profile.id) return;
+    try {
       sessionStorage.setItem('aderenciaDraft', JSON.stringify(profile));
       sessionStorage.setItem('aderenciaStep', String(step));
+    } catch {
+      // QuotaExceededError: rascunho muito grande (base64 de arquivos)
+      // Salvar versão sem os arquivos para preservar o restante dos dados
+      try {
+        const profileSemArquivos = { ...profile, proofFiles: {} };
+        sessionStorage.setItem('aderenciaDraft', JSON.stringify(profileSemArquivos));
+        sessionStorage.setItem('aderenciaStep', String(step));
+      } catch { /* ignora se ainda falhar */ }
     }
   }, [profile, step]);
 
