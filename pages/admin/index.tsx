@@ -32,6 +32,29 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [stats, setStats] = useState({ participants: 0, withResults: 0, exceptions: 0 });
   const [adminName, setAdminName] = useState('');
+  const [downloading, setDownloading] = useState<string | null>(null);
+
+  const downloadCSV = async (type: string, label: string) => {
+    setDownloading(type);
+    try {
+      const res = await fetch(`/api/admin/export-csv?type=${type}`);
+      if (!res.ok) throw new Error('Erro ao exportar');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const date = new Date().toISOString().slice(0, 10);
+      a.download = `${type}_${date}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('Erro ao baixar o arquivo. Tente novamente.');
+    } finally {
+      setDownloading(null);
+    }
+  };
 
   useEffect(() => {
     const role = sessionStorage.getItem('aderenciaRole');
@@ -87,6 +110,43 @@ export default function AdminDashboard() {
           <div className="stat-card">
             <div className="stat-value" style={{ color: stats.exceptions > 0 ? '#f59e0b' : undefined }}>{stats.exceptions}</div>
             <div className="stat-label">Exceções pendentes</div>
+          </div>
+        </div>
+
+        {/* Exportação de Dados */}
+        <div className="section-card" style={{ marginBottom: '28px', padding: '24px 28px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '1.3rem' }}>💾</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--primary)' }}>Exportar Dados para CSV</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Baixe os dados do sistema para guardar no seu computador. Os arquivos abrem no Excel.</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            <button
+              onClick={() => downloadCSV('completo', 'Exportação Completa')}
+              disabled={downloading === 'completo'}
+              style={{ background: '#5B2D8E', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', opacity: downloading === 'completo' ? 0.7 : 1 }}>
+              {downloading === 'completo' ? '⏳ Baixando...' : '📥 Exportação Completa (todos os dados)'}
+            </button>
+            <button
+              onClick={() => downloadCSV('participants', 'Participantes')}
+              disabled={downloading === 'participants'}
+              style={{ background: '#00C9C8', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', opacity: downloading === 'participants' ? 0.7 : 1 }}>
+              {downloading === 'participants' ? '⏳ Baixando...' : '👥 Participantes e Formulários'}
+            </button>
+            <button
+              onClick={() => downloadCSV('performance', 'Performance')}
+              disabled={downloading === 'performance'}
+              style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', opacity: downloading === 'performance' ? 0.7 : 1 }}>
+              {downloading === 'performance' ? '⏳ Baixando...' : '📈 Notas de Performance'}
+            </button>
+            <button
+              onClick={() => downloadCSV('disc', 'DISC')}
+              disabled={downloading === 'disc'}
+              style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', opacity: downloading === 'disc' ? 0.7 : 1 }}>
+              {downloading === 'disc' ? '⏳ Baixando...' : '🔷 Resultados DISC'}
+            </button>
           </div>
         </div>
 
