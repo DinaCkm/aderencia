@@ -45,6 +45,14 @@ const getOptions = (group: CatalogItem['group']) => {
 };
 
 // Componente reutilizavel de comprovação por item
+// Verifica se um valor em proofFiles é base64 real (não apenas nome de arquivo legado)
+function isValidFile(value?: string): boolean {
+  if (!value) return false;
+  if (value.startsWith('data:')) return true; // data URL válida
+  if (value.length > 100) return true; // base64 puro (sem prefixo data:)
+  return false;
+}
+
 function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange, onLinkChange }: {
   itemLabel: string;
   proofMode: Record<string, 'ugp-knows' | 'upload'>;
@@ -57,7 +65,7 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
   const [uploading, setUploading] = useState(false);
   const [fileTooLarge, setFileTooLarge] = useState(false);
   const savedFile = proofFiles[itemLabel];
-  const hasFile = savedFile && (savedFile.startsWith('data:') || savedFile.length > 100);
+  const hasFile = isValidFile(savedFile);
   const savedLink = (proofLinks || {})[itemLabel] || '';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1092,7 +1100,7 @@ export default function ParticipantForm() {
                   if (profile.graduation !== '__outro__') {
                     const mode = profile.proofMode[`grad:${profile.graduation}`];
                     if (!mode) { setStatus('Selecione como vai comprovar sua graduação (A UGP já tem conhecimento ou Enviar documento).'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-                    const hasFile = !!profile.proofFiles[`grad:${profile.graduation}`];
+                    const hasFile = isValidFile(profile.proofFiles[`grad:${profile.graduation}`]);
                     const hasLink = !!(profile.proofLinks || {})[`grad:${profile.graduation}`];
                     if (mode === 'upload' && !hasFile && !hasLink) { setStatus('Você selecionou "Enviar documento" para a graduação — escolha o arquivo ou cole um link do Google Drive antes de continuar.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                   }
@@ -1302,7 +1310,7 @@ export default function ParticipantForm() {
                       const key = `mba_${i}:${b.name.trim()}`;
                       const mode = profile.proofMode[key];
                       if (!mode) { setStatus(`Selecione como vai comprovar o Título ${i + 1}: "${b.name}".`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-                      const hasFile = !!profile.proofFiles[key];
+                      const hasFile = isValidFile(profile.proofFiles[key]);
                       const hasLink = !!(profile.proofLinks || {})[key];
                       if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`Você selecionou "Enviar documento" para o Título ${i + 1} — escolha o arquivo antes de continuar.`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                     }
@@ -1526,7 +1534,7 @@ export default function ParticipantForm() {
                       const key = `curso5_${i}:${c.name}`;
                       const mode = profile.proofMode[key];
                       if (!mode) { setStatus(`Selecione como vai comprovar o Curso ${i + 1}: "${c.name}".`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-                      const hasFile = !!profile.proofFiles[key];
+                      const hasFile = isValidFile(profile.proofFiles[key]);
                       const hasLink = !!(profile.proofLinks || {})[key];
                       if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`Você selecionou "Enviar documento" para o Curso ${i + 1} — escolha o arquivo antes de continuar.`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                     }
@@ -1731,7 +1739,7 @@ export default function ParticipantForm() {
                     const key = `curso7:${item}`;
                     const mode = profile.proofMode[key];
                     if (!mode) { setStatus(`Selecione como vai comprovar o curso: "${item}".`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-                    const hasFile = !!profile.proofFiles[key];
+                    const hasFile = isValidFile(profile.proofFiles[key]);
                     const hasLink = !!(profile.proofLinks || {})[key];
                     if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                   }
@@ -2082,7 +2090,7 @@ export default function ParticipantForm() {
                     const key = `proj:${item}`;
                     const mode = profile.proofMode[key];
                     if (!mode) { setStatus(`⚠ Selecione como vai comprovar o projeto: "${item}"`); return; }
-                    const hasFile = !!profile.proofFiles[key];
+                    const hasFile = isValidFile(profile.proofFiles[key]);
                     const hasLink = !!(profile.proofLinks || {})[key];
                     if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`⚠ Você selecionou "Enviar documento" para: "${item}". Escolha o arquivo antes de enviar.`); return; }
                   }
