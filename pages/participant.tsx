@@ -2042,7 +2042,7 @@ export default function ParticipantForm() {
                                 const file = e.target.files?.[0];
                                 if (!file) return;
                                 if (file.size > 5 * 1024 * 1024) {
-                                  alert('Arquivo muito grande. O tamanho máximo é 5 MB.');
+                                  window.alert('Arquivo muito grande. O tamanho máximo é 5 MB.');
                                   return;
                                 }
                                 const reader = new FileReader();
@@ -2073,7 +2073,7 @@ export default function ParticipantForm() {
                   // Validar área vinculada a cada projeto (obrigatório)
                   for (const item of profile.selectedProjects) {
                     if (!profile.projectAreaMap?.[item]) {
-                      alert(`⚠ Informe a área de interesse para o projeto:\n"${item}"\n\nClique no projeto e selecione a área ao qual o seu projeto tem aderência.`);
+                      setStatus(`⚠ Informe a área de interesse para o projeto: "${item}". Clique no projeto e selecione a área ao qual o seu projeto tem aderência.`);
                       return;
                     }
                   }
@@ -2081,11 +2081,12 @@ export default function ParticipantForm() {
                   for (const item of profile.selectedProjects) {
                     const key = `proj:${item}`;
                     const mode = profile.proofMode[key];
-                    if (!mode) { alert(`⚠ Selecione como vai comprovar o projeto:\n"${item}"`); return; }
+                    if (!mode) { setStatus(`⚠ Selecione como vai comprovar o projeto: "${item}"`); return; }
                     const hasFile = !!profile.proofFiles[key];
                     const hasLink = !!(profile.proofLinks || {})[key];
-                    if (mode === 'upload' && !hasFile && !hasLink) { alert(`⚠ Você selecionou "Enviar documento" para:\n"${item}"\n\nEscolha o arquivo antes de enviar.`); return; }
+                    if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`⚠ Você selecionou "Enviar documento" para: "${item}". Escolha o arquivo antes de enviar.`); return; }
                   }
+                  setStatus('');
                   doSubmit();
                 }}>
                   {status === 'Enviando...' ? '⏳ Enviando...' : '✓ Enviar formulário'}
