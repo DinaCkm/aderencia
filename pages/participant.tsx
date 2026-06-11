@@ -956,6 +956,21 @@ export default function ParticipantForm() {
                     onChange={(e) => setProfile((p) => ({ ...p, graduationYear: e.target.value } as any))}
                     style={{ textAlign: 'center' }} />
                 </div>
+                {/* Nome completo do curso de graduação — logo abaixo da área */}
+                {profile.graduation && (
+                  <div style={{ marginTop: 10 }}>
+                    <label className="form-label" style={{ fontSize: '0.8rem' }}>Nome do curso de graduação *</label>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginBottom: 4 }}>Digite o nome completo conforme consta no diploma, certificado ou histórico acadêmico.</p>
+                    <input
+                      className="form-input"
+                      type="text"
+                      placeholder="Ex.: Bacharelado em Administração, Ciências Contábeis, Psicologia..."
+                      value={(profile as any).graduationCourseName || ''}
+                      onChange={(e) => setProfile((p) => ({ ...p, graduationCourseName: e.target.value } as any))}
+                      required
+                    />
+                  </div>
+                )}
                 {profile.graduation && profile.graduation !== '__outro__' && (
                   <div style={{ marginTop: 8, border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
                     <ProofSelector
@@ -968,20 +983,6 @@ export default function ParticipantForm() {
                     />
                   </div>
                 )}
-              </div>
-
-              {/* Nome completo do curso de graduação */}
-              <div className="form-group">
-                <label className="form-label">Nome do curso de graduação *</label>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: 6 }}>Digite o nome completo do curso conforme consta no diploma, certificado ou histórico acadêmico.</p>
-                <input
-                  className="form-input"
-                  type="text"
-                  placeholder="Ex.: Bacharelado em Administração, Ciências Contábeis, Psicologia, Comunicação Social – Publicidade e Propaganda"
-                  value={(profile as any).graduationCourseName || ''}
-                  onChange={(e) => setProfile((p) => ({ ...p, graduationCourseName: e.target.value } as any))}
-                  required
-                />
               </div>
 
               {/* Campo condicional de exceção */}
