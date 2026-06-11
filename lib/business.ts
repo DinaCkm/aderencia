@@ -23,7 +23,11 @@ export function getLatestDisc(reports: DiscReport[], participantId: string, area
 }
 
 export function getLatestPerformance(records: PerformanceRecord[], participantId: string, area: string) {
-  return pickLatest(records.filter((r) => r.participantId === participantId && r.area === area));
+  // A nota de performance/engajamento é única por participante (não varia por área).
+  // Busca primeiro pelo participantId + área específica; se não encontrar, usa qualquer registro do participante.
+  const byArea = records.filter((r) => r.participantId === participantId && r.area === area);
+  if (byArea.length > 0) return pickLatest(byArea);
+  return pickLatest(records.filter((r) => r.participantId === participantId));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
