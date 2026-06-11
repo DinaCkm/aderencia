@@ -2070,18 +2070,18 @@ export default function ParticipantForm() {
                   // Validar área vinculada a cada projeto (obrigatório)
                   for (const item of profile.selectedProjects) {
                     if (!profile.projectAreaMap?.[item]) {
-                      setStatus(`Informe a área de interesse para o projeto: "${item}". Clique no projeto e selecione a área ao qual o seu projeto tem aderência.`);
-                      window.scrollTo({ top: 0, behavior: 'smooth' }); return;
+                      alert(`⚠ Informe a área de interesse para o projeto:\n"${item}"\n\nClique no projeto e selecione a área ao qual o seu projeto tem aderência.`);
+                      return;
                     }
                   }
                   // Validar comprovação dos projetos selecionados
                   for (const item of profile.selectedProjects) {
                     const key = `proj:${item}`;
                     const mode = profile.proofMode[key];
-                    if (!mode) { setStatus(`Selecione como vai comprovar o projeto: "${item}".`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                    if (!mode) { alert(`⚠ Selecione como vai comprovar o projeto:\n"${item}"`); return; }
                     const hasFile = !!profile.proofFiles[key];
                     const hasLink = !!(profile.proofLinks || {})[key];
-                    if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                    if (mode === 'upload' && !hasFile && !hasLink) { alert(`⚠ Você selecionou "Enviar documento" para:\n"${item}"\n\nEscolha o arquivo antes de enviar.`); return; }
                   }
                   doSubmit();
                 }}>
