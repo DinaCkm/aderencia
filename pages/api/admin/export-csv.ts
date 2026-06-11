@@ -102,10 +102,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (type === 'disc') {
     const records = await readJsonAsync<DISCRecord[]>('disc_records', []);
-    const headers = ['Participante ID', 'Área', 'Score DISC (0-10)', 'Data de Importação'];
+    const headers = ['Participante ID', 'Nome', 'Área', 'Correlação DISC (%)', 'D (pessoa)', 'I (pessoa)', 'S (pessoa)', 'C (pessoa)', 'D (cargo)', 'I (cargo)', 'S (cargo)', 'C (cargo)', 'Data de Importação'];
     const lines = [headers.join(',')];
     for (const r of records) {
-      lines.push(row([r.participantId, r.area, r.score10, r.importedAt]));
+      lines.push(row([r.participantId, r.participantName, r.area, r.correlationPct, r.personD, r.personI, r.personS, r.personC, r.jobD, r.jobI, r.jobS, r.jobC, r.importedAt]));
     }
     const csv = '\uFEFF' + lines.join('\r\n');
     const date = new Date().toISOString().slice(0, 10);
@@ -133,7 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const discMap: Record<string, number> = {};
     for (const r of discRecords) {
       const key = `${r.participantId}__${r.area}`;
-      discMap[key] = r.score10;
+      discMap[key] = r.correlationPct;
     }
 
     const headers = [
