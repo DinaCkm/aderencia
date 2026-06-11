@@ -53,8 +53,9 @@ function isValidFile(value?: string): boolean {
   return false;
 }
 
-function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange, onLinkChange }: {
+function ProofSelector({ itemLabel, email, proofMode, proofFiles, proofLinks, onChange, onLinkChange }: {
   itemLabel: string;
+  email: string;
   proofMode: Record<string, 'ugp-knows' | 'upload'>;
   proofFiles: Record<string, string>;
   proofLinks: Record<string, string>;
@@ -63,17 +64,44 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
 }) {
   const mode = proofMode[itemLabel];
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savedOk, setSavedOk] = useState(false);
   const [fileTooLarge, setFileTooLarge] = useState(false);
+  const [pendingBase64, setPendingBase64] = useState<string | null>(null);
   const savedFile = proofFiles[itemLabel];
   const hasFile = isValidFile(savedFile);
   // Arquivo legado = tem valor salvo mas não é base64 válido (apenas nome de arquivo)
   const hasLegacyFile = !!savedFile && !hasFile;
   const savedLink = (proofLinks || {})[itemLabel] || '';
 
+  // Salva o comprovante imediatamente no servidor
+  const saveProofNow = async (base64: string) => {
+    setSaving(true);
+    setSavedOk(false);
+    try {
+      const res = await fetch('/api/participant/proof', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, itemKey: itemLabel, fileData: base64, mode: 'upload' }),
+      });
+      if (res.ok) {
+        setSavedOk(true);
+        // Atualiza o estado local também para refletir o novo arquivo
+        onChange('upload', base64);
+      } else {
+        setSavedOk(false);
+      }
+    } catch {
+      setSavedOk(false);
+    }
+    setSaving(false);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setFileTooLarge(false);
+    setSavedOk(false);
     if (file.size > 8 * 1024 * 1024) {
       setFileTooLarge(true);
       e.target.value = '';
@@ -83,9 +111,12 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result as string;
-      // Garante que o modo upload está ativo E salva o arquivo
+      setPendingBase64(base64);
+      // Atualiza estado local imediatamente
       onChange('upload', base64, file.name, file.type);
       setUploading(false);
+      // Salva no servidor imediatamente
+      saveProofNow(base64);
     };
     reader.onerror = () => { setUploading(false); };
     reader.readAsDataURL(file);
@@ -98,7 +129,7 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
         <p style={{ fontSize: '0.73rem', color: '#9a3412', fontWeight: 700, marginBottom: 4 }}>⚠️ Comprovante anterior não pôde ser recuperado</p>
         <p style={{ fontSize: '0.71rem', color: '#7c2d12', marginBottom: 10 }}>
           O arquivo <strong>{savedFile}</strong> foi registrado anteriormente, mas o conteúdo não foi salvo.
-          Selecione o arquivo novamente para continuar.
+          Selecione o arquivo novamente — ele será salvo automaticamente.
         </p>
         <input
           id={`file-input-legacy-${itemLabel}`}
@@ -110,17 +141,20 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
         <button
           type="button"
           onClick={() => document.getElementById(`file-input-legacy-${itemLabel}`)?.click()}
+          disabled={uploading || saving}
           style={{
             padding: '8px 18px', fontSize: '0.78rem', fontWeight: 700,
             border: '2px solid #ea580c', borderRadius: 8,
-            background: '#ea580c', color: 'white', cursor: 'pointer'
+            background: '#ea580c', color: 'white', cursor: 'pointer',
+            opacity: (uploading || saving) ? 0.6 : 1
           }}
         >
           📎 Selecionar arquivo novamente
         </button>
-        {uploading && <span style={{ marginLeft: 10, fontSize: '0.72rem', color: '#92400e', fontWeight: 600 }}>⏳ Carregando...</span>}
-        {!uploading && hasFile && (
-          <span style={{ marginLeft: 10, fontSize: '0.73rem', color: '#15803d', fontWeight: 700 }}>✓ Arquivo carregado com sucesso!</span>
+        {uploading && <span style={{ marginLeft: 10, fontSize: '0.72rem', color: '#92400e', fontWeight: 600 }}>⏳ Lendo arquivo...</span>}
+        {saving && <span style={{ marginLeft: 10, fontSize: '0.72rem', color: '#92400e', fontWeight: 600 }}>⏳ Salvando no servidor...</span>}
+        {!uploading && !saving && savedOk && (
+          <span style={{ marginLeft: 10, fontSize: '0.73rem', color: '#15803d', fontWeight: 700 }}>✓ Comprovante salvo com sucesso!</span>
         )}
       </div>
     );
@@ -157,8 +191,7 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
         </label>
       </div>
 
-      {/* Área de upload — aparece quando modo é upload E não é arquivo legado (legado tem área própria acima) */}
-      {mode === 'upload' && !hasLegacyFile && (
+      {mode === 'upload' && (
         <div style={{ marginTop: 8 }}>
           <input
             id={`file-input-${itemLabel}`}
@@ -171,23 +204,29 @@ function ProofSelector({ itemLabel, proofMode, proofFiles, proofLinks, onChange,
             <button
               type="button"
               onClick={() => document.getElementById(`file-input-${itemLabel}`)?.click()}
+              disabled={uploading || saving}
               style={{
                 padding: '5px 12px', fontSize: '0.72rem', fontWeight: 600,
                 border: '1.5px solid var(--purple)', borderRadius: 6,
-                background: 'white', color: 'var(--purple)', cursor: 'pointer'
+                background: 'white', color: 'var(--purple)', cursor: 'pointer',
+                opacity: (uploading || saving) ? 0.6 : 1
               }}
             >
-              📎 Escolher arquivo
+              📎 {hasFile ? 'Trocar arquivo' : 'Escolher arquivo'}
             </button>
             {uploading && (
-              <span style={{ fontSize: '0.72rem', color: '#f59e0b', fontWeight: 600 }}>⏳ Carregando arquivo...</span>
+              <span style={{ fontSize: '0.72rem', color: '#f59e0b', fontWeight: 600 }}>⏳ Lendo arquivo...</span>
             )}
-            {!uploading && hasFile && !fileTooLarge && (
-              <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 600 }}>
-                ✓ Arquivo carregado e pronto para envio
-              </span>
+            {saving && (
+              <span style={{ fontSize: '0.72rem', color: '#7c3aed', fontWeight: 600 }}>⏳ Salvando no servidor...</span>
             )}
-            {!uploading && !hasFile && !fileTooLarge && (
+            {!uploading && !saving && savedOk && (
+              <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 700 }}>✓ Comprovante salvo!</span>
+            )}
+            {!uploading && !saving && !savedOk && hasFile && !fileTooLarge && (
+              <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 600 }}>✓ Arquivo carregado</span>
+            )}
+            {!uploading && !saving && !hasFile && !fileTooLarge && (
               <span style={{ fontSize: '0.7rem', color: '#f59e0b' }}>⚠ Selecione o arquivo acima</span>
             )}
           </div>
@@ -1033,6 +1072,7 @@ export default function ParticipantForm() {
                 {profile.graduation && profile.graduation !== '__outro__' && (
                   <div style={{ marginTop: 8, border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
                     <ProofSelector
+                      email={profile.email}
                       itemLabel={`grad:${profile.graduation}`}
                       proofMode={profile.proofMode}
                       proofFiles={profile.proofFiles}
@@ -1108,6 +1148,7 @@ export default function ParticipantForm() {
                     {(profile as any).graduation2 && (profile as any).graduation2 !== '__outro2__' && (
                       <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
                         <ProofSelector
+                          email={profile.email}
                           itemLabel={`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`}
                           proofMode={profile.proofMode}
                           proofFiles={profile.proofFiles}
@@ -1311,6 +1352,7 @@ export default function ParticipantForm() {
                         {mba.area && mba.name?.trim() && mba.area !== '__outro_mba__' && (
                           <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginTop: 4 }}>
                             <ProofSelector
+                              email={profile.email}
                               itemLabel={proofKey}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
@@ -1556,7 +1598,8 @@ export default function ParticipantForm() {
                         {course.name?.trim() && course.area && course.hours >= 16 && (
                           <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginTop: 4 }}>
                             <ProofSelector
-                              itemLabel={`curso5_${idx}:${course.name}`}
+                              email={profile.email}
+                            itemLabel={`curso5_${idx}:${course.name}`}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
                               proofLinks={profile.proofLinks || {}}
@@ -1764,6 +1807,7 @@ export default function ParticipantForm() {
                               {selected && hours >= 16 && <span style={{ fontSize: '0.72rem', color: '#16a34a' }}>&#10003; Valido</span>}
                             </div>
                             <ProofSelector
+                              email={profile.email}
                               itemLabel={`curso7:${o.label}`}
                               proofMode={profile.proofMode}
                               proofFiles={profile.proofFiles}
@@ -1946,7 +1990,8 @@ export default function ParticipantForm() {
                         )}
                         {selected && (
                           <ProofSelector
-                            itemLabel={`proj:${o.label}`}
+                            email={profile.email}
+                          itemLabel={`proj:${o.label}`}
                             proofMode={profile.proofMode}
                             proofFiles={profile.proofFiles}
                             proofLinks={profile.proofLinks || {}}
