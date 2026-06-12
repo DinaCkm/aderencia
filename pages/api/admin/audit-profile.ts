@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
+import { readJsonAsync, writeJsonAsync, loadProofFiles } from '../../../lib/db';
 import type { ParticipantProfile } from '../../../lib/types';
 
 // Estrutura de validação por item
@@ -33,6 +33,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!profile) {
       return res.status(404).json({ error: 'Participante não encontrado' });
     }
+    // Carregar arquivos de comprovante da tabela proof_files separada
+    const proofFilesFromDB = await loadProofFiles(profile.email || profile.id);
+    const mergedProofFiles = {
+      ...(profile.proofFiles || {}), // arquivos legados (nome) do JSON
+      ...proofFilesFromDB,           // arquivos base64 da tabela separada
+    };
+    const profileWithFiles = { ...profile, proofFiles: mergedProofFiles };
     // Buscar validações salvas
     const audits = await readJsonAsync<ProfileAudit[]>('profile_audits', []);
     const audit = audits.find((a) => a.participantId === profile.id) || {
@@ -41,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       overallStatus: profile.validationStatus || 'provisional',
       overallNote: profile.validationNote,
     };
-    return res.status(200).json({ profile, audit });
+    return res.status(200).json({ profile: profileWithFiles, audit });
   }
 
   // POST — salvar validação de um ou mais itens
