@@ -193,6 +193,65 @@ export async function writeJsonAsync<T>(name: string, data: T): Promise<void> {
   await mysqlWrite(name, data);
 }
 
+// ─── Tabela proof_files (arquivos de comprovante separados) ─────────────────
+
+async function ensureProofFilesTable(): Promise<void> {
+  const pool = getPool();
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS proof_files (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      email       VARCHAR(255) NOT NULL,
+      item_key    VARCHAR(500) NOT NULL,
+      file_data   LONGTEXT NOT NULL,
+      updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      UNIQUE KEY uq_email_item (email(200), item_key(300))
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+}
+
+/**
+ * Salva um arquivo de comprovante na tabela proof_files.
+ */
+export async function saveProofFile(email: string, itemKey: string, fileData: string): Promise<void> {
+  if (!USE_MYSQL) return; // no modo local, os arquivos ficam no JSON
+  try {
+    await ensureProofFilesTable();
+    const pool = getPool();
+    await pool.query(
+      `INSERT INTO proof_files (email, item_key, file_data, updated_at)
+       VALUES (?, ?, ?, NOW())
+       ON DUPLICATE KEY UPDATE file_data = VALUES(file_data), updated_at = NOW()`,
+      [email, itemKey, fileData]
+    );
+  } catch (err) {
+    console.error(`[db] Erro ao salvar proof_file ${email}/${itemKey}:`, err);
+    throw err;
+  }
+}
+
+/**
+ * Lê todos os arquivos de comprovante de um participante.
+ */
+export async function loadProofFiles(email: string): Promise<Record<string, string>> {
+  if (!USE_MYSQL) return {};
+  try {
+    await ensureProofFilesTable();
+    const pool = getPool();
+    const [rows]: any[] = await pool.query(
+      'SELECT item_key, file_data FROM proof_files WHERE email = ?',
+      [email]
+    );
+    const result: Record<string, string> = {};
+    for (const row of rows) {
+      result[row.item_key] = row.file_data;
+    }
+    return result;
+  } catch (err) {
+    console.error(`[db] Erro ao carregar proof_files de ${email}:`, err);
+    return {};
+  }
+}
+
 /**
  * Inicializa o banco com dados base (seed).
  * Só insere se a chave ainda não existir — preserva dados existentes.

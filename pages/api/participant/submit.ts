@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
+import { readJsonAsync, writeJsonAsync, saveProofFile } from '../../../lib/db';
 import type { ParticipantProfile } from '../../../lib/types';
 
 export const config = {
@@ -21,21 +21,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Dados do participante incompletos.' });
   }
 
-  // Nota: graduation e graduationCourseName sao dados complementares (nao entram na pontuacao).
-  // Sao obrigatorios no formulario (validacao no frontend, Step 3), mas nao bloqueamos o submit
-  // aqui para compatibilidade com registros importados via CSV (que podem nao ter esses campos)
-  // e para evitar falsos 400 quando o rascunho for restaurado de uma sessao anterior.
+  // Extrair arquivos base64 do proofFiles antes de salvar no JSON de participants.
+  // Os arquivos ficam na tabela proof_files separada para não inflar o JSON.
+  const proofFilesFromPayload = data.proofFiles || {};
+  const cleanProofFiles: Record<string, string> = {};
+
+  for (const [itemKey, fileData] of Object.entries(proofFilesFromPayload)) {
+    if (!fileData) continue;
+    const isBase64 = fileData.startsWith('data:') || fileData.length > 100;
+    if (isBase64) {
+      // Salvar na tabela proof_files separada
+      try {
+        await saveProofFile(data.email, itemKey, fileData);
+      } catch (err) {
+        console.error(`[submit] Erro ao salvar proof_file ${data.email}/${itemKey}:`, err);
+      }
+      // Não incluir no JSON de participants
+    } else {
+      // Arquivo legado (apenas nome) — manter no JSON para referência
+      cleanProofFiles[itemKey] = fileData;
+    }
+  }
 
   const rawParticipants = await readJsonAsync<ParticipantProfile[]>('participants', []);
-  // Garantir que participants seja sempre um array (proteção contra cache corrompido)
+  // Garantir que participants seja sempre um array
   const participants: ParticipantProfile[] = Array.isArray(rawParticipants) ? rawParticipants : [];
   const existingIndex = participants.findIndex((item) => item.id === data.id);
 
-  // Se graduation e __outro__, marcar como excecao automaticamente
+  // Se graduation é __outro__, marcar como exceção automaticamente
   const hasGraduationException = data.graduation === '__outro__';
 
   const profile: ParticipantProfile = {
     ...data,
+    proofFiles: cleanProofFiles, // sem base64 — arquivos estão na tabela proof_files
     submittedAt: new Date().toISOString(),
     exceptionStatus: (data.exceptionRequested || hasGraduationException) ? 'pending' : 'approved',
   };
