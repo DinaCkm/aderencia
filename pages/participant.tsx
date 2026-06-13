@@ -347,9 +347,9 @@ function InfoTooltip({ content }: { content: React.ReactNode }) {
     </span>
   );
 }
-// Janela de acesso: 01/06/2026 00:01 até 12/06/2026 23:59 (horário de Brasília)
+// Janela de acesso: 01/06/2026 00:01 até 15/06/2026 23:59 (horário de Brasília)
 const OPEN_DATE  = new Date('2026-06-01T00:01:00-03:00');
-const CLOSE_DATE = new Date('2026-06-12T23:59:00-03:00');
+const CLOSE_DATE = new Date('2026-06-15T23:59:00-03:00');
 
 export default function ParticipantForm() {
   const router = useRouter();
@@ -627,7 +627,7 @@ export default function ParticipantForm() {
           <p style={{ color: '#555', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: 20 }}>
             {isBefore
               ? (<>O preenchimento do formulário estará disponível a partir de <strong>01/06/2026 às 00h01</strong> (horário de Brasília). Aguarde a abertura do sistema e tente novamente na data indicada.</>)
-              : (<>O prazo para preenchimento encerrou em <strong>12/06/2026 às 23h59</strong>. Não é mais possível alterar ou enviar informações. Em caso de dúvidas, entre em contato com a UGP ou a CKM Talents.</>)
+              : (<>O prazo para preenchimento encerrou em <strong>15/06/2026 às 23h59</strong>. Não é mais possível alterar ou enviar informações. Em caso de dúvidas, entre em contato com a UGP ou a CKM Talents.</>)
             }
           </p>
           <a href="https://ckmtalents.com.br/fale-conosco/" target="_blank" rel="noreferrer"
