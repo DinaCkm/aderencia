@@ -224,6 +224,71 @@ function FileViewer({ base64, fileName, fileType, label }: { base64: string; fil
   );
 }
 
+// ─── Upload de comprovante pelo administrador ────────────────────────────────
+function AdminProofUploader({ email, itemKey, onUploaded }: {
+  email: string;
+  itemKey: string;
+  onUploaded: (base64: string) => void;
+}) {
+  const [uploading, setUploading] = React.useState(false);
+  const [savedOk, setSavedOk] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const inputId = `admin-upload-${itemKey.replace(/[^a-z0-9]/gi, '_')}`;
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024) {
+      setError('Arquivo muito grande (limite: 20 MB)');
+      return;
+    }
+    setError('');
+    setUploading(true);
+    setSavedOk(false);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result as string;
+      try {
+        const res = await fetch('/api/participant/proof', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, itemKey, fileData: base64, mode: 'upload' }),
+        });
+        if (res.ok) {
+          setSavedOk(true);
+          onUploaded(base64);
+        } else {
+          setError('Erro ao salvar. Tente novamente.');
+        }
+      } catch {
+        setError('Erro de conexão.');
+      }
+      setUploading(false);
+    };
+    reader.onerror = () => { setError('Erro ao ler o arquivo.'); setUploading(false); };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div style={{ marginTop: 8, padding: '8px 12px', background: '#f0fdf4', border: '1.5px dashed #16a34a', borderRadius: 8 }}>
+      <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#15803d', marginBottom: 6 }}>📤 Upload pelo administrador</div>
+      <input id={inputId} type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onChange={handleFile} style={{ display: 'none' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => document.getElementById(inputId)?.click()}
+          disabled={uploading}
+          style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 14px', background: '#16a34a', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', opacity: uploading ? 0.6 : 1 }}
+        >
+          {uploading ? '⏳ Salvando...' : '📎 Selecionar arquivo'}
+        </button>
+        {savedOk && <span style={{ fontSize: '0.72rem', color: '#15803d', fontWeight: 700 }}>✓ Arquivo salvo com sucesso!</span>}
+        {error && <span style={{ fontSize: '0.72rem', color: '#dc2626', fontWeight: 600 }}>⚠ {error}</span>}
+      </div>
+    </div>
+  );
+}
+
 function InfoField({ label, value }: { label: string; value?: string | number | null }) {
   if (!value && value !== 0) return null;
   return (
@@ -307,6 +372,22 @@ export default function AdminAudit() {
 
   const getValidation = (key: string) =>
     selected?.audit.itemValidations.find((v) => v.itemKey === key);
+
+  // Atualiza o estado local após upload de comprovante pelo admin
+  const updateProofFile = (itemKey: string, base64: string) => {
+    setSelected((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        profile: {
+          ...prev.profile,
+          proofFiles: { ...(prev.profile.proofFiles || {}), [itemKey]: base64 },
+          proofMode: { ...(prev.profile.proofMode || {}), [itemKey]: 'upload' },
+        },
+      };
+    });
+    showToast('Comprovante salvo pelo administrador!');
+  };
 
   const openEmailModal = (subject: string, body: string) => setEmailModal({ subject, body });
 
@@ -580,6 +661,9 @@ export default function AdminAudit() {
                       {mode === 'upload' && p.proofFiles?.[fileKey] && (
                         <FileViewer base64={p.proofFiles[fileKey]} fileName="comprovante-graduacao" label="Comprovante de graduação" />
                       )}
+                      {mode === 'upload' && !p.proofFiles?.[fileKey] && (
+                        <AdminProofUploader email={p.email!} itemKey={fileKey} onUploaded={(b) => updateProofFile(fileKey, b)} />
+                      )}
                       {mode === 'upload' && (p as any).proofLinks?.[fileKey] && (
                         <div style={{ marginTop: 6, padding: '6px 10px', background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 6 }}>
                           <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#1e40af' }}>🔗 Link externo (Google Drive / OneDrive): </span>
@@ -630,6 +714,9 @@ export default function AdminAudit() {
                                 fileName={`comprovante-pos-${i + 1}`}
                                 label="Comprovante enviado"
                               />
+                            )}
+                            {mode === 'upload' && !p.proofFiles?.[mbaKey] && (
+                              <AdminProofUploader email={p.email!} itemKey={mbaKey} onUploaded={(b) => updateProofFile(mbaKey, b)} />
                             )}
                             {mode === 'upload' && (p as any).proofLinks?.[mbaKey] && (
                               <div style={{ marginTop: 6, padding: '6px 10px', background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 6 }}>
@@ -687,6 +774,9 @@ export default function AdminAudit() {
                             {mode === 'upload' && p.proofFiles?.[key] && (
                               <FileViewer base64={p.proofFiles[key]} fileName={`comprovante-curso-${i + 1}`} label="Comprovante enviado" />
                             )}
+                            {mode === 'upload' && !p.proofFiles?.[key] && (
+                              <AdminProofUploader email={p.email!} itemKey={key} onUploaded={(b) => updateProofFile(key, b)} />
+                            )}
                             {mode === 'upload' && (p as any).proofLinks?.[key] && (
                               <div style={{ marginTop: 6, padding: '6px 10px', background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 6 }}>
                                 <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#1e40af' }}>🔗 Link externo: </span>
@@ -709,6 +799,9 @@ export default function AdminAudit() {
                             <ProofBadge mode={mode} />
                             {mode === 'upload' && p.proofFiles?.[key] && (
                               <FileViewer base64={p.proofFiles[key]} fileName={`comprovante-curso-cat-${i + 1}`} label="Comprovante enviado" />
+                            )}
+                            {mode === 'upload' && !p.proofFiles?.[key] && (
+                              <AdminProofUploader email={p.email!} itemKey={key} onUploaded={(b) => updateProofFile(key, b)} />
                             )}
                             {mode === 'upload' && (p as any).proofLinks?.[key] && (
                               <div style={{ marginTop: 6, padding: '6px 10px', background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 6 }}>
@@ -779,6 +872,9 @@ export default function AdminAudit() {
                             fileName={`comprovante-projeto-${i + 1}`}
                             label="Comprovante enviado"
                           />
+                        )}
+                        {mode === 'upload' && !p.proofFiles?.[projKey] && (
+                          <AdminProofUploader email={p.email!} itemKey={projKey} onUploaded={(b) => updateProofFile(projKey, b)} />
                         )}
                         {mode === 'upload' && (p as any).proofLinks?.[projKey] && (
                           <div style={{ marginTop: 6, padding: '6px 10px', background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 6 }}>

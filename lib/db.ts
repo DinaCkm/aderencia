@@ -214,6 +214,7 @@ async function ensureProofFilesTable(): Promise<void> {
  */
 export async function saveProofFile(email: string, itemKey: string, fileData: string): Promise<void> {
   if (!USE_MYSQL) return; // no modo local, os arquivos ficam no JSON
+  const cleanKey = itemKey.trim(); // remover espaços extras que podem vir do nome do curso
   try {
     await ensureProofFilesTable();
     const pool = getPool();
@@ -221,7 +222,7 @@ export async function saveProofFile(email: string, itemKey: string, fileData: st
       `INSERT INTO proof_files (email, item_key, file_data, updated_at)
        VALUES (?, ?, ?, NOW())
        ON DUPLICATE KEY UPDATE file_data = VALUES(file_data), updated_at = NOW()`,
-      [email, itemKey, fileData]
+      [email, cleanKey, fileData]
     );
   } catch (err) {
     console.error(`[db] Erro ao salvar proof_file ${email}/${itemKey}:`, err);
@@ -243,7 +244,9 @@ export async function loadProofFiles(email: string): Promise<Record<string, stri
     );
     const result: Record<string, string> = {};
     for (const row of rows) {
-      result[row.item_key] = row.file_data;
+      // Normalizar a chave removendo espaços extras (bug legado onde nomes de curso tinham espaço)
+      const cleanKey = row.item_key.trim();
+      result[cleanKey] = row.file_data;
     }
     return result;
   } catch (err) {
