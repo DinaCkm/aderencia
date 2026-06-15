@@ -224,6 +224,16 @@ function FileViewer({ base64, fileName, fileType, label }: { base64: string; fil
   );
 }
 
+// Normaliza chaves de comprovante: remove espaços extras e espaços após ":" no separador
+function normalizeKey(key: string): string {
+  // Separa prefixo (ex: "curso5_2") do nome
+  const colonIdx = key.indexOf(':');
+  if (colonIdx < 0) return key.trim();
+  const prefix = key.slice(0, colonIdx).trim();
+  const name = key.slice(colonIdx + 1).trim(); // trim do nome (remove espaço inicial)
+  return `${prefix}:${name}`;
+}
+
 // ─── Upload de comprovante pelo administrador ────────────────────────────────
 function AdminProofUploader({ email, itemKey, onUploaded }: {
   email: string;
@@ -688,7 +698,7 @@ export default function AdminAudit() {
                   return (
                     <>
                       {validBlocks.map((mba, i) => {
-                        const mbaKey = `mba_${i}:${mba.name!.trim()}`;
+                        const mbaKey = normalizeKey(`mba_${i}:${mba.name!.trim()}`);
                         const mode = p.proofMode?.[mbaKey];
                         return (
                           <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
@@ -764,7 +774,7 @@ export default function AdminAudit() {
                   return (
                     <>
                       {validFree.map((course, i) => {
-                        const key = `curso5_${i}:${course.name!.trim()}`;
+                        const key = normalizeKey(`curso5_${i}:${course.name!.trim()}`);
                         const mode = p.proofMode?.[key];
                         return (
                           <div key={`free-${i}`} style={{ marginBottom: 10, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
