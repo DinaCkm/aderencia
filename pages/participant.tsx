@@ -589,10 +589,96 @@ export default function ParticipantForm() {
               </p>
             </div>
             <div style={{ fontSize: '3rem', marginBottom: '16px' }}>&#10003;</div>
-            <h2 style={{ color: 'var(--purple)', marginBottom: '12px' }}>Fórmulario enviado com sucesso!</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '28px' }}>
-              Seus dados foram registrados. Você pode visualizar sua aderência e posição no Nine Box a qualquer momento.
+            <h2 style={{ color: 'var(--purple)', marginBottom: '8px' }}>Formulário enviado com sucesso!</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontWeight: 600 }}>
+              Parabéns, <strong style={{ color: 'var(--purple)' }}>{profile.name}</strong>! Seus dados foram registrados.
+              Você pode visualizar sua aderência e posição no Nine Box a qualquer momento.
             </p>
+            {/* Bloco de pendências — itens sem comprovação ou com documento não enviado */}
+            {(() => {
+              const pendencias: string[] = [];
+
+              // Graduação principal
+              if (profile.graduation && profile.graduation !== '__outro__') {
+                const key = `grad:${profile.graduation}`;
+                const mode = profile.proofMode[key];
+                if (!mode) pendencias.push(`Graduação: ${profile.graduation} — sem comprovação selecionada`);
+                else if (mode === 'upload' && !isValidFile(profile.proofFiles[key]) && !(profile.proofLinks || {})[key])
+                  pendencias.push(`Graduação: ${profile.graduation} — documento não enviado`);
+              } else if (profile.graduation === '__outro__') {
+                const courseName = (profile as any).graduationCourseName?.trim();
+                if (courseName) {
+                  const key = `grad:${courseName}`;
+                  const mode = profile.proofMode[key];
+                  if (!mode) pendencias.push(`Graduação: ${courseName} — sem comprovação selecionada`);
+                  else if (mode === 'upload' && !isValidFile(profile.proofFiles[key]) && !(profile.proofLinks || {})[key])
+                    pendencias.push(`Graduação: ${courseName} — documento não enviado`);
+                }
+              }
+
+              // 2ª Graduação
+              const grad2 = (profile as any).graduation2;
+              if (grad2) {
+                const grad2Name = (profile as any).graduation2CourseName?.trim() || grad2;
+                const key2 = `grad2:${grad2Name}`;
+                const mode2 = profile.proofMode[key2];
+                if (!mode2) pendencias.push(`2ª Graduação: ${grad2Name} — sem comprovação selecionada`);
+                else if (mode2 === 'upload' && !isValidFile(profile.proofFiles[key2]) && !(profile.proofLinks || {})[key2])
+                  pendencias.push(`2ª Graduação: ${grad2Name} — documento não enviado`);
+              }
+
+              // Pós/MBA
+              const mbaBlocks: Array<{area?: string; name?: string}> = (profile as any).mbaBlocks || [];
+              mbaBlocks.forEach((b, i) => {
+                if (b?.area && b.area !== '__outro_mba__' && b?.name?.trim()) {
+                  const key = `mba_${i}:${b.name.trim()}`;
+                  const mode = profile.proofMode[key];
+                  if (!mode) pendencias.push(`Pós/MBA: ${b.name} — sem comprovação selecionada`);
+                  else if (mode === 'upload' && !isValidFile(profile.proofFiles[key]) && !(profile.proofLinks || {})[key])
+                    pendencias.push(`Pós/MBA: ${b.name} — documento não enviado`);
+                }
+              });
+
+              // Cursos extracurriculares
+              const freeCourses: Array<{name?: string}> = (profile as any).freeCourses || [];
+              freeCourses.forEach((c, i) => {
+                if (c?.name?.trim()) {
+                  const key = `curso5_${i}:${c.name.trim()}`;
+                  const mode = profile.proofMode[key];
+                  if (!mode) pendencias.push(`Curso: ${c.name} — sem comprovação selecionada`);
+                  else if (mode === 'upload' && !isValidFile(profile.proofFiles[key]) && !(profile.proofLinks || {})[key])
+                    pendencias.push(`Curso: ${c.name} — documento não enviado`);
+                }
+              });
+
+              // Projetos
+              profile.selectedProjects.forEach((proj) => {
+                if (!profile.projectAreaMap?.[proj])
+                  pendencias.push(`Projeto: "${proj}" — área de interesse não vinculada`);
+                else {
+                  const key = `proj:${proj}`;
+                  const mode = profile.proofMode[key];
+                  if (!mode) pendencias.push(`Projeto: "${proj}" — sem comprovação selecionada`);
+                  else if (mode === 'upload' && !isValidFile(profile.proofFiles[key]) && !(profile.proofLinks || {})[key])
+                    pendencias.push(`Projeto: "${proj}" — documento não enviado`);
+                }
+              });
+
+              if (pendencias.length === 0) return null;
+              return (
+                <div style={{ background: '#fff7ed', border: '1.5px solid #fb923c', borderRadius: 10, padding: '14px 18px', marginBottom: 24, textAlign: 'left' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#9a3412', marginBottom: 8 }}>
+                    📎 {pendencias.length} {pendencias.length === 1 ? 'item pendente de comprovação' : 'itens pendentes de comprovação'}
+                  </div>
+                  <p style={{ fontSize: '0.76rem', color: '#7c2d12', marginBottom: 10, lineHeight: 1.5 }}>
+                    Os itens abaixo ainda precisam de atenção. Clique em <strong>Editar formulário</strong> para corrigi-los antes da validação pela UGP:
+                  </p>
+                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: '0.76rem', color: '#7c2d12', lineHeight: 1.8 }}>
+                    {pendencias.map((p, i) => <li key={i}>{p}</li>)}
+                  </ul>
+                </div>
+              );
+            })()}
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="/my-results">
                 <button className="btn-primary">Ver meus resultados</button>
