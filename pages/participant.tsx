@@ -41,7 +41,7 @@ const getOptions = (group: CatalogItem['group']) => {
     if (seen.has(item.label)) return false;
     seen.add(item.label);
     return true;
-  });
+  }).sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' }));
 };
 
 // Componente reutilizavel de comprovação por item
