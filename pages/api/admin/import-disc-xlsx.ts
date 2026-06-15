@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'O arquivo parece estar vazio ou sem dados.' });
   }
 
-  // Com o novo modelo sem células mescladas, o cabeçalho está SEMPRE na linha 1 (índice 0)
+  // Cabeçalho sempre na linha 1 (índice 0)
   const headerIdx = 0;
   const headers = rows[headerIdx].map((c: unknown) => norm(c));
 
@@ -59,9 +59,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const findCol = (kw: string, after = -1) =>
     headers.findIndex((h: string, i: number) => i > after && h.includes(kw));
 
-  const iNome = findCol('nome');
-  const iArea = headers.findIndex((h: string) => h.includes('area') || h === 'codigo da area' || h.includes('codigo'));
-  const iCorr = findCol('correla');
+  const iEmail = findCol('email');
+  const iNome  = findCol('nome');
+  const iArea  = headers.findIndex((h: string) => h.includes('area') || h === 'codigo da area' || h.includes('codigo'));
+  const iCorr  = findCol('correla');
 
   // D/I/S/C da pessoa (primeiras ocorrências)
   const iDP = findCol('domin');
@@ -79,9 +80,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const iPos = findCol('positiv') >= 0 ? findCol('positiv') : findCol('destac');
   const iDev = findCol('desenvolv') >= 0 ? findCol('desenvolv') : findCol('nao se destac');
 
-  if (iNome < 0 || iArea < 0 || iCorr < 0) {
+  // Precisa de pelo menos: (email OU nome) + area + correlação
+  if ((iEmail < 0 && iNome < 0) || iArea < 0 || iCorr < 0) {
     return res.status(400).json({
-      error: `Colunas obrigatórias não encontradas. nome:${iNome}, area:${iArea}, correlação:${iCorr}. Cabeçalho lido da linha 1: ${headers.slice(0, 6).join(' | ')}`,
+      error: `Colunas obrigatórias não encontradas. email:${iEmail}, nome:${iNome}, area:${iArea}, correlação:${iCorr}. Cabeçalho lido: ${headers.slice(0, 8).join(' | ')}`,
     });
   }
 
@@ -92,10 +94,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     readJsonAsync<any[]>('users', []),
   ]);
 
-  // Mapa nome normalizado → participantId
-  const userMap = new Map<string, string>();
+  // Mapa email → participantId  (prioridade)
+  const emailMap = new Map<string, string>();
   for (const u of users) {
-    if (u.name) userMap.set(norm(u.name), u.id || u.email);
+    if (u.email) emailMap.set(u.email.toLowerCase().trim(), u.id || u.email);
+  }
+
+  // Mapa nome normalizado → participantId  (fallback)
+  const nameMap = new Map<string, string>();
+  for (const u of users) {
+    if (u.name) nameMap.set(norm(u.name), u.id || u.email);
+  }
+
+  // Mapa participantId → nome real (para log)
+  const nameById = new Map<string, string>();
+  for (const u of users) {
+    nameById.set(u.id || u.email, u.name || u.email);
   }
 
   const imported: string[] = [];
@@ -108,31 +122,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   for (let i = headerIdx + 1; i < rows.length; i++) {
     const row = rows[i];
-    const nome = String(row[iNome] ?? '').trim();
-    const areaRaw = String(row[iArea] ?? '').trim().toUpperCase().replace(/\s+/g, '');
-    const corrRaw = row[iCorr];
+    const emailRaw = iEmail >= 0 ? String(row[iEmail] ?? '').toLowerCase().trim() : '';
+    const nome     = iNome  >= 0 ? String(row[iNome]  ?? '').trim() : '';
+    const areaRaw  = String(row[iArea] ?? '').trim().toUpperCase().replace(/\s+/g, '');
+    const corrRaw  = row[iCorr];
 
-    if (!nome || !areaRaw) continue;
+    // Pular linhas completamente vazias
+    if (!emailRaw && !nome && !areaRaw) continue;
+    if (!areaRaw) continue;
 
     // Aceitar REGIONAL como sinônimo de REGIONAIS
     const areaNorm = areaRaw === 'REGIONAL' ? 'REGIONAIS' : areaRaw;
     const area = areaNorm as AreaCode;
     if (!VALID_AREAS.includes(area)) {
-      errors.push(`Linha ${i + 1}: área inválida "${areaRaw}" para ${nome}`);
+      errors.push(`Linha ${i + 1}: área inválida "${areaRaw}" para ${emailRaw || nome}`);
       continue;
     }
 
     const corr = Number(String(corrRaw).replace('%', '').trim());
     if (isNaN(corr) || corr < 0 || corr > 100) {
-      errors.push(`Linha ${i + 1}: correlação inválida "${corrRaw}" para ${nome}`);
+      errors.push(`Linha ${i + 1}: correlação inválida "${corrRaw}" para ${emailRaw || nome}`);
       continue;
     }
 
-    const participantId = userMap.get(norm(nome));
+    // Buscar participante: 1º por e-mail, 2º por nome
+    let participantId: string | undefined;
+    let matchedBy = '';
+
+    if (emailRaw) {
+      participantId = emailMap.get(emailRaw);
+      if (participantId) matchedBy = 'email';
+    }
+    if (!participantId && nome) {
+      participantId = nameMap.get(norm(nome));
+      if (participantId) matchedBy = 'nome';
+    }
+
     if (!participantId) {
-      notFound.push(`${nome} (${area})`);
+      notFound.push(emailRaw ? `${emailRaw}${nome ? ` (${nome})` : ''}` : nome);
       continue;
     }
+
+    const nomeReal = nameById.get(participantId) || nome || emailRaw;
 
     const pD = iDP >= 0 ? (Number(row[iDP]) || 0) : 0;
     const pI = iIP >= 0 ? (Number(row[iIP]) || 0) : 0;
@@ -151,7 +182,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const record: DISCRecord = {
       id: randomUUID(),
       participantId,
-      participantName: nome,
+      participantName: nomeReal,
       area,
       correlationPct: corr,
       personD: pD, personI: pI, personS: pS, personC: pC,
@@ -182,7 +213,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       updatedReports.push({ id: randomUUID(), participantId, area, score10, date: today });
     }
 
-    imported.push(`${nome} → ${area} (${corr}%)`);
+    imported.push(`${nomeReal} → ${area} (${corr}%) [via ${matchedBy}]`);
   }
 
   await Promise.all([
