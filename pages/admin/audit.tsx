@@ -690,15 +690,19 @@ export default function AdminAudit() {
               <SectionCard title="4. Pós-Graduação / MBA" icon="📚">
                 {(() => {
                   // Usar mbaBlocks (com nome completo) para construir a chave correta: mba_i:nome
+                  // IMPORTANTE: usar o índice ORIGINAL do mbaBlocks (não do array filtrado)
+                  // pois a chave salva pelo candidato usa o índice original (ex: mba_2:nome, não mba_1:nome)
                   const blocks: Array<{area?: string; name?: string; year?: string}> = (p as any).mbaBlocks || [];
-                  const validBlocks = blocks.filter((b) => b.area && b.area !== '__outro_mba__' && b.name?.trim());
-                  if (validBlocks.length === 0) {
+                  const validBlocksWithIndex = blocks
+                    .map((b, origIdx) => ({ ...b, origIdx }))
+                    .filter((b) => b.area && b.area !== '__outro_mba__' && b.name?.trim());
+                  if (validBlocksWithIndex.length === 0) {
                     return <p style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Nenhum título declarado.</p>;
                   }
                   return (
                     <>
-                      {validBlocks.map((mba, i) => {
-                        const mbaKey = normalizeKey(`mba_${i}:${mba.name!.trim()}`);
+                      {validBlocksWithIndex.map((mba, i) => {
+                        const mbaKey = normalizeKey(`mba_${mba.origIdx}:${mba.name!.trim()}`);
                         const mode = p.proofMode?.[mbaKey];
                         return (
                           <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
