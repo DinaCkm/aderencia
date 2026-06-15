@@ -1448,7 +1448,7 @@ export default function ParticipantForm() {
                           />
                         </div>
                         {/* Comprovação — só aparece quando área e nome estão preenchidos */}
-                        {mba.area && mba.name?.trim() && mba.area !== '__outro_mba__' && (
+                        {mba.area && mba.name?.trim() && (
                           <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginTop: 4 }}>
                             <ProofSelector
                               email={profile.email}
@@ -1495,7 +1495,7 @@ export default function ParticipantForm() {
                     if (!b?.area && !b?.name?.trim()) continue; // bloco vazio, ok
                     if (i === 0 && !b?.area) { setStatus('Selecione a área do Título 1.'); return; }
                     if (i === 0 && !b?.name?.trim()) { setStatus('Informe o nome do Título 1 conforme o certificado.'); return; }
-                    if (b?.area && b?.area !== '__outro_mba__' && b?.name?.trim()) {
+                    if (b?.area && b?.name?.trim()) {
                       const key = `mba_${i}:${b.name.trim()}`;
                       const mode = profile.proofMode[key];
                       if (!mode) { setStatus(`Selecione como vai comprovar o Título ${i + 1}: "${b.name}".`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }

@@ -696,9 +696,10 @@ export default function AdminAudit() {
                   // IMPORTANTE: usar o índice ORIGINAL do mbaBlocks (não do array filtrado)
                   // pois a chave salva pelo candidato usa o índice original (ex: mba_2:nome, não mba_1:nome)
                   const blocks: Array<{area?: string; name?: string; year?: string}> = (p as any).mbaBlocks || [];
+                  // Inclui também títulos com __outro_mba__ (area não identificada) que tenham nome preenchido
                   const validBlocksWithIndex = blocks
                     .map((b, origIdx) => ({ ...b, origIdx }))
-                    .filter((b) => b.area && b.area !== '__outro_mba__' && b.name?.trim());
+                    .filter((b) => b.area && b.name?.trim());
                   if (validBlocksWithIndex.length === 0) {
                     return <p style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Nenhum título declarado.</p>;
                   }
