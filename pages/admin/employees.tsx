@@ -2,12 +2,35 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
+import type { ParticipantProfile } from '../../lib/types';
 
 interface Employee {
   email: string;
   name: string;
   cpf: string;
   role: string;
+}
+
+interface AreaAssessmentResult {
+  area: string;
+  technicalAdherence: number;
+  behavioralAdherence?: number;
+  quadrant: string;
+  calculationSteps: { name: string; value: number | string; detail?: string }[];
+  postMBADetail?: { titleUsed: string | null; classification: string; score: number };
+  projectsDetail?: { label: string; points: number }[];
+  discRecord?: {
+    correlationPct: number;
+    personD: number; personI: number; personS: number; personC: number;
+    jobD: number; jobI: number; jobS: number; jobC: number;
+    strengths: string[]; developments: string[];
+    importedAt: string;
+  } | null;
+}
+
+interface EmployeeProfileData {
+  profile: ParticipantProfile;
+  areaAssessments: AreaAssessmentResult[];
 }
 
 function formatCpf(v: string) {
@@ -18,6 +41,417 @@ function formatCpf(v: string) {
           .replace(/(\d{3})/, '$1');
 }
 
+function ScoreBar({ value, max, color }: { value: number; max: number; color: string }) {
+  const pct = Math.min((value / max) * 100, 100);
+  return (
+    <div style={{ height: 8, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' }}>
+      <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 4, transition: 'width 0.4s' }} />
+    </div>
+  );
+}
+
+function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () => void }) {
+  const [data, setData] = useState<EmployeeProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    setLoading(true);
+    setError('');
+    fetch(`/api/admin/employee-profile?email=${encodeURIComponent(email)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error) { setError(d.error); setLoading(false); return; }
+        setData(d);
+        setLoading(false);
+      })
+      .catch(() => { setError('Erro ao carregar dados.'); setLoading(false); });
+  }, [email]);
+
+  const p = data?.profile;
+  const areas = data?.areaAssessments || [];
+
+  const proofLabel = (mode: 'ugp-knows' | 'upload' | undefined) =>
+    mode === 'ugp-knows' ? '✓ A UGP já tem conhecimento' : mode === 'upload' ? '📎 Documento enviado' : '—';
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000,
+      display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '20px 16px', overflowY: 'auto',
+    }} onClick={onClose}>
+      <div style={{
+        background: 'white', borderRadius: 16, padding: '28px 28px 32px', maxWidth: 860, width: '100%',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.3)', marginTop: 20, marginBottom: 20,
+      }} onClick={(e) => e.stopPropagation()}>
+
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+          <div>
+            <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
+              Ficha Completa do Candidato
+            </div>
+            <h2 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--purple)', fontWeight: 800 }}>
+              {loading ? 'Carregando...' : (p?.name || email)}
+            </h2>
+            {p && (
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 4 }}>
+                {p.email} &nbsp;|&nbsp; {p.unit || '—'} &nbsp;|&nbsp; {p.currentRole || '—'}
+              </div>
+            )}
+          </div>
+          <button type="button" onClick={onClose}
+            style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-muted)', flexShrink: 0 }}>
+            ✕ Fechar
+          </button>
+        </div>
+
+        {loading && (
+          <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)' }}>
+            Carregando ficha completa...
+          </div>
+        )}
+
+        {error && (
+          <div style={{ padding: '16px 20px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 8, color: '#dc2626', fontSize: '0.85rem' }}>
+            ⚠ {error === 'Participante não encontrado' ? 'Este empregado ainda não preencheu o formulário de aderência.' : error}
+          </div>
+        )}
+
+        {!loading && !error && p && (
+          <>
+            {/* Status geral */}
+            <div style={{ display: 'flex', gap: 10, marginBottom: 24, flexWrap: 'wrap' }}>
+              <span style={{
+                padding: '4px 14px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700,
+                background: p.validationStatus === 'validated' ? '#dcfce7' : '#fef3c7',
+                color: p.validationStatus === 'validated' ? '#15803d' : '#92400e',
+                border: `1px solid ${p.validationStatus === 'validated' ? '#86efac' : '#fcd34d'}`,
+              }}>
+                {p.validationStatus === 'validated' ? '✓ Validado' : '⏳ Provisório'}
+              </span>
+              {p.submittedAt && (
+                <span style={{ padding: '4px 14px', borderRadius: 20, fontSize: '0.78rem', background: '#f1f5f9', color: '#64748b', border: '1px solid #e2e8f0' }}>
+                  Enviado em {new Date(p.submittedAt).toLocaleDateString('pt-BR')}
+                </span>
+              )}
+              {p.exceptionRequested && (
+                <span style={{ padding: '4px 14px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700, background: '#fffbeb', color: '#92400e', border: '1px solid #fcd34d' }}>
+                  ⚠ Exceção solicitada
+                </span>
+              )}
+            </div>
+
+            {/* ── Aderência por Área ── */}
+            {areas.length > 0 && (
+              <div style={{ marginBottom: 28 }}>
+                <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--purple)', marginBottom: 14, borderBottom: '2px solid var(--border)', paddingBottom: 8 }}>
+                  📊 Aderência por Área de Interesse
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {areas.map((a) => (
+                    <div key={a.area} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1e293b' }}>{a.area}</div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <span style={{ background: 'var(--gradient-soft)', border: '1px solid var(--purple)', borderRadius: 8, padding: '3px 12px', fontSize: '0.82rem', fontWeight: 800, color: 'var(--purple)' }}>
+                            Técnica: {a.technicalAdherence.toFixed(1)}
+                          </span>
+                          {a.behavioralAdherence !== undefined ? (
+                            <span style={{ background: '#f0fdfa', border: '1px solid #0e7490', borderRadius: 8, padding: '3px 12px', fontSize: '0.82rem', fontWeight: 800, color: '#0e7490' }}>
+                              Comportamental: {a.behavioralAdherence.toFixed(1)}
+                            </span>
+                          ) : (
+                            <span style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '3px 12px', fontSize: '0.82rem', color: '#94a3b8' }}>
+                              Comportamental: —
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                        <div>
+                          <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: 3 }}>Aderência Técnica</div>
+                          <ScoreBar value={a.technicalAdherence} max={10} color="var(--purple)" />
+                        </div>
+                        {a.behavioralAdherence !== undefined && (
+                          <div>
+                            <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: 3 }}>Aderência Comportamental</div>
+                            <ScoreBar value={a.behavioralAdherence} max={10} color="#0e7490" />
+                          </div>
+                        )}
+                      </div>
+                      {/* Detalhamento técnico */}
+                      <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {a.calculationSteps?.filter(s => !s.name.toLowerCase().includes('comportamental') && !s.name.toLowerCase().includes('disc') && !s.name.toLowerCase().includes('performance')).map((step, i) => (
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#374151', padding: '3px 0', borderBottom: '1px solid #f1f5f9' }}>
+                            <span>{step.name}</span>
+                            <span style={{ fontWeight: 700, color: 'var(--purple)' }}>{typeof step.value === 'number' ? step.value.toFixed(1) : step.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Projetos desta área */}
+                      {a.projectsDetail && a.projectsDetail.length > 0 && (
+                        <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 6 }}>
+                          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#15803d', marginBottom: 4 }}>📋 Projetos desta área:</div>
+                          {a.projectsDetail.map((proj, i) => (
+                            <div key={i} style={{ fontSize: '0.75rem', color: '#166534' }}>• {proj.label} ({proj.points} pts)</div>
+                          ))}
+                        </div>
+                      )}
+                      {/* DISC */}
+                      {a.discRecord && (
+                        <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 6 }}>
+                          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#0369a1', marginBottom: 4 }}>🔷 DISC — Correlação: {a.discRecord.correlationPct}%</div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                            {[
+                              { label: 'D', person: a.discRecord.personD, job: a.discRecord.jobD },
+                              { label: 'I', person: a.discRecord.personI, job: a.discRecord.jobI },
+                              { label: 'S', person: a.discRecord.personS, job: a.discRecord.jobS },
+                              { label: 'C', person: a.discRecord.personC, job: a.discRecord.jobC },
+                            ].map(({ label, person, job }) => (
+                              <div key={label} style={{ textAlign: 'center', background: 'white', borderRadius: 6, padding: '4px 6px', border: '1px solid #e0f2fe' }}>
+                                <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#0369a1' }}>{label}</div>
+                                <div style={{ fontSize: '0.68rem', color: '#6366f1' }}>P: {person}</div>
+                                <div style={{ fontSize: '0.68rem', color: '#0e7490' }}>C: {job}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {areas.length === 0 && (
+              <div style={{ marginBottom: 24, padding: '16px 20px', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: 8, color: '#94a3b8', textAlign: 'center', fontSize: '0.85rem' }}>
+                Este candidato ainda não selecionou áreas de interesse ou não enviou o formulário.
+              </div>
+            )}
+
+            {/* ── Identificação ── */}
+            <div style={{ marginBottom: 20 }}>
+              <h3 style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--purple)', marginBottom: 10, borderBottom: '2px solid var(--border)', paddingBottom: 6 }}>
+                👤 Identificação
+              </h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                <tbody>
+                  {[
+                    ['Matrícula', p.matrícula || '—'],
+                    ['Unidade atual', p.unit || '—'],
+                    ['Cargo atual', p.currentRole || '—'],
+                    ['Área atual', p.currentArea || '—'],
+                    ['Áreas de interesse', (p.selectedAreas || []).join(', ') || '—'],
+                  ].map(([label, value]) => (
+                    <tr key={label} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280', width: '35%' }}>{label}</td>
+                      <td style={{ padding: '5px 0', color: '#111827' }}>{value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ── Formação Acadêmica ── */}
+            <div style={{ marginBottom: 20 }}>
+              <h3 style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--purple)', marginBottom: 10, borderBottom: '2px solid var(--border)', paddingBottom: 6 }}>
+                🎓 Formação Acadêmica
+              </h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                <tbody>
+                  <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280', width: '35%' }}>Graduação 1</td>
+                    <td style={{ padding: '5px 0', color: '#111827' }}>{p.graduation || '—'}</td>
+                  </tr>
+                  {p.graduation2 && (
+                    <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Graduação 2</td>
+                      <td style={{ padding: '5px 0', color: '#111827' }}>{p.graduation2}</td>
+                    </tr>
+                  )}
+                  {p.graduationCourseName && (
+                    <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Curso (nome livre)</td>
+                      <td style={{ padding: '5px 0', color: '#111827' }}>{p.graduationCourseName}</td>
+                    </tr>
+                  )}
+                  {(p.postMBAs || []).length > 0 ? (
+                    (p.postMBAs || []).map((title, i) => (
+                      <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Pós/MBA {i + 1}</td>
+                        <td style={{ padding: '5px 0', color: '#111827' }}>
+                          {title}
+                          <span style={{ marginLeft: 8, fontSize: '0.7rem', background: '#ede9fe', color: '#7c3aed', borderRadius: 4, padding: '1px 6px' }}>entra no cálculo</span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Pós/MBA</td>
+                      <td style={{ padding: '5px 0', color: '#9ca3af', fontStyle: 'italic' }}>Nenhum informado</td>
+                    </tr>
+                  )}
+                  {(p.certifications || []).length > 0 && (
+                    <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280', verticalAlign: 'top' }}>Certificações</td>
+                      <td style={{ padding: '5px 0', color: '#111827' }}>{(p.certifications || []).join(', ')}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ── Experiência Gerencial ── */}
+            <div style={{ marginBottom: 20 }}>
+              <h3 style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--purple)', marginBottom: 10, borderBottom: '2px solid var(--border)', paddingBottom: 6 }}>
+                💼 Experiência Gerencial / Interina <span style={{ fontWeight: 400, color: '#9ca3af', fontSize: '0.75rem' }}>(entra no cálculo)</span>
+              </h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                <tbody>
+                  <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280', width: '35%' }}>Meses gerencial efetivo</td>
+                    <td style={{ padding: '5px 0', color: '#111827' }}>{p.managerialMonths ?? 0} meses ({((p.managerialMonths ?? 0) / 12).toFixed(1)} anos)</td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Meses interino</td>
+                    <td style={{ padding: '5px 0', color: '#111827' }}>{p.interimMonths ?? 0} meses ({((p.interimMonths ?? 0) / 12).toFixed(1)} anos)</td>
+                  </tr>
+                  <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Total combinado</td>
+                    <td style={{ padding: '5px 0', color: '#111827', fontWeight: 700 }}>
+                      {(p.managerialMonths ?? 0) + (p.interimMonths ?? 0)} meses
+                    </td>
+                  </tr>
+                  {(p.positionsHeld || []).length > 0 && (
+                    <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280', verticalAlign: 'top' }}>Cargos exercidos</td>
+                      <td style={{ padding: '5px 0', color: '#111827' }}>{(p.positionsHeld || []).join(', ')}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ── Projetos Estratégicos ── */}
+            {(p.selectedProjects || []).length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <h3 style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--purple)', marginBottom: 10, borderBottom: '2px solid var(--border)', paddingBottom: 6 }}>
+                  📋 Projetos Estratégicos <span style={{ fontWeight: 400, color: '#9ca3af', fontSize: '0.75rem' }}>(entram no cálculo)</span>
+                </h3>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                  <thead>
+                    <tr style={{ background: '#f9fafb' }}>
+                      <th style={{ padding: '5px 8px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem' }}>Projeto</th>
+                      <th style={{ padding: '5px 8px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem' }}>Área vinculada</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(p.selectedProjects || []).map((proj, i) => (
+                      <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <td style={{ padding: '5px 8px', color: '#111827' }}>{proj}</td>
+                        <td style={{ padding: '5px 8px', color: '#374151' }}>{p.projectAreaMap?.[proj] || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* ── Cursos Extracurriculares ── */}
+            {(p.selectedCourses || []).length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <h3 style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--purple)', marginBottom: 10, borderBottom: '2px solid var(--border)', paddingBottom: 6 }}>
+                  📚 Cursos Extracurriculares <span style={{ fontWeight: 400, color: '#9ca3af', fontSize: '0.75rem' }}>(não entram na nota)</span>
+                </h3>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                  <thead>
+                    <tr style={{ background: '#f9fafb' }}>
+                      <th style={{ padding: '5px 8px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem' }}>Curso</th>
+                      <th style={{ padding: '5px 8px', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem' }}>Horas</th>
+                      <th style={{ padding: '5px 8px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem' }}>Comprovação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(p.selectedCourses || []).map((course, i) => (
+                      <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <td style={{ padding: '5px 8px', color: '#111827' }}>{course}</td>
+                        <td style={{ padding: '5px 8px', textAlign: 'center', color: '#374151' }}>{p.courseHours?.[course] ?? '—'}h</td>
+                        <td style={{ padding: '5px 8px', color: '#374151' }}>{proofLabel(p.proofMode?.[course])}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* ── Exceções ── */}
+            {p.exceptionRequested && (
+              <div style={{ marginBottom: 20 }}>
+                <h3 style={{ fontSize: '0.85rem', fontWeight: 800, color: '#92400e', marginBottom: 10, borderBottom: '2px solid #fcd34d', paddingBottom: 6 }}>
+                  ⚠ Exceção Solicitada
+                </h3>
+                <div style={{ background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 8, padding: '12px 14px', marginBottom: 8 }}>
+                  <div style={{ fontSize: '0.78rem', color: '#92400e', marginBottom: 4 }}>
+                    <strong>Status:</strong>{' '}
+                    <span style={{
+                      background: p.exceptionStatus === 'approved' ? '#dcfce7' : p.exceptionStatus === 'rejected' ? '#fee2e2' : '#fef3c7',
+                      color: p.exceptionStatus === 'approved' ? '#15803d' : p.exceptionStatus === 'rejected' ? '#b91c1c' : '#92400e',
+                      borderRadius: 4, padding: '1px 8px', fontWeight: 700, fontSize: '0.75rem',
+                    }}>
+                      {p.exceptionStatus === 'approved' ? 'Aprovada' : p.exceptionStatus === 'rejected' ? 'Rejeitada' : 'Pendente'}
+                    </span>
+                  </div>
+                  {p.exceptionJustification && (
+                    <div style={{ fontSize: '0.78rem', color: '#78350f', marginTop: 6 }}>
+                      <strong>Justificativa:</strong> {p.exceptionJustification}
+                    </div>
+                  )}
+                </div>
+                {(p.exceptionItems || []).length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {(p.exceptionItems || []).map((item, i) => (
+                      <div key={i} style={{ background: '#fafafa', border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px 14px', fontSize: '0.78rem' }}>
+                        <div style={{ display: 'flex', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                          <span style={{ background: '#ede9fe', color: '#7c3aed', borderRadius: 4, padding: '1px 8px', fontWeight: 700, fontSize: '0.7rem' }}>
+                            {item.type === 'projeto' ? 'Projeto' : item.type === 'pos-mba' ? 'Pós/MBA' : item.type === 'curso' ? 'Curso' : item.type === 'experiencia' ? 'Experiência' : 'Outro'}
+                          </span>
+                          {item.targetArea && (
+                            <span style={{ background: '#dbeafe', color: '#1d4ed8', borderRadius: 4, padding: '1px 8px', fontSize: '0.7rem' }}>
+                              Área: {item.targetArea}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: '#374151' }}>
+                          <strong>Item:</strong> {item.itemName}<br />
+                          <strong>Objetivo:</strong> {item.objective}<br />
+                          <strong>Justificativa:</strong> {item.justification}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Nota de validação */}
+            {p.validationNote && (
+              <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 8, padding: '10px 14px', fontSize: '0.78rem' }}>
+                <strong style={{ color: '#0369a1' }}>Nota do RH/Admin:</strong>{' '}
+                <span style={{ color: '#0c4a6e' }}>{p.validationNote}</span>
+                {p.validatedAt && (
+                  <span style={{ marginLeft: 8, color: '#64748b', fontSize: '0.72rem' }}>
+                    ({new Date(p.validatedAt).toLocaleDateString('pt-BR')})
+                  </span>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminEmployees() {
   const router = useRouter();
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -25,19 +459,19 @@ export default function AdminEmployees() {
   const [search, setSearch] = useState('');
   const [msg, setMsg] = useState('');
   const [msgType, setMsgType] = useState<'success' | 'error'>('success');
-
   // Formulário de novo empregado
   const [showForm, setShowForm] = useState(false);
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newCpf, setNewCpf] = useState('');
   const [saving, setSaving] = useState(false);
-
   // Edição inline
   const [editEmail, setEditEmail] = useState('');
   const [editName, setEditName] = useState('');
   const [editCpf, setEditCpf] = useState('');
   const [editNewEmail, setEditNewEmail] = useState('');
+  // Modal de ficha completa
+  const [profileEmail, setProfileEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const role = sessionStorage.getItem('aderenciaRole');
@@ -105,7 +539,7 @@ export default function AdminEmployees() {
   };
 
   const handleDelete = async (email: string, name: string) => {
-    if (!confirm(`Excluir o empregado "${name}"?\n\nEsta ação não pode ser desfeita.`)) return;
+    if (!confirm(`Excluir "${name}"? Esta ação não pode ser desfeita.`)) return;
     const res = await fetch('/api/admin/employees', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -115,16 +549,19 @@ export default function AdminEmployees() {
       notify('Empregado excluído.');
       loadEmployees();
     } else {
-      const data = await res.json();
-      notify(data.error || 'Erro ao excluir.', 'error');
+      notify('Erro ao excluir.', 'error');
     }
   };
 
-  const logout = () => { sessionStorage.clear(); router.push('/login'); };
+  const logout = () => {
+    sessionStorage.clear();
+    router.push('/login');
+  };
 
-  const filtered = employees.filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase()) ||
-    e.email.toLowerCase().includes(search.toLowerCase())
+  const filtered = employees.filter(
+    (e) =>
+      e.name.toLowerCase().includes(search.toLowerCase()) ||
+      e.email.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -205,7 +642,7 @@ export default function AdminEmployees() {
               </button>
             </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 10 }}>
-              &#128274; O CPF será usado como senha de acessó do colaborador. Informe o CPF correto.
+              &#128274; O CPF será usado como senha de acesso do colaborador. Informe o CPF correto.
             </p>
           </div>
         )}
@@ -269,7 +706,11 @@ export default function AdminEmployees() {
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button onClick={() => setProfileEmail(emp.email)}
+                        style={{ background: 'var(--gradient-soft)', border: '1px solid var(--purple)', borderRadius: 6, padding: '5px 14px', cursor: 'pointer', fontSize: '0.78rem', color: 'var(--purple)', fontWeight: 700 }}>
+                        📋 Ver ficha
+                      </button>
                       <button onClick={() => startEdit(emp)}
                         style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', fontSize: '0.78rem', color: 'var(--purple)', fontWeight: 600 }}>
                         ✏ Editar
@@ -286,6 +727,11 @@ export default function AdminEmployees() {
           </div>
         )}
       </main>
+
+      {/* Modal de ficha completa */}
+      {profileEmail && (
+        <EmployeeProfileModal email={profileEmail} onClose={() => setProfileEmail(null)} />
+      )}
     </>
   );
 }
