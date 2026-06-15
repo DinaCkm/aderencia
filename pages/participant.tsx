@@ -1069,19 +1069,28 @@ export default function ParticipantForm() {
                     />
                   </div>
                 )}
-                {profile.graduation && profile.graduation !== '__outro__' && (
-                  <div style={{ marginTop: 8, border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
-                    <ProofSelector
-                      email={profile.email}
-                      itemLabel={`grad:${profile.graduation}`}
-                      proofMode={profile.proofMode}
-                      proofFiles={profile.proofFiles}
-                      proofLinks={profile.proofLinks || {}}
-                      onChange={(mode, fileData, fileName, fileType) => setProof(`grad:${profile.graduation}`, mode, fileData, fileName, fileType)}
-                      onLinkChange={(link) => setProofLink(`grad:${profile.graduation}`, link)}
-                    />
-                  </div>
-                )}
+                {profile.graduation && (() => {
+                  // Para __outro__, usa o nome do curso digitado como chave de comprovação
+                  // Para áreas identificadas, usa a área como chave
+                  const gradProofKey = profile.graduation === '__outro__'
+                    ? `grad:${(profile as any).graduationCourseName?.trim() || '__outro__'}`
+                    : `grad:${profile.graduation}`;
+                  // Para __outro__, só exibe o seletor após o nome do curso ser preenchido
+                  const canShowProof = profile.graduation !== '__outro__' || !!(profile as any).graduationCourseName?.trim();
+                  return canShowProof ? (
+                    <div style={{ marginTop: 8, border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+                      <ProofSelector
+                        email={profile.email}
+                        itemLabel={gradProofKey}
+                        proofMode={profile.proofMode}
+                        proofFiles={profile.proofFiles}
+                        proofLinks={profile.proofLinks || {}}
+                        onChange={(mode, fileData, fileName, fileType) => setProof(gradProofKey, mode, fileData, fileName, fileType)}
+                        onLinkChange={(link) => setProofLink(gradProofKey, link)}
+                      />
+                    </div>
+                  ) : null;
+                })()}
               </div>
 
               {/* Campo condicional de exceção */}
@@ -1145,19 +1154,23 @@ export default function ParticipantForm() {
                       />
                     </div>
                     {/* ProofSelector da 2ª graduação */}
-                    {(profile as any).graduation2 && (profile as any).graduation2 !== '__outro2__' && (
-                      <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
-                        <ProofSelector
-                          email={profile.email}
-                          itemLabel={`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`}
-                          proofMode={profile.proofMode}
-                          proofFiles={profile.proofFiles}
-                          proofLinks={profile.proofLinks || {}}
-                          onChange={(mode, fileData, fileName, fileType) => setProof(`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`, mode, fileData, fileName, fileType)}
-                          onLinkChange={(link) => setProofLink(`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`, link)}
-                        />
-                      </div>
-                    )}
+                    {(profile as any).graduation2 && (() => {
+                      const grad2ProofKey = `grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`;
+                      const canShowProof2 = (profile as any).graduation2 !== '__outro2__' || !!(profile as any).graduation2CourseName?.trim();
+                      return canShowProof2 ? (
+                        <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+                          <ProofSelector
+                            email={profile.email}
+                            itemLabel={grad2ProofKey}
+                            proofMode={profile.proofMode}
+                            proofFiles={profile.proofFiles}
+                            proofLinks={profile.proofLinks || {}}
+                            onChange={(mode, fileData, fileName, fileType) => setProof(grad2ProofKey, mode, fileData, fileName, fileType)}
+                            onLinkChange={(link) => setProofLink(grad2ProofKey, link)}
+                          />
+                        </div>
+                      ) : null;
+                    })()}
                     {/* Campo condicional de exceção da 2ª graduação */}
                     {(profile as any).graduation2 === '__outro2__' && (
                       <div style={{ background: '#fef9ec', border: '1.5px solid #fbbf24', borderRadius: 10, padding: '14px 16px' }}>

@@ -647,9 +647,12 @@ export default function AdminAudit() {
                   {p.graduationCourseName && p.graduation !== '__outro__' && <InfoField label="Nome do curso (livre)" value={p.graduationCourseName} />}
                   {p.graduationException && <InfoField label="Justificativa de exceção" value={p.graduationException} />}
                 </div>
-                {/* Badge de comprovação da graduação — chave: grad:<area> */}
+                {/* Badge de comprovação da graduação — chave: grad:<area> ou grad:<nome_curso> para __outro__ */}
                 {(() => {
-                  const gradKey = `grad:${p.graduation}`;
+                  // Para __outro__, a chave usa o nome do curso digitado (igual ao participant.tsx)
+                  const gradKey = p.graduation === '__outro__'
+                    ? `grad:${p.graduationCourseName?.trim() || '__outro__'}`
+                    : `grad:${p.graduation}`;
                   const gradKey2 = p.graduation2 ? `grad2:${(p as any).graduation2CourseName?.trim() || p.graduation2}` : null;
                   const mode = p.proofMode?.[gradKey] || (gradKey2 ? p.proofMode?.[gradKey2] : undefined);
                   const fileKey = mode === 'upload' ? (p.proofFiles?.[gradKey] ? gradKey : gradKey2 || gradKey) : gradKey;
