@@ -16,6 +16,8 @@ interface AreaAssessmentResult {
   technicalAdherence: number;
   behavioralAdherence?: number;
   quadrant: string;
+  quadrantX?: 'low' | 'mid' | 'high';
+  quadrantY?: 'low' | 'mid' | 'high';
   calculationSteps: { name: string; value: number | string; detail?: string }[];
   postMBADetail?: { titleUsed: string | null; classification: string; score: number };
   projectsDetail?: { label: string; points: number }[];
@@ -150,8 +152,26 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {areas.map((a) => (
                     <div key={a.area} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 18px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1e293b' }}>{a.area}</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1e293b' }}>{a.area}</div>
+                          {a.quadrant && a.quadrant !== 'Dados incompletos para definição do quadrante' ? (
+                            <div style={{
+                              display: 'inline-block', marginTop: 4, padding: '2px 10px', borderRadius: 12, fontSize: '0.72rem', fontWeight: 700,
+                              background: a.technicalAdherence >= 7.5 && (a.behavioralAdherence ?? 0) >= 7.5 ? '#dcfce7' :
+                                          a.technicalAdherence >= 5 && (a.behavioralAdherence ?? 0) >= 5 ? '#fef3c7' : '#fee2e2',
+                              color: a.technicalAdherence >= 7.5 && (a.behavioralAdherence ?? 0) >= 7.5 ? '#15803d' :
+                                     a.technicalAdherence >= 5 && (a.behavioralAdherence ?? 0) >= 5 ? '#92400e' : '#b91c1c',
+                              border: `1px solid ${a.technicalAdherence >= 7.5 && (a.behavioralAdherence ?? 0) >= 7.5 ? '#86efac' : a.technicalAdherence >= 5 && (a.behavioralAdherence ?? 0) >= 5 ? '#fcd34d' : '#fca5a5'}`,
+                            }}>
+                              ◉ {a.quadrant}
+                            </div>
+                          ) : a.quadrant === 'Dados incompletos para definição do quadrante' ? (
+                            <div style={{ display: 'inline-block', marginTop: 4, padding: '2px 10px', borderRadius: 12, fontSize: '0.72rem', color: '#94a3b8', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                              ⏳ Aguardando DISC para definir quadrante
+                            </div>
+                          ) : null}
+                        </div>
                         <div style={{ display: 'flex', gap: 8 }}>
                           <span style={{ background: 'var(--gradient-soft)', border: '1px solid var(--purple)', borderRadius: 8, padding: '3px 12px', fontSize: '0.82rem', fontWeight: 800, color: 'var(--purple)' }}>
                             Técnica: {a.technicalAdherence.toFixed(1)}
