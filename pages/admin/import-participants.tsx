@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
-const TEMPLATE = `id,name,email,matrícula,unit,currentRole,selectedAreas,graduation,postMBAs,certifications,experienceMonths,positionsHeld,selectedCourses,selectedProjects,exceptionRequested,exceptionJustification,attachments,exceptionStatus\njdoe,Joao Doe,joao@sebraeto.com.br,12345,UGE,Analista,UGE;UAS,Administração,,,,,,,,,,pending`;
+const TEMPLATE = `id,name,email,matrícula,unit,currentRole,selectedAreas,graduation,postMBAs,certifications,experienceMonths,positionsHeld,selectedCourses,selectedProjects,exceptionRequested,exceptionJustification,attachments,exceptionStatus\njdoe,Joao Doe,joao@sebraeto.com.br,12345,UGE,Analista,UGE;UAF,Administração,,,,,,,,,,pending`;
 
 export default function AdminImportParticipants() {
   const router = useRouter();
@@ -74,7 +74,7 @@ export default function AdminImportParticipants() {
           </div>
 
           <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: 20, fontSize: '0.8rem', color: 'var(--purple)' }}>
-            <strong>Separador de listas internas:</strong> <code>;</code> &nbsp; Exemplo: <code>UGE;UAS</code>
+            <strong>Separador de listas internas:</strong> <code>;</code> &nbsp; Exemplo: <code>UGE;UAF</code>
           </div>
 
           <button type="button" className="btn-outline" style={{ marginBottom: 20, fontSize: '0.8rem' }} onClick={downloadTemplate}>

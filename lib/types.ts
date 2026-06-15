@@ -6,7 +6,7 @@ export type AreaCode =
   | 'CDE'
   // Unidades
   | 'UAC'
-  | 'UAS'
+  | 'UAF'
   | 'UAUD'
   | 'UGE'
   | 'UGOC'

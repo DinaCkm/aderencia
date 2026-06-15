@@ -7,7 +7,7 @@ import { randomUUID } from 'crypto';
 export const config = { api: { bodyParser: false } };
 
 const VALID_AREAS: AreaCode[] = [
-  'UAC','UAS','UAUD','UGE','UGOC','UGP','UMC','URC','URI','UTIC','REGIONAIS',
+  'UAC','UAF','UAUD','UGE','UGOC','UGP','UMC','URC','URI','UTIC','REGIONAIS',
   'RBP','RME','RMN','RNO','RPJ','RSG','RSU','RVA',
 ];
 
@@ -134,7 +134,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Aceitar aliases de área
     const AREA_ALIASES: Record<string, string> = {
       'REGIONAL': 'REGIONAIS',
-      'UAF': 'UAS',
     };
     const areaNorm = AREA_ALIASES[areaRaw] ?? areaRaw;
     const area = areaNorm as AreaCode;

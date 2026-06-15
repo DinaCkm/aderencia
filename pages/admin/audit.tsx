@@ -34,7 +34,7 @@ interface ParticipantSummary {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const AREA_LABELS: Record<string, string> = {
   UAC: 'UAC — Unidade de Articulação e Competitividade',
-  UAS: 'UAS — Unidade de Administração e Suprimentos',
+  UAF: 'UAF — Unidade de Administração e Finanças',
   UAUD: 'UAUD — Unidade de Auditoria Interna',
   UGE: 'UGE — Unidade de Gestão Estratégica e Integridade',
   UGOC: 'UGOC — Unidade de Gestão Orç. Contabilidade e Finanças',

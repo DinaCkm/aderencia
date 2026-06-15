@@ -90,7 +90,7 @@ const instrucoes = [
   [''],
   ['CÓDIGOS DE ÁREA VÁLIDOS:'],
   ['UAC', 'Unidade de Acesso a Crédito'],
-  ['UAS', 'Unidade de Acesso a Serviços'],
+  ['UAF', 'Unidade de Administração e Finanças'],
   ['UAUD', 'Unidade de Auditoria'],
   ['UGE', 'Unidade de Gestão Estratégica'],
   ['UGOC', 'Unidade de Governança e Controle'],

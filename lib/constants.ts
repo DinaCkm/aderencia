@@ -106,7 +106,7 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'grad-ugp-rh', label: 'RH', group: 'graduation', classification: 'area-specific', points: 5, area: 'UGP', aliases: ['RH', 'Recursos Humanos', 'Gestão de Pessoas'] },
   { id: 'grad-ugp-sistemasti', label: 'Sistemas/TI', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Sistemas/TI', 'Sistemas de Informação', 'Tecnologia da Informação', 'TI'] },
   { id: 'grad-ugp-tecnologia-da-informacao', label: 'Tecnologia da Informação', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Tecnologia da Informação', 'TI'] },
-  // UAS
+  // UAF
   { id: 'grad-uas-administracao', label: 'Administração', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Administração', 'Administração de Empresas'] },
   { id: 'grad-uas-ciencia-da-computacao', label: 'Ciência da Computação', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Ciência da Computação'] },
   { id: 'grad-uas-cursos-com-enfase-em-gestao-de-projetos', label: 'Cursos com ênfase em Gestão de Projetos', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Gestão de Projetos', 'Projetos', 'PMO', 'Project Management'] },
@@ -114,7 +114,7 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'grad-uas-cursos-com-enfase-em-lideranca', label: 'Cursos com ênfase em Liderança', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Liderança', 'Desenvolvimento de Lideranças', 'Liderança Estratégica'] },
   { id: 'grad-uas-engenharia-de-producao', label: 'Engenharia de Produção', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Engenharia de Produção'] },
   { id: 'grad-uas-gestao-de-pessoas', label: 'Gestão de Pessoas', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Gestão de Pessoas', 'Recursos Humanos', 'RH'] },
-  { id: 'grad-uas-logistica', label: 'Logística', group: 'graduation', classification: 'area-specific', points: 5, area: 'UAS', aliases: ['Logística'] },
+  { id: 'grad-uas-logistica', label: 'Logística', group: 'graduation', classification: 'area-specific', points: 5, area: 'UAF', aliases: ['Logística'] },
   { id: 'grad-uas-psicologia-organizacional', label: 'Psicologia Organizacional', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Psicologia Organizacional', 'Psicologia do Trabalho'] },
   { id: 'grad-uas-sistemasti', label: 'Sistemas/TI', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Sistemas/TI', 'Sistemas de Informação', 'Tecnologia da Informação', 'TI'] },
   { id: 'grad-uas-tecnologia-da-informacao', label: 'Tecnologia da Informação', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Tecnologia da Informação', 'TI'] },
@@ -273,11 +273,11 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'pos-ugp-mbapos-em-tecnologia', label: 'MBA/Pós em Tecnologia', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Tecnologia', 'Gestão de TI', 'Transformação Digital', 'TI'] },
   { id: 'pos-ugp-psicologia-organizacional', label: 'Psicologia Organizacional', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGP', aliases: ['Psicologia Organizacional'] },
   { id: 'pos-ugp-rh-estrategico-analitico', label: 'RH Estratégico / Analítico', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGP', aliases: ['RH Estratégico', 'People Analytics', 'RH Analítico'] },
-  // UAS
-  { id: 'pos-uas-administracao-de-servicos', label: 'Administração de Serviços', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAS', aliases: ['Administração de Serviços'] },
-  { id: 'pos-uas-gestao-de-operacoes', label: 'Gestão de Operações', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAS', aliases: ['Gestão de Operações'] },
-  { id: 'pos-uas-gestao-patrimonial', label: 'Gestão Patrimonial', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAS', aliases: ['Gestão Patrimonial'] },
-  { id: 'pos-uas-logistica-e-cadeia-de-suprimentos', label: 'Logística e Cadeia de Suprimentos', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAS', aliases: ['Logística e Cadeia de Suprimentos', 'Supply Chain'] },
+  // UAF
+  { id: 'pos-uas-administracao-de-servicos', label: 'Administração de Serviços', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['Administração de Serviços'] },
+  { id: 'pos-uas-gestao-de-operacoes', label: 'Gestão de Operações', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['Gestão de Operações'] },
+  { id: 'pos-uas-gestao-patrimonial', label: 'Gestão Patrimonial', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['Gestão Patrimonial'] },
+  { id: 'pos-uas-logistica-e-cadeia-de-suprimentos', label: 'Logística e Cadeia de Suprimentos', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['Logística e Cadeia de Suprimentos', 'Supply Chain'] },
   { id: 'pos-uas-mbapos-em-estrategia-organizacional', label: 'MBA/Pós em Estratégia Organizacional', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Estratégia Organizacional', 'Gestão Estratégica', 'Planejamento Estratégico'] },
   { id: 'pos-uas-mbapos-em-gestao-de-pessoas', label: 'MBA/Pós em Gestão de Pessoas', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Pessoas', 'People Analytics', 'RH Estratégico'] },
   { id: 'pos-uas-mbapos-em-gestao-de-projetos', label: 'MBA/Pós em Gestão de Projetos', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Projetos', 'Projetos', 'PMO', 'Project Management'] },
@@ -384,12 +384,12 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'proj-ugp-sistema-de-avaliacao-de-desempenho-e-pdi', label: 'Sistema de avaliação de desempenho e PDI', group: 'project', classification: 'area-specific', points: 20, area: 'UGP', aliases: ['avaliação de desempenho', 'PDI', 'desenvolvimento humano'] },
   { id: 'proj-ugp-people-analytics-e-indicadores-de-rh', label: 'People analytics e indicadores de RH', group: 'project', classification: 'area-specific', points: 15, area: 'UGP', aliases: ['people analytics', 'indicadores de RH', 'analytics de pessoas'] },
   { id: 'proj-ugp-gestao-de-mudancas-e-desenvolvimento-humano', label: 'Gestão de mudanças e desenvolvimento humano', group: 'project', classification: 'area-specific', points: 15, area: 'UGP', aliases: ['gestão de mudanças', 'desenvolvimento humano', 'DHO'] },
-  // UAS
-  { id: 'proj-uas-otimizacao-de-suprimentos-e-cadeia-logistica', label: 'Otimização de suprimentos e cadeia logística', group: 'project', classification: 'area-specific', points: 20, area: 'UAS', aliases: ['suprimentos', 'logística', 'cadeia de suprimentos'] },
-  { id: 'proj-uas-gestao-patrimonial-e-inventario-estrategico', label: 'Gestão patrimonial e inventário estratégico', group: 'project', classification: 'area-specific', points: 20, area: 'UAS', aliases: ['gestão patrimonial', 'inventário', 'ativos'] },
-  { id: 'proj-uas-projeto-de-infraestrutura-e-facilities', label: 'Projeto de infraestrutura e facilities', group: 'project', classification: 'area-specific', points: 20, area: 'UAS', aliases: ['infraestrutura', 'facilities', 'ambiente físico'] },
-  { id: 'proj-uas-eficiencia-administrativa-e-redesenho-de-processos', label: 'Eficiência administrativa e redesenho de processos', group: 'project', classification: 'area-specific', points: 15, area: 'UAS', aliases: ['eficiência administrativa', 'processos administrativos', 'redesenho'] },
-  { id: 'proj-uas-gestao-de-contratos-administrativos-e-apoio-operacional', label: 'Gestão de contratos administrativos e apoio operacional', group: 'project', classification: 'area-specific', points: 15, area: 'UAS', aliases: ['contratos administrativos', 'apoio operacional', 'fornecedores'] },
+  // UAF
+  { id: 'proj-uas-otimizacao-de-suprimentos-e-cadeia-logistica', label: 'Otimização de suprimentos e cadeia logística', group: 'project', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['suprimentos', 'logística', 'cadeia de suprimentos'] },
+  { id: 'proj-uas-gestao-patrimonial-e-inventario-estrategico', label: 'Gestão patrimonial e inventário estratégico', group: 'project', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['gestão patrimonial', 'inventário', 'ativos'] },
+  { id: 'proj-uas-projeto-de-infraestrutura-e-facilities', label: 'Projeto de infraestrutura e facilities', group: 'project', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['infraestrutura', 'facilities', 'ambiente físico'] },
+  { id: 'proj-uas-eficiencia-administrativa-e-redesenho-de-processos', label: 'Eficiência administrativa e redesenho de processos', group: 'project', classification: 'area-specific', points: 15, area: 'UAF', aliases: ['eficiência administrativa', 'processos administrativos', 'redesenho'] },
+  { id: 'proj-uas-gestao-de-contratos-administrativos-e-apoio-operacional', label: 'Gestão de contratos administrativos e apoio operacional', group: 'project', classification: 'area-specific', points: 15, area: 'UAF', aliases: ['contratos administrativos', 'apoio operacional', 'fornecedores'] },
   // UGOC
   { id: 'proj-ugoc-planejamento-orcamentario-anual-e-plurianual', label: 'Planejamento orçamentário anual e plurianual', group: 'project', classification: 'area-specific', points: 20, area: 'UGOC', aliases: ['planejamento orçamentário', 'PPA orçamentário', 'orçamento anual'] },
   { id: 'proj-ugoc-fechamento-contabil-e-conformidade-financeira', label: 'Fechamento contábil e conformidade financeira', group: 'project', classification: 'area-specific', points: 20, area: 'UGOC', aliases: ['fechamento contábil', 'conformidade financeira', 'balanços'] },
@@ -495,7 +495,7 @@ export const OFFICIAL_AREAS: { code: string; label: string }[] = [
   { code: 'CDE',     label: 'CDE — Assessoria' },
   // ── Unidades ────────────────────────────────────────────────────────────
   { code: 'UAC',     label: 'UAC — Unidade de Articulação e Competitividade' },
-  { code: 'UAS',     label: 'UAS — Unidade de Administração e Suprimentos' },
+  { code: 'UAF',     label: 'UAF — Unidade de Administração e Finanças' },
   { code: 'UAUD',    label: 'UAUD — Unidade de Auditoria Interna' },
   { code: 'UGE',     label: 'UGE — Unidade de Gestão Estratégica e Integridade' },
   { code: 'UGOC',    label: 'UGOC — Unidade de Gestão Orç. Contabilidade e Finanças' },
