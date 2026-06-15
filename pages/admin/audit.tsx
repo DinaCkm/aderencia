@@ -668,10 +668,10 @@ export default function AdminAudit() {
                           📎 Enviou documento para comprovação
                         </div>
                       )}
-                      {mode === 'upload' && p.proofFiles?.[fileKey] && (
+                      {mode === 'upload' && p.proofFiles?.[fileKey] && p.proofFiles[fileKey].startsWith('data:') && (
                         <FileViewer base64={p.proofFiles[fileKey]} fileName="comprovante-graduacao" label="Comprovante de graduação" />
                       )}
-                      {!p.proofFiles?.[fileKey] && mode !== 'ugp-knows' && (
+                      {mode !== 'ugp-knows' && (!p.proofFiles?.[fileKey] || !p.proofFiles[fileKey].startsWith('data:')) && (
                         <AdminProofUploader email={p.email!} itemKey={fileKey} onUploaded={(b) => updateProofFile(fileKey, b)} />
                       )}
                       {mode === 'upload' && (p as any).proofLinks?.[fileKey] && (
@@ -718,14 +718,14 @@ export default function AdminAudit() {
                                 📎 Enviou documento para comprovação
                               </div>
                             )}
-                            {mode === 'upload' && p.proofFiles?.[mbaKey] && (
+                            {mode === 'upload' && p.proofFiles?.[mbaKey] && p.proofFiles[mbaKey].startsWith('data:') && (
                               <FileViewer
                                 base64={p.proofFiles[mbaKey]}
                                 fileName={`comprovante-pos-${i + 1}`}
                                 label="Comprovante enviado"
                               />
                             )}
-                            {!p.proofFiles?.[mbaKey] && mode !== 'ugp-knows' && (
+                            {mode !== 'ugp-knows' && (!p.proofFiles?.[mbaKey] || !p.proofFiles[mbaKey].startsWith('data:')) && (
                               <AdminProofUploader email={p.email!} itemKey={mbaKey} onUploaded={(b) => updateProofFile(mbaKey, b)} />
                             )}
                             {mode === 'upload' && (p as any).proofLinks?.[mbaKey] && (
@@ -781,10 +781,10 @@ export default function AdminAudit() {
                             <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>{course.name}</div>
                             <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>Área: {course.area} • {course.hours}h</div>
                             <ProofBadge mode={mode} />
-                            {mode === 'upload' && p.proofFiles?.[key] && (
+                            {mode === 'upload' && p.proofFiles?.[key] && p.proofFiles[key].startsWith('data:') && (
                               <FileViewer base64={p.proofFiles[key]} fileName={`comprovante-curso-${i + 1}`} label="Comprovante enviado" />
                             )}
-                            {!p.proofFiles?.[key] && mode !== 'ugp-knows' && (
+                            {mode !== 'ugp-knows' && (!p.proofFiles?.[key] || !p.proofFiles[key].startsWith('data:')) && (
                               <AdminProofUploader email={p.email!} itemKey={key} onUploaded={(b) => updateProofFile(key, b)} />
                             )}
                             {mode === 'upload' && (p as any).proofLinks?.[key] && (
@@ -807,10 +807,10 @@ export default function AdminAudit() {
                               <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>Carga horária: {p.courseHours[course]}h</div>
                             )}
                             <ProofBadge mode={mode} />
-                            {mode === 'upload' && p.proofFiles?.[key] && (
+                            {mode === 'upload' && p.proofFiles?.[key] && p.proofFiles[key].startsWith('data:') && (
                               <FileViewer base64={p.proofFiles[key]} fileName={`comprovante-curso-cat-${i + 1}`} label="Comprovante enviado" />
                             )}
-                            {!p.proofFiles?.[key] && mode !== 'ugp-knows' && (
+                            {mode !== 'ugp-knows' && (!p.proofFiles?.[key] || !p.proofFiles[key].startsWith('data:')) && (
                               <AdminProofUploader email={p.email!} itemKey={key} onUploaded={(b) => updateProofFile(key, b)} />
                             )}
                             {mode === 'upload' && (p as any).proofLinks?.[key] && (
@@ -876,14 +876,14 @@ export default function AdminAudit() {
                             📎 Enviou documento para comprovação
                           </div>
                         )}
-                        {mode === 'upload' && p.proofFiles?.[projKey] && (
+                        {mode === 'upload' && p.proofFiles?.[projKey] && p.proofFiles[projKey].startsWith('data:') && (
                           <FileViewer
                             base64={p.proofFiles[projKey]}
                             fileName={`comprovante-projeto-${i + 1}`}
                             label="Comprovante enviado"
                           />
                         )}
-                        {!p.proofFiles?.[projKey] && mode !== 'ugp-knows' && (
+                        {mode !== 'ugp-knows' && (!p.proofFiles?.[projKey] || !p.proofFiles[projKey].startsWith('data:')) && (
                           <AdminProofUploader email={p.email!} itemKey={projKey} onUploaded={(b) => updateProofFile(projKey, b)} />
                         )}
                         {mode === 'upload' && (p as any).proofLinks?.[projKey] && (
