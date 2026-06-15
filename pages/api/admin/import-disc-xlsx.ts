@@ -131,8 +131,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!emailRaw && !nome && !areaRaw) continue;
     if (!areaRaw) continue;
 
-    // Aceitar REGIONAL como sinônimo de REGIONAIS
-    const areaNorm = areaRaw === 'REGIONAL' ? 'REGIONAIS' : areaRaw;
+    // Aceitar aliases de área
+    const AREA_ALIASES: Record<string, string> = {
+      'REGIONAL': 'REGIONAIS',
+      'UAF': 'UAS',
+    };
+    const areaNorm = AREA_ALIASES[areaRaw] ?? areaRaw;
     const area = areaNorm as AreaCode;
     if (!VALID_AREAS.includes(area)) {
       errors.push(`Linha ${i + 1}: área inválida "${areaRaw}" para ${emailRaw || nome}`);
