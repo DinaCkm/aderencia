@@ -16,6 +16,19 @@ type AssessmentWithMeta = AreaAssessment & {
   discRecord?: DISCRecord;
 };
 
+const QUADRANT_DESC: Record<string, string> = {
+  'Potencial de Curto Prazo':    'Perfil comportamental alto, mas aderência técnica baixa. Tem o perfil certo para a área, mas ainda precisa de capacitação técnica. Pode ser desenvolvido a médio prazo.',
+  'Pronto em Desenvolvimento':   'Perfil comportamental excelente e aderência técnica em desenvolvimento (média). Tem grande potencial e pode ser preparado rapidamente com capacitação técnica.',
+  'Alta Prontidao':              'Candidato com alta aderência técnica E comportamental. Candidato ideal: está pronto para assumir a posição agora ou em curto prazo.',
+  'Alta Prontidão':              'Candidato com alta aderência técnica E comportamental. Candidato ideal: está pronto para assumir a posição agora ou em curto prazo.',
+  'Desenvolvimento Direcionado': 'Técnica e comportamento ambos baixos-médios. Precisa de um plano de desenvolvimento estruturado antes de ser considerado para sucessão.',
+  'Potencial de Médio Prazo':    'Técnica e comportamento ambos médios. Candidato equilibrado, mas ainda não está pronto. Precisa de desenvolvimento em ambas as dimensões.',
+  'Destaque Técnico':            'Aderência técnica alta, mas perfil comportamental médio. Domina o conteúdo, mas precisa desenvolver competências de liderança e comportamento.',
+  'Baixa Aderência':             'Técnica e comportamento ambos baixos. Não há aderência significativa à área neste momento. Não é recomendado para sucessão sem um plano de desenvolvimento profundo.',
+  'Especialista sem Liderança':  'Técnica média, mas comportamento baixo para a área. Conhece o trabalho, mas o perfil DISC não se alinha ao cargo. Pode ser um bom especialista, mas não necessariamente um bom gestor nessa área.',
+  'Risco de Liderança':          'Técnica alta, mas comportamento baixo. O candidato tem o conhecimento técnico, mas o perfil comportamental pode gerar conflitos ou dificuldades na gestão.',
+};
+
 const GRID_CELLS: { x: string; y: string; label: string; color: string; bg: string }[] = [
   { x: 'low',  y: 'high', label: 'Potencial de Curto Prazo',    color: '#0369a1', bg: '#e0f2fe' },
   { x: 'mid',  y: 'high', label: 'Pronto em Desenvolvimento',   color: '#7c3aed', bg: '#ede9fe' },
@@ -755,8 +768,14 @@ export default function AdminNineBox() {
                             padding: '10px', marginRight: xVal !== 'high' ? 4 : 0,
                             display: 'flex', flexDirection: 'column',
                           }}>
-                            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: cellDef.color, marginBottom: 8, lineHeight: 1.3 }}>
-                              {cellDef.label}
+                            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: cellDef.color, marginBottom: 8, lineHeight: 1.3, display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <span>{cellDef.label}</span>
+                              {QUADRANT_DESC[cellDef.label] && (
+                                <span
+                                  title={QUADRANT_DESC[cellDef.label]}
+                                  style={{ cursor: 'help', fontSize: '0.75rem', opacity: 0.65, flexShrink: 0 }}
+                                >👁️</span>
+                              )}
                             </div>
                             {participants.length === 0 ? (
                               <div style={{ fontSize: '0.7rem', color: '#9ca3af', fontStyle: 'italic' }}>—</div>

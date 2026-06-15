@@ -35,6 +35,19 @@ interface EmployeeProfileData {
   areaAssessments: AreaAssessmentResult[];
 }
 
+const QUADRANT_DESC: Record<string, string> = {
+  'Potencial de Curto Prazo':    'Perfil comportamental alto, mas aderência técnica baixa. Tem o perfil certo para a área, mas ainda precisa de capacitação técnica. Pode ser desenvolvido a médio prazo.',
+  'Pronto em Desenvolvimento':   'Perfil comportamental excelente e aderência técnica em desenvolvimento (média). Tem grande potencial e pode ser preparado rapidamente com capacitação técnica.',
+  'Alta Prontidao':              'Candidato com alta aderência técnica E comportamental. Candidato ideal: está pronto para assumir a posição agora ou em curto prazo.',
+  'Alta Prontidão':              'Candidato com alta aderência técnica E comportamental. Candidato ideal: está pronto para assumir a posição agora ou em curto prazo.',
+  'Desenvolvimento Direcionado': 'Técnica e comportamento ambos baixos-médios. Precisa de um plano de desenvolvimento estruturado antes de ser considerado para sucessão.',
+  'Potencial de Médio Prazo':    'Técnica e comportamento ambos médios. Candidato equilibrado, mas ainda não está pronto. Precisa de desenvolvimento em ambas as dimensões.',
+  'Destaque Técnico':            'Aderência técnica alta, mas perfil comportamental médio. Domina o conteúdo, mas precisa desenvolver competências de liderança e comportamento.',
+  'Baixa Aderência':             'Técnica e comportamento ambos baixos. Não há aderência significativa à área neste momento. Não é recomendado para sucessão sem um plano de desenvolvimento profundo.',
+  'Especialista sem Liderança':  'Técnica média, mas comportamento baixo para a área. Conhece o trabalho, mas o perfil DISC não se alinha ao cargo. Pode ser um bom especialista, mas não necessariamente um bom gestor nessa área.',
+  'Risco de Liderança':          'Técnica alta, mas comportamento baixo. O candidato tem o conhecimento técnico, mas o perfil comportamental pode gerar conflitos ou dificuldades na gestão.',
+};
+
 function formatCpf(v: string) {
   const d = v.replace(/\D/g, '').slice(0, 11);
   return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
@@ -165,6 +178,12 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                               border: `1px solid ${a.technicalAdherence >= 7.5 && (a.behavioralAdherence ?? 0) >= 7.5 ? '#86efac' : a.technicalAdherence >= 5 && (a.behavioralAdherence ?? 0) >= 5 ? '#fcd34d' : '#fca5a5'}`,
                             }}>
                               ◉ {a.quadrant}
+                              {QUADRANT_DESC[a.quadrant] && (
+                                <span
+                                  title={QUADRANT_DESC[a.quadrant]}
+                                  style={{ cursor: 'help', fontSize: '0.8rem', marginLeft: 4, opacity: 0.7 }}
+                                >👁️</span>
+                              )}
                             </div>
                           ) : a.quadrant === 'Dados incompletos para definição do quadrante' ? (
                             <div style={{ display: 'inline-block', marginTop: 4, padding: '2px 10px', borderRadius: 12, fontSize: '0.72rem', color: '#94a3b8', background: '#f8fafc', border: '1px solid #e2e8f0' }}>

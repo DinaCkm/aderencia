@@ -4,15 +4,19 @@ import Head from 'next/head';
 import Link from 'next/link';
 
 const QUADRANT_INFO: Record<string, { color: string; bg: string; icon: string; desc: string }> = {
-  'Alta Prontidão':                          { color: '#065f46', bg: '#d1fae5', icon: '🏆', desc: 'Alta aderência técnica E comportamental. Candidato prioritário para sucessão.' },
-  'Pronto em Desenvolvimento':              { color: '#1d4ed8', bg: '#dbeafe', icon: '⭐', desc: 'Boa aderência comportamental, em desenvolvimento técnico. Potencial elevado.' },
-  'Potencial de Curto Prazo':               { color: '#0e7490', bg: '#cffafe', icon: '🚀', desc: 'Forte aderência comportamental, precisa desenvolver competências técnicas.' },
-  'Destaque Técnico, lapidar liderança':    { color: '#7c3aed', bg: '#ede9fe', icon: '🔧', desc: 'Excelente base técnica. Requer desenvolvimento de competências comportamentais.' },
-  'Potencial de Médio Prazo':               { color: '#b45309', bg: '#fef3c7', icon: '📈', desc: 'Aderência moderada em ambas as dimensões. Plano de desenvolvimento recomendado.' },
-  'Desenvolvimento Direcionado':            { color: '#92400e', bg: '#fef9c3', icon: '🎯', desc: 'Boa aderência técnica, comportamental em desenvolvimento.' },
+  'Alta Prontidão':                          { color: '#065f46', bg: '#d1fae5', icon: '🏆', desc: 'Candidato com alta aderência técnica E comportamental. Candidato ideal: está pronto para assumir a posição agora ou em curto prazo.' },
+  'Alta Prontidao':                          { color: '#065f46', bg: '#d1fae5', icon: '🏆', desc: 'Candidato com alta aderência técnica E comportamental. Candidato ideal: está pronto para assumir a posição agora ou em curto prazo.' },
+  'Pronto em Desenvolvimento':              { color: '#1d4ed8', bg: '#dbeafe', icon: '⭐', desc: 'Perfil comportamental excelente e aderência técnica em desenvolvimento (média). Tem grande potencial e pode ser preparado rapidamente com capacitação técnica.' },
+  'Potencial de Curto Prazo':               { color: '#0e7490', bg: '#cffafe', icon: '🚀', desc: 'Perfil comportamental alto, mas aderência técnica baixa. Tem o perfil certo para a área, mas ainda precisa de capacitação técnica. Pode ser desenvolvido a médio prazo.' },
+  'Destaque Técnico, lapidar liderança':    { color: '#7c3aed', bg: '#ede9fe', icon: '🔧', desc: 'Aderência técnica alta, mas perfil comportamental médio. Domina o conteúdo, mas precisa desenvolver competências de liderança e comportamento.' },
+  'Destaque Técnico':                       { color: '#0f766e', bg: '#ccfbf1', icon: '🔧', desc: 'Aderência técnica alta, mas perfil comportamental médio. Domina o conteúdo, mas precisa desenvolver competências de liderança e comportamento.' },
+  'Potencial de Médio Prazo':               { color: '#b45309', bg: '#fef3c7', icon: '📈', desc: 'Técnica e comportamento ambos médios. Candidato equilibrado, mas ainda não está pronto. Precisa de desenvolvimento em ambas as dimensões.' },
+  'Desenvolvimento Direcionado':            { color: '#92400e', bg: '#fef9c3', icon: '🎯', desc: 'Técnica e comportamento ambos baixos-médios. Precisa de um plano de desenvolvimento estruturado antes de ser considerado para sucessão.' },
   'Potencial de Longo Prazo':               { color: '#6b7280', bg: '#f3f4f6', icon: '🌱', desc: 'Aderência inicial. Requer plano de desenvolvimento estruturado.' },
   'Em Desenvolvimento':                     { color: '#6b7280', bg: '#f3f4f6', icon: '📚', desc: 'Aderência técnica moderada, comportamental baixa. Foco em engajamento.' },
-  'Baixa Aderência':                        { color: '#dc2626', bg: '#fee2e2', icon: '⚠️', desc: 'Aderência baixa em ambas as dimensões para esta área específica.' },
+  'Especialista sem Liderança':             { color: '#c2410c', bg: '#ffedd5', icon: '💼', desc: 'Técnica média, mas comportamento baixo para a área. Conhece o trabalho, mas o perfil DISC não se alinha ao cargo. Pode ser um bom especialista, mas não necessariamente um bom gestor nessa área.' },
+  'Risco de Liderança':                    { color: '#b45309', bg: '#fef9c3', icon: '⚠️', desc: 'Técnica alta, mas comportamento baixo. O candidato tem o conhecimento técnico, mas o perfil comportamental pode gerar conflitos ou dificuldades na gestão.' },
+  'Baixa Aderência':                        { color: '#dc2626', bg: '#fee2e2', icon: '⚠️', desc: 'Técnica e comportamento ambos baixos. Não há aderência significativa à área neste momento. Não é recomendado para sucessão sem um plano de desenvolvimento profundo.' },
   'Dados incompletos para definição do quadrante': { color: '#6b7280', bg: '#f3f4f6', icon: '⏳', desc: 'Aguardando importação de dados de performance e/ou DISC para definição do quadrante.' },
 };
 
@@ -396,7 +400,10 @@ export default function MyResults() {
                 <div style={{ fontSize: '2rem', flexShrink: 0 }}>{qi.icon}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '0.7rem', fontWeight: 700, color: qi.color, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 2 }}>Posição no Nine Box</div>
-                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: qi.color, marginBottom: 4 }}>{r.nineBoxClassification}</div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: qi.color, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>{r.nineBoxClassification}</span>
+                    <span title={qi.desc} style={{ cursor: 'help', fontSize: '0.9rem', opacity: 0.6 }}>👁️</span>
+                  </div>
                   <div style={{ fontSize: '0.78rem', color: qi.color, opacity: 0.85 }}>{qi.desc}</div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 20px)', gridTemplateRows: 'repeat(3, 20px)', gap: 2, flexShrink: 0 }}>
