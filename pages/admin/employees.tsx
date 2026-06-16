@@ -336,7 +336,7 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                   return { proj, status: 'nao-pontua' as const, reason: `Área vinculada (${vinculadaArea}) não está entre as áreas de interesse selecionadas`, pts: 0, area: vinculadaArea, auditNote: undefined };
                 }
                 if (!catalogItem) {
-                  return { proj, status: 'nao-pontua' as const, reason: `Projeto não encontrado no catálogo para a área ${vinculadaArea}`, pts: 0, area: vinculadaArea, auditNote: undefined };
+                  return { proj, status: 'nao-pontua' as const, reason: `O tema deste projeto não é aderente à área ${vinculadaArea} conforme o catálogo oficial de projetos estratégicos`, pts: 0, area: vinculadaArea, auditNote: undefined };
                 }
                 const projsInSameArea = allProjects.filter((pp) => p.projectAreaMap?.[pp] === vinculadaArea);
                 const itemsInArea = CATALOG_ITEMS.filter((i) => i.group === 'project' && projsInSameArea.includes(i.label) && i.area === vinculadaArea);
