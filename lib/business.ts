@@ -104,10 +104,17 @@ function computeTechnicalAdherence(
   const expScore = experienceScore(profile.managerialMonths ?? 0, profile.interimMonths ?? 0);
 
   // Projetos com detalhes
-  const projItems = CATALOG_ITEMS.filter(
-    (i) => i.group === 'project' && (profile.selectedProjects ?? []).includes(i.label) && i.area === area
-  );
-  const projScore = Math.min(20, projItems.reduce((acc, i) => acc + ((i as any).points ?? 15), 0));
+  // Usa projectAreaMap como fonte de verdade: se o admin vinculou um projeto a esta área,
+  // ele pontua aqui — buscando os pontos no catálogo pelo label (independente da área original do catálogo)
+  const projectAreaMap: Record<string, string> = (profile as any).projectAreaMap ?? {};
+  const projItems = (profile.selectedProjects ?? [])
+    .filter((label) => projectAreaMap[label] === area)
+    .map((label) => {
+      // Busca no catálogo pelo label (qualquer área) para obter os pontos
+      const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === label);
+      return catalogItem ? { label, points: (catalogItem as any).points ?? 15 } : { label, points: 15 };
+    });
+  const projScore = Math.min(20, projItems.reduce((acc, i) => acc + i.points, 0));
 
   const total80 = postMBADet.score + expScore + projScore;
   const score10 = Math.round((total80 / 80) * 100) / 10;
@@ -118,7 +125,7 @@ function computeTechnicalAdherence(
   return {
     technicalAdherence: score10,
     postMBADetail: postMBADet,
-    projectsDetail: projItems.map((i) => ({ label: i.label, points: (i as any).points ?? 15 })),
+    projectsDetail: projItems.map((i) => ({ label: i.label, points: i.points })),
     calculationSteps: [
       {
         name: 'Pós/MBA (melhor título para a área)',
@@ -136,8 +143,8 @@ function computeTechnicalAdherence(
         name: 'Projetos estratégicos da área',
         value: projScore,
         detail: projItems.length > 0
-          ? projItems.map((i) => `"${i.label}" = ${(i as any).points ?? 15} pts`).join(' | ') + ` — máx. 20 pts`
-          : 'Nenhum projeto selecionado para esta área',
+          ? projItems.map((i) => `"${i.label}" = ${i.points} pts`).join(' | ') + ` — máx. 20 pts`
+          : 'Nenhum projeto vinculado a esta área',
       },
       {
         name: 'Total bruto (0–80)',
