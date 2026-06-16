@@ -1145,14 +1145,33 @@ export default function ParticipantForm() {
                   <div style={{ marginTop: 10 }}>
                     <label className="form-label" style={{ fontSize: '0.8rem' }}>Nome do curso de graduação *</label>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginBottom: 4 }}>Digite o nome completo conforme consta no diploma, certificado ou histórico acadêmico.</p>
-                    <input
-                      className="form-input"
-                      type="text"
-                      placeholder="Ex.: Bacharelado em Administração, Ciências Contábeis, Psicologia..."
-                      value={(profile as any).graduationCourseName || ''}
-                      onChange={(e) => setProfile((p) => ({ ...p, graduationCourseName: e.target.value } as any))}
-                      required
-                    />
+                    {(() => {
+                      const gradProofKeyCheck = profile.graduation === '__outro__'
+                        ? `grad:${(profile as any).graduationCourseName?.trim() || '__outro__'}`
+                        : `grad:${profile.graduation}`;
+                      const isLocked = !!(profile.proofMode || {})[gradProofKeyCheck];
+                      return isLocked ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <input
+                            className="form-input"
+                            type="text"
+                            value={(profile as any).graduationCourseName || ''}
+                            readOnly
+                            style={{ background: '#f3f4f6', color: 'var(--text-muted)', cursor: 'not-allowed' }}
+                          />
+                          <span title="Nome bloqueado — comprovação já vinculada. Para alterar, remova a comprovação primeiro." style={{ fontSize: '0.72rem', color: '#92400e', whiteSpace: 'nowrap' }}>🔒 Bloqueado</span>
+                        </div>
+                      ) : (
+                        <input
+                          className="form-input"
+                          type="text"
+                          placeholder="Ex.: Bacharelado em Administração, Ciências Contábeis, Psicologia..."
+                          value={(profile as any).graduationCourseName || ''}
+                          onChange={(e) => setProfile((p) => ({ ...p, graduationCourseName: e.target.value } as any))}
+                          required
+                        />
+                      );
+                    })()}
                   </div>
                 )}
                 {profile.graduation && (() => {
@@ -1439,13 +1458,25 @@ export default function ParticipantForm() {
                         {/* Nome conforme certificado */}
                         <div style={{ marginBottom: 8 }}>
                           <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Nome completo conforme consta no certificado{idx === 0 ? ' *' : ''}</label>
-                          <input
-                            type="text"
-                            placeholder="Ex.: MBA em Gestão de Pessoas, Especialização em Direito Público..."
-                            value={mba.name || ''}
-                            onChange={(e) => updateMBA('name', e.target.value)}
-                            style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text)', background: 'white' }}
-                          />
+                          {(profile.proofMode || {})[proofKey] ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <input
+                                type="text"
+                                value={mba.name || ''}
+                                readOnly
+                                style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text-muted)', background: '#f3f4f6', cursor: 'not-allowed' }}
+                              />
+                              <span title="Nome bloqueado — comprovação já vinculada. Para alterar, remova a comprovação primeiro." style={{ fontSize: '0.72rem', color: '#92400e', whiteSpace: 'nowrap' }}>🔒 Bloqueado</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              placeholder="Ex.: MBA em Gestão de Pessoas, Especialização em Direito Público..."
+                              value={mba.name || ''}
+                              onChange={(e) => updateMBA('name', e.target.value)}
+                              style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text)', background: 'white' }}
+                            />
+                          )}
                         </div>
                         {/* Comprovação — só aparece quando área e nome estão preenchidos */}
                         {mba.area && mba.name?.trim() && (
@@ -1672,13 +1703,25 @@ export default function ParticipantForm() {
                         {/* Nome do curso */}
                         <div style={{ marginBottom: 8 }}>
                           <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Nome do curso conforme consta no certificado *</label>
-                          <input
-                            type="text"
-                            placeholder="Ex.: Gestão de Projetos Ágeis, Liderança e Equipes..."
-                            value={course.name || ''}
-                            onChange={(e) => updateCourse('name', e.target.value)}
-                            style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text)', background: 'white' }}
-                          />
+                          {(profile.proofMode || {})[`curso5_${idx}:${course.name}`] ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <input
+                                type="text"
+                                value={course.name || ''}
+                                readOnly
+                                style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text-muted)', background: '#f3f4f6', cursor: 'not-allowed' }}
+                              />
+                              <span title="Nome bloqueado — comprovação já vinculada. Para alterar, remova a comprovação primeiro." style={{ fontSize: '0.72rem', color: '#92400e', whiteSpace: 'nowrap' }}>🔒 Bloqueado</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              placeholder="Ex.: Gestão de Projetos Ágeis, Liderança e Equipes..."
+                              value={course.name || ''}
+                              onChange={(e) => updateCourse('name', e.target.value)}
+                              style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text)', background: 'white' }}
+                            />
+                          )}
                         </div>
                         {/* Carga horária */}
                         <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
