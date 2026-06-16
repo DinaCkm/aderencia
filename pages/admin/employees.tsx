@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import type { ParticipantProfile } from '../../lib/types';
+import { CATALOG_ITEMS } from '../../lib/constants';
 
 interface Employee {
   email: string;
@@ -265,6 +266,188 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                 Este candidato ainda não selecionou áreas de interesse ou não enviou o formulário.
               </div>
             )}
+
+            {/* ── Análise Detalhada de Pontuação ── */}
+            {p && (() => {
+              // Monta análise global de todos os itens declarados pelo candidato
+              const allMBAs = p.postMBAs || [];
+              const allProjects = p.selectedProjects || [];
+              const allCourses = p.selectedCourses || [];
+              const selectedAreas = p.selectedAreas || [];
+
+              // Pós/MBA: para cada título, verifica se pontua em alguma área
+              const mbaAnalysis = allMBAs.map((title) => {
+                const matches = CATALOG_ITEMS.filter(
+                  (i) => i.group === 'postMBA' && i.label === title
+                );
+                if (matches.length === 0) {
+                  return { title, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo — pontuação mínima de 20 pts aplicada como "não relacionado"', pts: 20, areas: [] as string[] };
+                }
+                const transversal = matches.find((m) => m.classification === 'transversal');
+                if (transversal) {
+                  return { title, status: 'pontua' as const, reason: `Título transversal — vale 40 pts em todas as áreas`, pts: 40, areas: selectedAreas };
+                }
+                const areaMatches = matches.filter((m) => m.area && selectedAreas.includes(m.area as any));
+                if (areaMatches.length > 0) {
+                  return { title, status: 'pontua' as const, reason: `Específico para ${areaMatches.map((m) => m.area).join(', ')} — vale 20 pts`, pts: 20, areas: areaMatches.map((m) => m.area as string) };
+                }
+                return { title, status: 'nao-pontua' as const, reason: 'Título não relacionado às áreas de interesse selecionadas — pontuação mínima de 20 pts', pts: 20, areas: [] as string[] };
+              });
+
+              // Projetos: verifica se cada projeto está vinculado a uma área de interesse
+              const projAnalysis = allProjects.map((proj) => {
+                const vinculadaArea = p.projectAreaMap?.[proj] || null;
+                const catalogItem = CATALOG_ITEMS.find(
+                  (i) => i.group === 'project' && i.label === proj && i.area === vinculadaArea
+                );
+                if (!vinculadaArea) {
+                  return { proj, status: 'nao-pontua' as const, reason: 'Projeto sem área vinculada — não entra no cálculo', pts: 0, area: null };
+                }
+                if (!selectedAreas.includes(vinculadaArea as any)) {
+                  return { proj, status: 'nao-pontua' as const, reason: `Área vinculada (${vinculadaArea}) não está entre as áreas de interesse selecionadas`, pts: 0, area: vinculadaArea };
+                }
+                if (!catalogItem) {
+                  return { proj, status: 'nao-pontua' as const, reason: `Projeto não encontrado no catálogo para a área ${vinculadaArea}`, pts: 0, area: vinculadaArea };
+                }
+                // Verifica se o cap de 20pts por área já foi atingido
+                const projsInSameArea = allProjects.filter((pp) => p.projectAreaMap?.[pp] === vinculadaArea);
+                const itemsInArea = CATALOG_ITEMS.filter(
+                  (i) => i.group === 'project' && projsInSameArea.includes(i.label) && i.area === vinculadaArea
+                );
+                const totalBefore = itemsInArea
+                  .filter((i) => projsInSameArea.indexOf(i.label) < projsInSameArea.indexOf(proj))
+                  .reduce((acc, i) => acc + i.points, 0);
+                const pts = catalogItem.points;
+                const effective = Math.max(0, Math.min(pts, 20 - totalBefore));
+                if (effective <= 0) {
+                  return { proj, status: 'nao-pontua' as const, reason: `Cap de 20 pts já atingido para a área ${vinculadaArea} — este projeto não adiciona pontos`, pts: 0, area: vinculadaArea };
+                }
+                return { proj, status: 'pontua' as const, reason: `Área ${vinculadaArea} — ${pts} pts no catálogo${effective < pts ? ` (limitado a ${effective} pts pelo cap de 20 pts da área)` : ''}`, pts: effective, area: vinculadaArea };
+              });
+
+              // Cursos: nunca entram na nota
+              const courseAnalysis = allCourses.map((course) => ({
+                course,
+                status: 'nao-pontua' as const,
+                reason: 'Cursos extracurriculares são registrados mas não entram na pontuação técnica',
+                pts: 0,
+              }));
+
+              // Graduação: nunca entra na nota
+              const gradItems = [p.graduation, p.graduation2].filter(Boolean) as string[];
+              if (p.graduationCourseName) gradItems.push(p.graduationCourseName);
+
+              // Experiência
+              const totalMonths = (p.managerialMonths ?? 0) + (p.interimMonths ?? 0);
+              const expPts = Math.min(20, Math.floor((totalMonths / 12) * 5 * 10) / 10);
+
+              const hasSomething = allMBAs.length > 0 || allProjects.length > 0 || allCourses.length > 0 || gradItems.length > 0 || totalMonths > 0;
+
+              if (!hasSomething) return null;
+
+              return (
+                <div style={{ marginBottom: 24, border: '2px solid #e0e7ff', borderRadius: 12, overflow: 'hidden' }}>
+                  <div style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: '1rem' }}>🔍</span>
+                    <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 800, color: 'white' }}>Análise Detalhada de Pontuação</h3>
+                    <span style={{ marginLeft: 'auto', fontSize: '0.7rem', color: 'rgba(255,255,255,0.75)' }}>Item a item — o que pontuou e o que não pontuou</span>
+                  </div>
+                  <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+                    {/* Pós/MBA */}
+                    {mbaAnalysis.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Pós/MBA (entra no cálculo)</div>
+                        {mbaAnalysis.map((m, i) => (
+                          <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 10px', borderRadius: 8, marginBottom: 4, background: m.status === 'pontua' ? '#f0fdf4' : '#fff7ed', border: `1px solid ${m.status === 'pontua' ? '#86efac' : '#fed7aa'}` }}>
+                            <span style={{ fontSize: '0.85rem', flexShrink: 0, marginTop: 1 }}>{m.status === 'pontua' ? '✅' : '⚠️'}</span>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>{m.title}</div>
+                              <div style={{ fontSize: '0.7rem', color: m.status === 'pontua' ? '#15803d' : '#92400e', marginTop: 2 }}>{m.reason}</div>
+                            </div>
+                            <span style={{ fontWeight: 800, fontSize: '0.82rem', color: m.status === 'pontua' ? '#15803d' : '#92400e', flexShrink: 0 }}>{m.pts} pts</span>
+                          </div>
+                        ))}
+                        {allMBAs.length === 0 && (
+                          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic', padding: '6px 10px' }}>Nenhum título de Pós/MBA informado — 0 pts neste critério</div>
+                        )}
+                      </div>
+                    )}
+                    {allMBAs.length === 0 && (
+                      <div>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Pós/MBA (entra no cálculo)</div>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic', padding: '6px 10px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>❌ Nenhum título informado — 0 pts neste critério (máx. 40 pts)</div>
+                      </div>
+                    )}
+
+                    {/* Experiência */}
+                    <div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Experiência Gerencial / Interina (entra no cálculo)</div>
+                      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 10px', borderRadius: 8, background: expPts > 0 ? '#f0fdf4' : '#f8fafc', border: `1px solid ${expPts > 0 ? '#86efac' : '#e2e8f0'}` }}>
+                        <span style={{ fontSize: '0.85rem', flexShrink: 0, marginTop: 1 }}>{expPts > 0 ? '✅' : '❌'}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>
+                            Gerencial: {p.managerialMonths ?? 0}m &nbsp;+&nbsp; Interino: {p.interimMonths ?? 0}m &nbsp;=&nbsp; {totalMonths}m totais
+                          </div>
+                          <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 2 }}>
+                            {totalMonths > 0
+                              ? `${(totalMonths / 12).toFixed(1)} anos × 5 pts/ano = ${expPts} pts (máx. 20 pts)`
+                              : 'Nenhuma experiência gerencial ou interina informada — 0 pts neste critério (máx. 20 pts)'}
+                          </div>
+                        </div>
+                        <span style={{ fontWeight: 800, fontSize: '0.82rem', color: expPts > 0 ? '#15803d' : '#94a3b8', flexShrink: 0 }}>{expPts} pts</span>
+                      </div>
+                    </div>
+
+                    {/* Projetos */}
+                    <div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Projetos Estratégicos (entram no cálculo — máx. 20 pts por área)</div>
+                      {projAnalysis.length > 0 ? projAnalysis.map((m, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 10px', borderRadius: 8, marginBottom: 4, background: m.status === 'pontua' ? '#f0fdf4' : '#fff7ed', border: `1px solid ${m.status === 'pontua' ? '#86efac' : '#fed7aa'}` }}>
+                          <span style={{ fontSize: '0.85rem', flexShrink: 0, marginTop: 1 }}>{m.status === 'pontua' ? '✅' : '⚠️'}</span>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>{m.proj}</div>
+                            <div style={{ fontSize: '0.7rem', color: m.status === 'pontua' ? '#15803d' : '#92400e', marginTop: 2 }}>{m.reason}</div>
+                          </div>
+                          <span style={{ fontWeight: 800, fontSize: '0.82rem', color: m.status === 'pontua' ? '#15803d' : '#92400e', flexShrink: 0 }}>{m.pts} pts</span>
+                        </div>
+                      )) : (
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic', padding: '6px 10px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>❌ Nenhum projeto informado — 0 pts neste critério (máx. 20 pts)</div>
+                      )}
+                    </div>
+
+                    {/* Graduação */}
+                    {gradItems.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Graduação (registrada — não entra na nota)</div>
+                        {gradItems.map((g, i) => (
+                          <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '6px 10px', borderRadius: 8, marginBottom: 4, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                            <span style={{ fontSize: '0.85rem', flexShrink: 0 }}>📋</span>
+                            <div style={{ flex: 1, fontSize: '0.78rem', color: '#374151' }}>{g}</div>
+                            <span style={{ fontSize: '0.7rem', color: '#94a3b8', flexShrink: 0 }}>Não pontua</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Cursos */}
+                    {courseAnalysis.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Cursos Extracurriculares (registrados — não entram na nota)</div>
+                        {courseAnalysis.map((m, i) => (
+                          <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '6px 10px', borderRadius: 8, marginBottom: 4, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                            <span style={{ fontSize: '0.85rem', flexShrink: 0 }}>📋</span>
+                            <div style={{ flex: 1, fontSize: '0.78rem', color: '#374151' }}>{m.course} {p.courseHours?.[m.course] ? `(${p.courseHours[m.course]}h)` : ''}</div>
+                            <span style={{ fontSize: '0.7rem', color: '#94a3b8', flexShrink: 0 }}>Não pontua</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* ── Identificação ── */}
             <div style={{ marginBottom: 20 }}>
