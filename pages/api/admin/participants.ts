@@ -1,6 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { readJsonAsync } from '../../../lib/db';
+import { readJsonAsync, queryUsers } from '../../../lib/db';
 import type { ParticipantProfile } from '../../../lib/types';
+
+/** Retorna true se o valor é um nome de arquivo legado (não base64 nem data:) */
+function isLegacyFile(v: unknown): boolean {
+  if (!v || typeof v !== 'string') return false;
+  if (v.startsWith('data:')) return false;
+  if (v.length >= 50) {
+    try { Buffer.from(v.slice(0, 100), 'base64'); return false; } catch { /* não é base64 */ }
+  }
+  return true;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -17,12 +27,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (p.email) participantsByEmail.set(p.email.toLowerCase(), p);
     }
 
+    // Carregar todos os item_keys da tabela proof_files de uma só vez (eficiente)
+    // Mapa: email_lower -> Set<item_key>
+    const proofFilesInDB = new Map<string, Set<string>>();
+    try {
+      const rows = await queryUsers<{ email: string; item_key: string }[]>(
+        'SELECT email, item_key FROM proof_files'
+      );
+      for (const row of rows) {
+        const emailKey = (row.email || '').toLowerCase();
+        if (!proofFilesInDB.has(emailKey)) proofFilesInDB.set(emailKey, new Set());
+        proofFilesInDB.get(emailKey)!.add(row.item_key);
+      }
+    } catch {
+      // Se a tabela não existir ainda, ignora silenciosamente
+    }
+
     // Filtrar apenas colaboradores (não admins)
     const collaborators = usersArray.filter((u: any) => u.role !== 'admin');
 
     // Cruzar: para cada usuário, verificar se já preencheu o formulário
     const merged = collaborators.map((u: any) => {
       const p = participantsByEmail.get((u.email || '').toLowerCase());
+      const emailLower = (u.email || '').toLowerCase();
+      const dbKeys = proofFilesInDB.get(emailLower) ?? new Set<string>();
+
+      // hasLegacyFiles: tem itens legados no proofFiles inline que NÃO estão na tabela proof_files
+      // (se o arquivo já foi migrado para a tabela, não precisa reenviar)
+      const hasLegacyFiles = p
+        ? Object.entries(p.proofFiles || {}).some(([key, v]) => {
+            if (!isLegacyFile(v)) return false;
+            // Se já existe na tabela proof_files, não é mais legado
+            if (dbKeys.has(key)) return false;
+            return true;
+          })
+        : false;
+
       return {
         userId: u.id || u.email,
         name: u.name || '—',
@@ -35,12 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         selectedAreas: p?.selectedAreas ?? [],
         exceptionRequested: p?.exceptionRequested ?? false,
         exceptionStatus: p?.exceptionStatus ?? null,
-        hasLegacyFiles: p ? Object.values(p.proofFiles || {}).some((v: any) => {
-          if (!v || typeof v !== 'string') return false;
-          if (v.startsWith('data:')) return false;
-          if (v.length >= 50) { try { Buffer.from(v.slice(0, 100), 'base64'); return false; } catch { /* não é base64 */ } }
-          return true;
-        }) : false,
+        hasLegacyFiles,
       };
     });
 
