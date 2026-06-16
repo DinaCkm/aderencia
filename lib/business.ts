@@ -61,7 +61,7 @@ function bestPostMBADetail(postMBALabels: string[], area: string): {
     return {
       score: 20,
       titleUsed: bestLabel,
-      classification: `Título não relacionado à área ${area} — recebe pontuação mínima de 20 pts (de 40 possíveis). Para obter 40 pts seria necessário um título específico ou transversal desta área.`,
+      classification: `Título não relacionado à área ${area} — recebe pontuação mínima de 20 pts por possuir pós-graduação, mesmo que não seja da área. Para obter 20 pts (título específico da área) ou 40 pts (título transversal) seria necessário um título reconhecido no catálogo oficial para a área ${area}.`,
     };
   }
 
@@ -69,8 +69,8 @@ function bestPostMBADetail(postMBALabels: string[], area: string): {
   const best = candidates.reduce((a, b) => ((b as any).points ?? 20) > ((a as any).points ?? 20) ? b : a);
   const pts = (best as any).points ?? 20;
   const cls = (best as any).classification === 'transversal'
-    ? `Título transversal — válido para qualquer área — ${pts} de 40 pts possíveis`
-    : `Título específico para a área ${area} — ${pts} de 40 pts possíveis`;
+    ? `Título transversal — válido para qualquer área e representa a pontuação máxima: ${pts} de 40 pts possíveis.`
+    : `Título específico para a área ${area} — vale ${pts} pts. Títulos específico de área valem 20 pts; para atingir 40 pts seria necessário um título transversal (ex.: MBA em Gestão, Liderança ou áreas amplas reconhecidas pelo catálogo oficial).`;
 
   return { score: pts, titleUsed: best.label, classification: cls };
 }
