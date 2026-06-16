@@ -362,6 +362,7 @@ export default function ParticipantForm() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [dateBlock, setDateBlock] = useState<'before' | 'after' | null>(null);
   const [projectAreaAlert, setProjectAreaAlert] = useState(false); // projetos sem área vinculada
+  const [processClosed, setProcessClosed] = useState(false); // processo encerrado pelo admin
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -388,6 +389,11 @@ export default function ParticipantForm() {
       if (now < OPEN_DATE) { setDateBlock('before'); }
       else if (now > CLOSE_DATE) { setDateBlock('after'); }
     }
+    // Verificar se o processo foi encerrado pelo admin
+    fetch('/api/participant/process-status')
+      .then((r) => r.ok ? r.json() : null)
+      .then((d) => { if (d?.processClosed) setProcessClosed(true); })
+      .catch(() => {});
     setParticipantName(name || '');
     // Sempre buscar perfil do servidor primeiro — tem prioridade sobre rascunho local
     // O rascunho só é usado se o servidor não tiver dados (participante nunca submeteu)
@@ -693,6 +699,10 @@ export default function ParticipantForm() {
     );
   }
 
+  // Banner de processo encerrado pelo admin (não admin)
+  // Não bloqueia a tela — apenas exibe aviso e desabilita edições
+  const isReadOnly = !isAdmin && processClosed;
+
   // Popup de bloqueio por data (apenas para participantes)
   if (dateBlock) {
     const isBefore = dateBlock === 'before';
@@ -796,6 +806,26 @@ export default function ParticipantForm() {
 
       <main style={{ marginLeft: 200, paddingTop: 80, paddingBottom: 48, minHeight: 'calc(100vh - 64px)' }}>
         <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 24px' }}>
+
+        {/* Banner de processo encerrado pelo admin */}
+        {isReadOnly && (
+          <div style={{
+            background: '#fef2f2', border: '2px solid #ef4444', borderRadius: 12,
+            padding: '16px 20px', marginBottom: 20,
+            display: 'flex', gap: 14, alignItems: 'flex-start',
+          }}>
+            <div style={{ fontSize: '1.5rem', flexShrink: 0, marginTop: 2 }}>&#128274;</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#b91c1c', marginBottom: 4 }}>
+                Prazo de inscrição encerrado — formulário em modo somente leitura
+              </div>
+              <p style={{ fontSize: '0.82rem', color: '#7f1d1d', lineHeight: 1.6, margin: 0 }}>
+                O período de preenchimento foi encerrado pela administração. Você pode visualizar seus dados, mas <strong>não é possível adicionar, remover ou alterar informações</strong>.
+                Em caso de dúvidas, entre em contato com a UGP.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Banner de alerta: projetos sem área vinculada */}
         {projectAreaAlert && (
@@ -1434,8 +1464,9 @@ export default function ParticipantForm() {
                             <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Área do título{idx === 0 ? ' *' : ''}</label>
                             <select
                               value={mba.area || ''}
-                              onChange={(e) => updateMBA('area', e.target.value)}
-                              style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text)', background: 'white' }}
+                              disabled={isReadOnly}
+                              onChange={(e) => { if (!isReadOnly) updateMBA('area', e.target.value); }}
+                              style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', color: 'var(--text)', background: isReadOnly ? '#f3f4f6' : 'white', cursor: isReadOnly ? 'not-allowed' : 'auto' }}
                             >
                               <option value="">Selecione a área...</option>
                               {postMBAOptions.map((o) => (
@@ -1450,8 +1481,9 @@ export default function ParticipantForm() {
                               type="number" min={1990} max={2025}
                               placeholder="Ex: 2022"
                               value={mba.year || ''}
-                              onChange={(e) => updateMBA('year', e.target.value)}
-                              style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', textAlign: 'center' }}
+                              readOnly={isReadOnly}
+                              onChange={(e) => { if (!isReadOnly) updateMBA('year', e.target.value); }}
+                              style={{ width: '100%', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.78rem', textAlign: 'center', background: isReadOnly ? '#f3f4f6' : 'white', cursor: isReadOnly ? 'not-allowed' : 'auto' }}
                             />
                           </div>
                         </div>
@@ -1917,9 +1949,11 @@ export default function ParticipantForm() {
                         background: belowMin ? '#fff1f2' : selected ? 'var(--gradient-soft)' : 'white',
                         overflow: 'hidden', transition: 'all 0.2s'
                       }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: 'pointer' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: isReadOnly ? 'not-allowed' : 'pointer' }}>
                           <input type="checkbox" checked={selected}
+                            disabled={isReadOnly}
                             onChange={() => {
+                              if (isReadOnly) return;
                               toggleMulti('selectedCourses', o.label);
                               if (selected) {
                                 setProfile((p) => {
@@ -2062,10 +2096,11 @@ export default function ParticipantForm() {
                         background: selected ? 'var(--gradient-soft)' : 'white',
                         overflow: 'hidden', transition: 'all 0.2s'
                       }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: 'pointer' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', cursor: isReadOnly ? 'not-allowed' : 'pointer' }}>
                           <input type="checkbox" checked={selected}
-                            disabled={!selected && profile.selectedProjects.length >= 3}
+                            disabled={isReadOnly || (!selected && profile.selectedProjects.length >= 3)}
                             onChange={() => {
+                              if (isReadOnly) return;
                               toggleMulti('selectedProjects', o.label);
                               if (selected) {
                                 setProfile((p) => {
@@ -2312,7 +2347,7 @@ export default function ParticipantForm() {
               {status && <div style={{ background: status === 'Enviando...' ? '#eff6ff' : '#fef2f2', border: `1px solid ${status === 'Enviando...' ? '#bfdbfe' : '#fecaca'}`, borderRadius: 'var(--radius-sm)', padding: '10px 16px', color: status === 'Enviando...' ? '#1d4ed8' : '#dc2626', fontSize: '0.85rem', marginTop: 12, fontWeight: 600, textAlign: 'center' }}>{status === 'Enviando...' ? '⏳ Enviando seus dados, aguarde...' : `⚠ ${status}`}</div>}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16 }}>
                 <button type="button" className="btn-outline" onClick={() => setStep(6)} disabled={status === 'Enviando...'}>← Voltar</button>
-                <button type="button" className="btn-primary" style={{ minWidth: 180, opacity: status === 'Enviando...' ? 0.7 : 1 }} disabled={status === 'Enviando...'} onClick={(e) => {
+                <button type="button" className="btn-primary" style={{ minWidth: 180, opacity: (status === 'Enviando...' || isReadOnly) ? 0.5 : 1, cursor: isReadOnly ? 'not-allowed' : 'pointer' }} disabled={status === 'Enviando...' || isReadOnly} title={isReadOnly ? 'Prazo de inscrição encerrado — não é possível enviar alterações' : undefined} onClick={(e) => {
                   // Validar área vinculada a cada projeto (obrigatório)
                   for (const item of profile.selectedProjects) {
                     if (!profile.projectAreaMap?.[item]) {

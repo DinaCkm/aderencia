@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync, writeJsonAsync, saveProofFile } from '../../../lib/db';
 import type { ParticipantProfile } from '../../../lib/types';
+import type { ProcessConfig } from '../admin/process-config';
 
 export const config = {
   api: {
@@ -19,6 +20,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!data || !data.id || !data.email || !data.name) {
     return res.status(400).json({ error: 'Dados do participante incompletos.' });
+  }
+
+  // Verificar se o processo está encerrado — bloquear alterações de conteúdo
+  const processConfig = await readJsonAsync<ProcessConfig>('process_config', { processClosed: false });
+  if (processConfig.processClosed) {
+    return res.status(403).json({
+      error: 'O prazo de inscrição foi encerrado. Não é mais possível alterar os dados do formulário.',
+      processClosed: true,
+    });
   }
 
   // Extrair arquivos base64 do proofFiles antes de salvar no JSON de participants.

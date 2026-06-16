@@ -33,6 +33,8 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({ participants: 0, withResults: 0, exceptions: 0 });
   const [adminName, setAdminName] = useState('');
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [processClosed, setProcessClosed] = useState<boolean | null>(null);
+  const [processToggling, setProcessToggling] = useState(false);
 
   const downloadCSV = async (type: string, label: string) => {
     setDownloading(type);
@@ -62,9 +64,37 @@ export default function AdminDashboard() {
     if (role !== 'admin') { router.push('/login'); return; }
     setAdminName(name || 'Administrador');
     fetch('/api/admin/stats').then(r => r.json()).then(d => setStats(d)).catch(() => {});
+    fetch('/api/admin/process-config').then(r => r.json()).then(d => setProcessClosed(d.processClosed ?? false)).catch(() => {});
   }, [router]);
 
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
+
+  const toggleProcess = async () => {
+    if (processToggling) return;
+    const newClosed = !processClosed;
+    const msg = newClosed
+      ? 'Tem certeza que deseja ENCERRAR o processo? Os candidatos não poderão mais editar o formulário.'
+      : 'Tem certeza que deseja REABRIR o processo? Os candidatos voltarão a poder editar o formulário.';
+    if (!window.confirm(msg)) return;
+    setProcessToggling(true);
+    try {
+      const res = await fetch('/api/admin/process-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ processClosed: newClosed, closedBy: adminName }),
+      });
+      if (res.ok) {
+        setProcessClosed(newClosed);
+        alert(newClosed ? '✅ Processo encerrado. Candidatos não podem mais editar.' : '✅ Processo reaberto. Candidatos podem editar novamente.');
+      } else {
+        alert('Erro ao alterar o status do processo. Tente novamente.');
+      }
+    } catch {
+      alert('Erro de conexão. Tente novamente.');
+    } finally {
+      setProcessToggling(false);
+    }
+  };
 
   return (
     <>
@@ -110,6 +140,37 @@ export default function AdminDashboard() {
           <div className="stat-card">
             <div className="stat-value" style={{ color: stats.exceptions > 0 ? '#f59e0b' : undefined }}>{stats.exceptions}</div>
             <div className="stat-label">Exceções pendentes</div>
+          </div>
+        </div>
+
+        {/* Painel de Controle do Processo */}
+        <div className="section-card" style={{ marginBottom: '28px', padding: '24px 28px', border: processClosed ? '2px solid #ef4444' : '2px solid #22c55e', background: processClosed ? '#fef2f2' : '#f0fdf4' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '1.6rem' }}>{processClosed ? '\uD83D\uDD12' : '\uD83D\uDD13'}</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '1rem', color: processClosed ? '#b91c1c' : '#15803d' }}>
+                  {processClosed === null ? 'Carregando...' : processClosed ? 'Processo Encerrado' : 'Processo Aberto'}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: processClosed ? '#991b1b' : '#166534', marginTop: 2 }}>
+                  {processClosed
+                    ? 'Candidatos n\u00e3o podem editar o formul\u00e1rio. Apenas o admin pode fazer ajustes.'
+                    : 'Candidatos podem preencher e editar o formul\u00e1rio normalmente.'}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={toggleProcess}
+              disabled={processToggling || processClosed === null}
+              style={{
+                background: processClosed ? '#22c55e' : '#ef4444',
+                color: 'white', border: 'none', borderRadius: '8px',
+                padding: '10px 24px', fontWeight: 700, cursor: processToggling ? 'wait' : 'pointer',
+                fontSize: '0.9rem', opacity: processToggling ? 0.7 : 1,
+                minWidth: 180,
+              }}>
+              {processToggling ? '\u23F3 Aguarde...' : processClosed ? '\uD83D\uDD13 Reabrir Processo' : '\uD83D\uDD12 Encerrar Processo'}
+            </button>
           </div>
         </div>
 
