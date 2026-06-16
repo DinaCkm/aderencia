@@ -830,7 +830,7 @@ export default function ParticipantForm() {
         )}
 
         {/* Banner de alerta: projetos sem área vinculada */}
-        {projectAreaAlert && (
+        {projectAreaAlert && !isReadOnly && (
           <div style={{
             background: '#fff7ed', border: '2px solid #f97316', borderRadius: 12,
             padding: '16px 20px', marginBottom: 20,
