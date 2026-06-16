@@ -701,11 +701,10 @@ export default function ParticipantForm() {
 
   // Banner de processo encerrado pelo admin (não admin)
   // Não bloqueia a tela — apenas exibe aviso e desabilita edições
-  const isReadOnly = !isAdmin && processClosed;
+  const isReadOnly = !isAdmin && (processClosed || dateBlock === 'after');
 
   // Popup de bloqueio por data (apenas para participantes)
-  if (dateBlock) {
-    const isBefore = dateBlock === 'before';
+  if (dateBlock === 'before') {
     return (
       <div style={{
         minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -716,15 +715,12 @@ export default function ParticipantForm() {
           background: 'white', borderRadius: 16, padding: '40px 36px', maxWidth: 480, width: '100%',
           textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
         }}>
-          <div style={{ fontSize: '3rem', marginBottom: 16 }}>{isBefore ? '🗓️' : '🔒'}</div>
+          <div style={{ fontSize: '3rem', marginBottom: 16 }}>🗓️</div>
           <h2 style={{ color: '#3b1f6e', fontSize: '1.3rem', fontWeight: 700, marginBottom: 12 }}>
-            {isBefore ? 'Sistema ainda não está aberto' : 'Prazo de preenchimento encerrado'}
+            Sistema ainda não está aberto
           </h2>
           <p style={{ color: '#555', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: 20 }}>
-            {isBefore
-              ? (<>O preenchimento do formulário estará disponível a partir de <strong>01/06/2026 às 00h01</strong> (horário de Brasília). Aguarde a abertura do sistema e tente novamente na data indicada.</>)
-              : (<>O prazo para preenchimento encerrou em <strong>15/06/2026 às 23h59</strong>. Não é mais possível alterar ou enviar informações. Em caso de dúvidas, entre em contato com a UGP ou a CKM Talents.</>)
-            }
+            O preenchimento do formulário estará disponível a partir de <strong>01/06/2026 às 00h01</strong> (horário de Brasília). Aguarde a abertura do sistema e tente novamente na data indicada.
           </p>
           <a href="https://ckmtalents.com.br/fale-conosco/" target="_blank" rel="noreferrer"
             style={{
@@ -738,6 +734,10 @@ export default function ParticipantForm() {
       </div>
     );
   }
+
+  // Após o prazo: permite visualização em modo somente leitura
+  // (não bloqueia mais a tela — o candidato pode ver sua ficha)
+  const isAfterDeadline = dateBlock === 'after';
 
   return (
     <>
@@ -807,7 +807,7 @@ export default function ParticipantForm() {
       <main style={{ marginLeft: 200, paddingTop: 80, paddingBottom: 48, minHeight: 'calc(100vh - 64px)' }}>
         <div style={{ maxWidth: 760, margin: '0 auto', padding: '0 24px' }}>
 
-        {/* Banner de processo encerrado pelo admin */}
+        {/* Banner de processo encerrado (por data ou pelo admin) */}
         {isReadOnly && (
           <div style={{
             background: '#fef2f2', border: '2px solid #ef4444', borderRadius: 12,
@@ -817,11 +817,13 @@ export default function ParticipantForm() {
             <div style={{ fontSize: '1.5rem', flexShrink: 0, marginTop: 2 }}>&#128274;</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#b91c1c', marginBottom: 4 }}>
-                Prazo de inscrição encerrado — formulário em modo somente leitura
+                Prazo de inscrição encerrado — visualização somente leitura
               </div>
               <p style={{ fontSize: '0.82rem', color: '#7f1d1d', lineHeight: 1.6, margin: 0 }}>
-                O período de preenchimento foi encerrado pela administração. Você pode visualizar seus dados, mas <strong>não é possível adicionar, remover ou alterar informações</strong>.
-                Em caso de dúvidas, entre em contato com a UGP.
+                {isAfterDeadline
+                  ? (<>O prazo para preenchimento encerrou em <strong>15/06/2026 às 23h59</strong>. Você pode <strong>visualizar seus dados e pontuação</strong>, mas não é mais possível adicionar, remover ou alterar informações. Em caso de dúvidas, entre em contato com a UGP ou a CKM Talents.</>) 
+                  : (<>O período de preenchimento foi encerrado pela administração. Você pode <strong>visualizar seus dados e pontuação</strong>, mas não é possível adicionar, remover ou alterar informações. Em caso de dúvidas, entre em contato com a UGP.</>)
+                }
               </p>
             </div>
           </div>
