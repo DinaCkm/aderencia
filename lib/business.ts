@@ -139,8 +139,8 @@ function computeTechnicalAdherence(
         name: 'Pós/MBA (melhor título para a área)',
         value: postMBADet.score,
         detail: postMBADet.titleUsed
-          ? `Título considerado: "${postMBADet.titleUsed}" — ${postMBADet.classification} — máx. 40 pts`
-          : 'Nenhum título informado',
+          ? `Título considerado: "${postMBADet.titleUsed}" — ${postMBADet.classification}`
+          : 'Nenhum título de Pós/MBA informado — 0 de 40 pts possíveis.',
       },
       {
         name: 'Experiência gerencial/interina',
@@ -157,13 +157,24 @@ function computeTechnicalAdherence(
       {
         name: 'Projetos estratégicos da área',
         value: projScore,
-        detail: projItems.length > 0
-          ? projItems.map((i) => `"${i.label}" = ${i.points} pts (${i.weight})`).join(' | ')
-            + ` — total: ${projScore} pts (máx. 20 pts por área)`
-            + (projScore === 20 && projItems.reduce((a, i) => a + i.points, 0) > 20
-                ? ` — cap atingido: projetos adicionais não somam mais pontos`
-                : '')
-          : `Nenhum projeto vinculado a esta área — 0 de 20 pts possíveis. Projetos são vinculados pelo administrador na auditoria.`,
+        detail: (() => {
+          if (projItems.length === 0) {
+            return `Nenhum projeto vinculado a esta área — 0 de 20 pts possíveis. Os projetos são vinculados pelo administrador durante a auditoria com base nos comprovantes enviados.`;
+          }
+          const rawTotal = projItems.reduce((a, i) => a + i.points, 0);
+          const capped = rawTotal > 20;
+          const itemsDesc = projItems.map((i) =>
+            `"${i.label}" — ${i.points} pts (${
+              i.weight === 'projeto estratégico central'
+                ? 'classificado como estratégico central no catálogo oficial, representa a pontuação máxima de 20 pts'
+                : `classificado como complementar no catálogo oficial, projetos complementares valem até 15 pts`
+            })`
+          ).join(' | ');
+          const capMsg = capped
+            ? ` — ATENÇÃO: a soma dos projetos seria ${rawTotal} pts, mas o limite máximo por área é 20 pts. Projetos adicionais não acrescentam mais pontos.`
+            : ` — total apurado: ${projScore} pts (máximo possível por área: 20 pts).`;
+          return itemsDesc + capMsg;
+        })(),
       },
       {
         name: 'Total bruto (0–80)',
