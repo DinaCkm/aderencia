@@ -221,21 +221,19 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                       {/* Detalhamento técnico */}
                       <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
                         {a.calculationSteps?.filter(s => !s.name.toLowerCase().includes('comportamental') && !s.name.toLowerCase().includes('disc') && !s.name.toLowerCase().includes('performance')).map((step, i) => (
-                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#374151', padding: '3px 0', borderBottom: '1px solid #f1f5f9' }}>
-                            <span>{step.name}</span>
-                            <span style={{ fontWeight: 700, color: 'var(--purple)' }}>{typeof step.value === 'number' ? step.value.toFixed(1) : step.value}</span>
+                          <div key={i} style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: 5, marginBottom: 2 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#374151', padding: '3px 0 1px' }}>
+                              <span>{step.name}</span>
+                              <span style={{ fontWeight: 700, color: 'var(--purple)' }}>{typeof step.value === 'number' ? step.value.toFixed(1) : step.value}</span>
+                            </div>
+                            {step.detail && (
+                              <div style={{ fontSize: '0.68rem', color: '#64748b', paddingLeft: 8, lineHeight: 1.4 }}>
+                                ↳ {step.detail}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
-                      {/* Projetos desta área */}
-                      {a.projectsDetail && a.projectsDetail.length > 0 && (
-                        <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 6 }}>
-                          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#15803d', marginBottom: 4 }}>📋 Projetos desta área:</div>
-                          {a.projectsDetail.map((proj, i) => (
-                            <div key={i} style={{ fontSize: '0.75rem', color: '#166534' }}>• {proj.label} ({proj.points} pts)</div>
-                          ))}
-                        </div>
-                      )}
                       {/* DISC */}
                       {a.discRecord && (
                         <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 6 }}>
