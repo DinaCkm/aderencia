@@ -164,12 +164,23 @@ export default function PrintProfile() {
           table { width: 100%; border-collapse: collapse; font-size: 12px; }
           td, th { padding: 5px 8px; border-bottom: 1px solid #f3f4f6; }
           th { background: #f9fafb; font-weight: 600; color: #6b7280; font-size: 11px; text-align: left; }
+          .print-bar { position: fixed; top: 0; left: 0; right: 0; background: #1e293b; color: white; padding: 10px 24px; display: flex; align-items: center; gap: 12px; z-index: 9999; font-size: 13px; }
+          .print-bar button { background: #5B2D8E; color: white; border: none; border-radius: 6px; padding: 7px 18px; font-size: 13px; font-weight: 700; cursor: pointer; }
+          .print-bar button:hover { background: #4c1d95; }
+          .page { margin-top: 52px; }
           @media print {
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .no-print { display: none !important; }
+            .print-bar { display: none !important; }
+            .page { margin-top: 0; }
           }
         `}</style>
       </Head>
+      <div className="print-bar no-print">
+        <span style={{ flex: 1 }}>📄 Para salvar como PDF: clique em <strong>Imprimir / Salvar como PDF</strong> → escolha <strong>"Salvar como PDF"</strong> como destino</span>
+        <button onClick={() => window.print()}>🖨️ Imprimir / Salvar como PDF</button>
+        <button onClick={() => window.close()} style={{ background: '#475569' }}>✕ Fechar</button>
+      </div>
       <div className="page" id="print-content">
 
         {/* ── Banner ANÁLISE PROVISÓRIA ── */}
