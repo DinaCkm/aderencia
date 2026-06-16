@@ -962,25 +962,40 @@ export default function AdminAudit() {
                     placeholder="Registre aqui qualquer observação geral sobre a ficha deste participante..."
                     style={{ width: '100%', fontSize: '0.8rem', border: '1.5px solid #e2e8f0', borderRadius: 8, padding: '8px 12px', resize: 'vertical', fontFamily: 'inherit' }} />
                 </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button type="button"
-                    onClick={() => saveOverallStatus('validated')}
-                    disabled={saving}
-                    style={{ flex: 1, minWidth: 140, padding: '10px 16px', background: 'linear-gradient(135deg, #15803d, #16a34a)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
-                    ✓ Marcar como Validada
-                  </button>
-                  <button type="button"
-                    onClick={() => saveOverallStatus('adjusted')}
-                    disabled={saving}
-                    style={{ flex: 1, minWidth: 140, padding: '10px 16px', background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
-                    ⚠️ Marcar como Ajustada
-                  </button>
-                  <button type="button"
-                    onClick={() => saveOverallStatus('provisional')}
-                    disabled={saving}
-                    style={{ flex: 1, minWidth: 140, padding: '10px 16px', background: '#f1f5f9', color: '#64748b', border: '1.5px solid #e2e8f0', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
-                    ⏳ Manter Provisória
-                  </button>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  {/* Botão Validada */}
+                  <div style={{ flex: 1, minWidth: 140, position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <button type="button"
+                      onClick={() => saveOverallStatus('validated')}
+                      disabled={saving}
+                      style={{ flex: 1, padding: '10px 16px', background: 'linear-gradient(135deg, #15803d, #16a34a)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
+                      ✓ Marcar como Validada
+                    </button>
+                    <span title="A ficha foi auditada e está aprovada sem ressalvas — todos os comprovantes foram aceitos e a pontuação está correta."
+                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', background: '#15803d', color: 'white', fontSize: '0.7rem', fontWeight: 700, cursor: 'help', flexShrink: 0, userSelect: 'none' }}>?</span>
+                  </div>
+                  {/* Botão Ajustada */}
+                  <div style={{ flex: 1, minWidth: 140, position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <button type="button"
+                      onClick={() => saveOverallStatus('adjusted')}
+                      disabled={saving}
+                      style={{ flex: 1, padding: '10px 16px', background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
+                      ⚠️ Marcar como Ajustada
+                    </button>
+                    <span title="A ficha foi auditada mas precisou de alguma correção ou ajuste — por exemplo, um item foi rejeitado, a pontuação foi alterada ou há uma observação relevante. Indica que houve intervenção do auditor."
+                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', background: '#d97706', color: 'white', fontSize: '0.7rem', fontWeight: 700, cursor: 'help', flexShrink: 0, userSelect: 'none' }}>?</span>
+                  </div>
+                  {/* Botão Provisória */}
+                  <div style={{ flex: 1, minWidth: 140, position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <button type="button"
+                      onClick={() => saveOverallStatus('provisional')}
+                      disabled={saving}
+                      style={{ flex: 1, padding: '10px 16px', background: '#f1f5f9', color: '#64748b', border: '1.5px solid #e2e8f0', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
+                      ⏳ Manter Provisória
+                    </button>
+                    <span title="A auditoria ainda não foi concluída — a ficha fica no estado provisório, aguardando análise posterior. É o estado padrão enquanto a auditoria está em andamento."
+                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', background: '#94a3b8', color: 'white', fontSize: '0.7rem', fontWeight: 700, cursor: 'help', flexShrink: 0, userSelect: 'none' }}>?</span>
+                  </div>
                 </div>
               </div>
             </>
