@@ -31,9 +31,25 @@ interface AreaAssessmentResult {
   } | null;
 }
 
+interface ItemValidation {
+  itemKey: string;
+  status: 'pending' | 'approved' | 'rejected';
+  note?: string;
+  validatedAt?: string;
+}
+
+interface ProfileAuditData {
+  participantId: string;
+  itemValidations: ItemValidation[];
+  overallStatus: 'provisional' | 'validated' | 'adjusted';
+  overallNote?: string;
+  auditedAt?: string;
+}
+
 interface EmployeeProfileData {
   profile: ParticipantProfile;
   areaAssessments: AreaAssessmentResult[];
+  audit?: ProfileAuditData;
 }
 
 const QUADRANT_DESC: Record<string, string> = {
@@ -274,56 +290,73 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
               const allProjects = p.selectedProjects || [];
               const allCourses = p.selectedCourses || [];
               const selectedAreas = p.selectedAreas || [];
+              const itemValidations = data?.audit?.itemValidations || [];
+              const hasAudit = itemValidations.length > 0;
 
-              // Pós/MBA: para cada título, verifica se pontua em alguma área
-              const mbaAnalysis = allMBAs.map((title) => {
-                const matches = CATALOG_ITEMS.filter(
-                  (i) => i.group === 'postMBA' && i.label === title
-                );
+              // Helper: retorna validação de um item pela chave
+              const getAuditV = (key: string) => itemValidations.find((v) => v.itemKey === key);
+
+              // Pós/MBA: para cada título, verifica se pontua e se foi rejeitado na auditoria
+              const mbaAnalysis = allMBAs.map((title, idx) => {
+                const auditV = getAuditV(`postmba-${idx}`);
+                const auditRejected = auditV?.status === 'rejected';
+                const auditNote = auditV?.note;
+                if (auditRejected) {
+                  return { title, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditNote ? ` — ${auditNote}` : ''}`, pts: 0, areas: [] as string[], auditNote };
+                }
+                const matches = CATALOG_ITEMS.filter((i) => i.group === 'postMBA' && i.label === title);
                 if (matches.length === 0) {
-                  return { title, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo — pontuação mínima de 20 pts aplicada como "não relacionado"', pts: 20, areas: [] as string[] };
+                  return { title, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo — pontuação mínima de 20 pts aplicada como "não relacionado"', pts: 20, areas: [] as string[], auditNote: undefined };
                 }
                 const transversal = matches.find((m) => m.classification === 'transversal');
                 if (transversal) {
-                  return { title, status: 'pontua' as const, reason: `Título transversal — vale 40 pts em todas as áreas`, pts: 40, areas: selectedAreas };
+                  return { title, status: 'pontua' as const, reason: 'Título transversal — vale 40 pts em todas as áreas', pts: 40, areas: selectedAreas, auditNote: undefined };
                 }
                 const areaMatches = matches.filter((m) => m.area && selectedAreas.includes(m.area as any));
                 if (areaMatches.length > 0) {
-                  return { title, status: 'pontua' as const, reason: `Específico para ${areaMatches.map((m) => m.area).join(', ')} — vale 20 pts`, pts: 20, areas: areaMatches.map((m) => m.area as string) };
+                  return { title, status: 'pontua' as const, reason: `Específico para ${areaMatches.map((m) => m.area).join(', ')} — vale 20 pts`, pts: 20, areas: areaMatches.map((m) => m.area as string), auditNote: undefined };
                 }
-                return { title, status: 'nao-pontua' as const, reason: 'Título não relacionado às áreas de interesse selecionadas — pontuação mínima de 20 pts', pts: 20, areas: [] as string[] };
+                return { title, status: 'nao-pontua' as const, reason: 'Título não relacionado às áreas de interesse selecionadas — pontuação mínima de 20 pts', pts: 20, areas: [] as string[], auditNote: undefined };
               });
 
-              // Projetos: verifica se cada projeto está vinculado a uma área de interesse
-              const projAnalysis = allProjects.map((proj) => {
+              // Projetos: verifica se cada projeto está vinculado a uma área de interesse e se foi rejeitado
+              const projAnalysis = allProjects.map((proj, idx) => {
+                const auditV = getAuditV(`projeto-${idx}`);
+                const auditRejected = auditV?.status === 'rejected';
+                const auditNote = auditV?.note;
+                if (auditRejected) {
+                  return { proj, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditNote ? ` — ${auditNote}` : ''}`, pts: 0, area: p.projectAreaMap?.[proj] || null, auditNote };
+                }
                 const vinculadaArea = p.projectAreaMap?.[proj] || null;
-                const catalogItem = CATALOG_ITEMS.find(
-                  (i) => i.group === 'project' && i.label === proj && i.area === vinculadaArea
-                );
+                const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj && i.area === vinculadaArea);
                 if (!vinculadaArea) {
-                  return { proj, status: 'nao-pontua' as const, reason: 'Projeto sem área vinculada — não entra no cálculo', pts: 0, area: null };
+                  return { proj, status: 'nao-pontua' as const, reason: 'Projeto sem área vinculada — não entra no cálculo', pts: 0, area: null, auditNote: undefined };
                 }
                 if (!selectedAreas.includes(vinculadaArea as any)) {
-                  return { proj, status: 'nao-pontua' as const, reason: `Área vinculada (${vinculadaArea}) não está entre as áreas de interesse selecionadas`, pts: 0, area: vinculadaArea };
+                  return { proj, status: 'nao-pontua' as const, reason: `Área vinculada (${vinculadaArea}) não está entre as áreas de interesse selecionadas`, pts: 0, area: vinculadaArea, auditNote: undefined };
                 }
                 if (!catalogItem) {
-                  return { proj, status: 'nao-pontua' as const, reason: `Projeto não encontrado no catálogo para a área ${vinculadaArea}`, pts: 0, area: vinculadaArea };
+                  return { proj, status: 'nao-pontua' as const, reason: `Projeto não encontrado no catálogo para a área ${vinculadaArea}`, pts: 0, area: vinculadaArea, auditNote: undefined };
                 }
-                // Verifica se o cap de 20pts por área já foi atingido
                 const projsInSameArea = allProjects.filter((pp) => p.projectAreaMap?.[pp] === vinculadaArea);
-                const itemsInArea = CATALOG_ITEMS.filter(
-                  (i) => i.group === 'project' && projsInSameArea.includes(i.label) && i.area === vinculadaArea
-                );
+                const itemsInArea = CATALOG_ITEMS.filter((i) => i.group === 'project' && projsInSameArea.includes(i.label) && i.area === vinculadaArea);
                 const totalBefore = itemsInArea
                   .filter((i) => projsInSameArea.indexOf(i.label) < projsInSameArea.indexOf(proj))
                   .reduce((acc, i) => acc + i.points, 0);
                 const pts = catalogItem.points;
                 const effective = Math.max(0, Math.min(pts, 20 - totalBefore));
                 if (effective <= 0) {
-                  return { proj, status: 'nao-pontua' as const, reason: `Cap de 20 pts já atingido para a área ${vinculadaArea} — este projeto não adiciona pontos`, pts: 0, area: vinculadaArea };
+                  return { proj, status: 'nao-pontua' as const, reason: `Cap de 20 pts já atingido para a área ${vinculadaArea} — este projeto não adiciona pontos`, pts: 0, area: vinculadaArea, auditNote: undefined };
                 }
-                return { proj, status: 'pontua' as const, reason: `Área ${vinculadaArea} — ${pts} pts no catálogo${effective < pts ? ` (limitado a ${effective} pts pelo cap de 20 pts da área)` : ''}`, pts: effective, area: vinculadaArea };
+                return { proj, status: 'pontua' as const, reason: `Área ${vinculadaArea} — ${pts} pts no catálogo${effective < pts ? ` (limitado a ${effective} pts pelo cap de 20 pts da área)` : ''}`, pts: effective, area: vinculadaArea, auditNote: undefined };
               });
+
+              // Experiência: verificar se foi rejeitada na auditoria
+              const expAuditV = getAuditV('experiencia');
+              const expRejected = expAuditV?.status === 'rejected';
+              const expAuditNote = expAuditV?.note;
+              const totalMonths = (p.managerialMonths ?? 0) + (p.interimMonths ?? 0);
+              const expPts = expRejected ? 0 : Math.min(20, Math.floor((totalMonths / 12) * 5 * 10) / 10);
 
               // Cursos: nunca entram na nota
               const courseAnalysis = allCourses.map((course) => ({
@@ -337,12 +370,36 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
               const gradItems = [p.graduation, p.graduation2].filter(Boolean) as string[];
               if (p.graduationCourseName) gradItems.push(p.graduationCourseName);
 
-              // Experiência
-              const totalMonths = (p.managerialMonths ?? 0) + (p.interimMonths ?? 0);
-              const expPts = Math.min(20, Math.floor((totalMonths / 12) * 5 * 10) / 10);
+              // ── Recálculo da nota auditada por área ──
+              const auditedScoreByArea = selectedAreas.map((area) => {
+                const validMBATitles = mbaAnalysis.filter((m) => m.status !== 'rejeitado').map((m) => m.title);
+                const mbaMatchesForArea = CATALOG_ITEMS.filter(
+                  (i) => i.group === 'postMBA' && validMBATitles.includes(i.label) && (!i.area || i.area === area)
+                );
+                let auditedMBAPts = 0;
+                if (mbaMatchesForArea.length === 0) {
+                  auditedMBAPts = validMBATitles.length > 0 ? 20 : 0;
+                } else {
+                  const best = mbaMatchesForArea.reduce((a, b) => (b.points > a.points ? b : a));
+                  auditedMBAPts = best.points;
+                }
+                const validProjPts = projAnalysis
+                  .filter((m) => m.status === 'pontua' && m.area === area)
+                  .reduce((acc, m) => acc + m.pts, 0);
+                const auditedProjPts = Math.min(20, validProjPts);
+                const auditedExpPts = expRejected ? 0 : Math.min(20, Math.floor((totalMonths / 12) * 5 * 10) / 10);
+                const auditedTotal80 = auditedMBAPts + auditedExpPts + auditedProjPts;
+                const auditedScore10 = Math.round((auditedTotal80 / 80) * 100) / 10;
+                const origAssessment = areas.find((a) => a.area === area);
+                const declaredScore = origAssessment?.technicalAdherence ?? null;
+                return { area, auditedScore10, auditedTotal80, auditedMBAPts, auditedExpPts, auditedProjPts, declaredScore };
+              });
+
+              const hasRejections = mbaAnalysis.some((m) => m.status === 'rejeitado') ||
+                projAnalysis.some((m) => m.status === 'rejeitado') ||
+                expRejected;
 
               const hasSomething = allMBAs.length > 0 || allProjects.length > 0 || allCourses.length > 0 || gradItems.length > 0 || totalMonths > 0;
-
               if (!hasSomething) return null;
 
               return (
@@ -354,64 +411,100 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                   </div>
                   <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-                    {/* Pós/MBA */}
-                    {mbaAnalysis.length > 0 && (
-                      <div>
-                        <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Pós/MBA (entra no cálculo)</div>
-                        {mbaAnalysis.map((m, i) => (
-                          <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 10px', borderRadius: 8, marginBottom: 4, background: m.status === 'pontua' ? '#f0fdf4' : '#fff7ed', border: `1px solid ${m.status === 'pontua' ? '#86efac' : '#fed7aa'}` }}>
-                            <span style={{ fontSize: '0.85rem', flexShrink: 0, marginTop: 1 }}>{m.status === 'pontua' ? '✅' : '⚠️'}</span>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>{m.title}</div>
-                              <div style={{ fontSize: '0.7rem', color: m.status === 'pontua' ? '#15803d' : '#92400e', marginTop: 2 }}>{m.reason}</div>
+                    {/* Nota auditada por área — só aparece se houver rejeições */}
+                    {hasAudit && hasRejections && auditedScoreByArea.length > 0 && (
+                      <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 10, padding: '10px 14px' }}>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                          ⚠️ Nota Técnica Recalculada Após Auditoria
+                        </div>
+                        {auditedScoreByArea.map((a) => (
+                          <div key={a.area} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '1px solid #fee2e2', fontSize: '0.78rem' }}>
+                            <span style={{ fontWeight: 700, color: '#1e293b' }}>{a.area}</span>
+                            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                              {a.declaredScore !== null && (
+                                <span style={{ color: '#94a3b8', textDecoration: 'line-through', fontSize: '0.72rem' }}>
+                                  Declarada: {a.declaredScore.toFixed(1)}
+                                </span>
+                              )}
+                              <span style={{ fontWeight: 800, color: a.auditedScore10 < (a.declaredScore ?? 0) ? '#b91c1c' : '#15803d' }}>
+                                Auditada: {a.auditedScore10.toFixed(1)}
+                              </span>
                             </div>
-                            <span style={{ fontWeight: 800, fontSize: '0.82rem', color: m.status === 'pontua' ? '#15803d' : '#92400e', flexShrink: 0 }}>{m.pts} pts</span>
                           </div>
                         ))}
-                        {allMBAs.length === 0 && (
-                          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic', padding: '6px 10px' }}>Nenhum título de Pós/MBA informado — 0 pts neste critério</div>
-                        )}
+                        <div style={{ fontSize: '0.68rem', color: '#7f1d1d', marginTop: 6 }}>
+                          Itens com comprovante rejeitado foram excluídos do cálculo. Esta é a nota que prevalece após auditoria.
+                        </div>
                       </div>
                     )}
-                    {allMBAs.length === 0 && (
-                      <div>
-                        <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Pós/MBA (entra no cálculo)</div>
+
+                    {/* Pós/MBA */}
+                    <div>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Pós/MBA (entra no cálculo)</div>
+                      {mbaAnalysis.length > 0 ? mbaAnalysis.map((m, i) => {
+                        const isRejected = m.status === 'rejeitado';
+                        const isPontua = m.status === 'pontua';
+                        const bg = isRejected ? '#fef2f2' : isPontua ? '#f0fdf4' : '#fff7ed';
+                        const border = isRejected ? '#fca5a5' : isPontua ? '#86efac' : '#fed7aa';
+                        const icon = isRejected ? '❌' : isPontua ? '✅' : '⚠️';
+                        const textColor = isRejected ? '#b91c1c' : isPontua ? '#15803d' : '#92400e';
+                        return (
+                          <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 10px', borderRadius: 8, marginBottom: 4, background: bg, border: `1px solid ${border}` }}>
+                            <span style={{ fontSize: '0.85rem', flexShrink: 0, marginTop: 1 }}>{icon}</span>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>{m.title}</div>
+                              <div style={{ fontSize: '0.7rem', color: textColor, marginTop: 2 }}>{m.reason}</div>
+                            </div>
+                            <span style={{ fontWeight: 800, fontSize: '0.82rem', color: textColor, flexShrink: 0 }}>{m.pts} pts</span>
+                          </div>
+                        );
+                      }) : (
                         <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic', padding: '6px 10px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>❌ Nenhum título informado — 0 pts neste critério (máx. 40 pts)</div>
-                      </div>
-                    )}
+                      )}
+                    </div>
 
                     {/* Experiência */}
                     <div>
                       <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Experiência Gerencial / Interina (entra no cálculo)</div>
-                      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 10px', borderRadius: 8, background: expPts > 0 ? '#f0fdf4' : '#f8fafc', border: `1px solid ${expPts > 0 ? '#86efac' : '#e2e8f0'}` }}>
-                        <span style={{ fontSize: '0.85rem', flexShrink: 0, marginTop: 1 }}>{expPts > 0 ? '✅' : '❌'}</span>
+                      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 10px', borderRadius: 8, background: expRejected ? '#fef2f2' : expPts > 0 ? '#f0fdf4' : '#f8fafc', border: `1px solid ${expRejected ? '#fca5a5' : expPts > 0 ? '#86efac' : '#e2e8f0'}` }}>
+                        <span style={{ fontSize: '0.85rem', flexShrink: 0, marginTop: 1 }}>{expRejected ? '❌' : expPts > 0 ? '✅' : '❌'}</span>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>
                             Gerencial: {p.managerialMonths ?? 0}m &nbsp;+&nbsp; Interino: {p.interimMonths ?? 0}m &nbsp;=&nbsp; {totalMonths}m totais
                           </div>
-                          <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 2 }}>
-                            {totalMonths > 0
-                              ? `${(totalMonths / 12).toFixed(1)} anos × 5 pts/ano = ${expPts} pts (máx. 20 pts)`
-                              : 'Nenhuma experiência gerencial ou interina informada — 0 pts neste critério (máx. 20 pts)'}
+                          <div style={{ fontSize: '0.7rem', color: expRejected ? '#b91c1c' : '#64748b', marginTop: 2 }}>
+                            {expRejected
+                              ? `Experiência rejeitada pelo auditor${expAuditNote ? ` — ${expAuditNote}` : ''} — 0 pts`
+                              : totalMonths > 0
+                                ? `${(totalMonths / 12).toFixed(1)} anos × 5 pts/ano = ${expPts} pts (máx. 20 pts)`
+                                : 'Nenhuma experiência gerencial ou interina informada — 0 pts neste critério (máx. 20 pts)'}
                           </div>
                         </div>
-                        <span style={{ fontWeight: 800, fontSize: '0.82rem', color: expPts > 0 ? '#15803d' : '#94a3b8', flexShrink: 0 }}>{expPts} pts</span>
+                        <span style={{ fontWeight: 800, fontSize: '0.82rem', color: expRejected ? '#b91c1c' : expPts > 0 ? '#15803d' : '#94a3b8', flexShrink: 0 }}>{expPts} pts</span>
                       </div>
                     </div>
 
                     {/* Projetos */}
                     <div>
                       <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Projetos Estratégicos (entram no cálculo — máx. 20 pts por área)</div>
-                      {projAnalysis.length > 0 ? projAnalysis.map((m, i) => (
-                        <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 10px', borderRadius: 8, marginBottom: 4, background: m.status === 'pontua' ? '#f0fdf4' : '#fff7ed', border: `1px solid ${m.status === 'pontua' ? '#86efac' : '#fed7aa'}` }}>
-                          <span style={{ fontSize: '0.85rem', flexShrink: 0, marginTop: 1 }}>{m.status === 'pontua' ? '✅' : '⚠️'}</span>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>{m.proj}</div>
-                            <div style={{ fontSize: '0.7rem', color: m.status === 'pontua' ? '#15803d' : '#92400e', marginTop: 2 }}>{m.reason}</div>
+                      {projAnalysis.length > 0 ? projAnalysis.map((m, i) => {
+                        const isRejected = m.status === 'rejeitado';
+                        const isPontua = m.status === 'pontua';
+                        const bg = isRejected ? '#fef2f2' : isPontua ? '#f0fdf4' : '#fff7ed';
+                        const border = isRejected ? '#fca5a5' : isPontua ? '#86efac' : '#fed7aa';
+                        const icon = isRejected ? '❌' : isPontua ? '✅' : '⚠️';
+                        const textColor = isRejected ? '#b91c1c' : isPontua ? '#15803d' : '#92400e';
+                        return (
+                          <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 10px', borderRadius: 8, marginBottom: 4, background: bg, border: `1px solid ${border}` }}>
+                            <span style={{ fontSize: '0.85rem', flexShrink: 0, marginTop: 1 }}>{icon}</span>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>{m.proj}</div>
+                              <div style={{ fontSize: '0.7rem', color: textColor, marginTop: 2 }}>{m.reason}</div>
+                            </div>
+                            <span style={{ fontWeight: 800, fontSize: '0.82rem', color: textColor, flexShrink: 0 }}>{m.pts} pts</span>
                           </div>
-                          <span style={{ fontWeight: 800, fontSize: '0.82rem', color: m.status === 'pontua' ? '#15803d' : '#92400e', flexShrink: 0 }}>{m.pts} pts</span>
-                        </div>
-                      )) : (
+                        );
+                      }) : (
                         <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic', padding: '6px 10px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>❌ Nenhum projeto informado — 0 pts neste critério (máx. 20 pts)</div>
                       )}
                     </div>
