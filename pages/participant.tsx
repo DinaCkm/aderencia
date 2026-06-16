@@ -870,6 +870,23 @@ export default function ParticipantForm() {
           </div>
         )}
 
+        {/* Overlay de somente leitura — bloqueia todos os cliques quando processo encerrado */}
+        <div style={{ position: 'relative' }}>
+        {isReadOnly && (
+          <div
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            style={{
+              position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+              zIndex: 50,
+              cursor: 'not-allowed',
+              background: 'rgba(255,255,255,0.01)',
+            }}
+            title="Prazo encerrado — não é possível alterar informações"
+          />
+        )}
         <form onSubmit={handleSubmit}>
 
           {/* ── STEP 1: DADOS BASICOS ── */}
@@ -2376,6 +2393,7 @@ export default function ParticipantForm() {
           )}
 
         </form>
+        </div>{/* fim do div overlay */}
         </div>{/* fim do div maxWidth 760 */}
       </main>
     </>
