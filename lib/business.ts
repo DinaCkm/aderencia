@@ -118,7 +118,9 @@ function computeTechnicalAdherence(
     .map((label) => {
       // Busca no catálogo pelo label (qualquer área) para obter os pontos
       const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === label);
-      return catalogItem ? { label, points: (catalogItem as any).points ?? 15 } : { label, points: 15 };
+      const pts = catalogItem ? ((catalogItem as any).points ?? 15) : 15;
+      const weight = pts >= 20 ? 'projeto estratégico central' : 'projeto de suporte/complementar';
+      return { label, points: pts, weight };
     });
   const projScore = Math.min(20, projItems.reduce((acc, i) => acc + i.points, 0));
 
@@ -131,7 +133,7 @@ function computeTechnicalAdherence(
   return {
     technicalAdherence: score10,
     postMBADetail: postMBADet,
-    projectsDetail: projItems.map((i) => ({ label: i.label, points: i.points })),
+    projectsDetail: projItems.map((i) => ({ label: i.label, points: i.points, weight: i.weight })),
     calculationSteps: [
       {
         name: 'Pós/MBA (melhor título para a área)',
@@ -156,7 +158,7 @@ function computeTechnicalAdherence(
         name: 'Projetos estratégicos da área',
         value: projScore,
         detail: projItems.length > 0
-          ? projItems.map((i) => `"${i.label}" = ${i.points} pts`).join(' | ')
+          ? projItems.map((i) => `"${i.label}" = ${i.points} pts (${i.weight})`).join(' | ')
             + ` — total: ${projScore} pts (máx. 20 pts por área)`
             + (projScore === 20 && projItems.reduce((a, i) => a + i.points, 0) > 20
                 ? ` — cap atingido: projetos adicionais não somam mais pontos`
