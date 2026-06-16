@@ -55,16 +55,22 @@ function bestPostMBADetail(postMBALabels: string[], area: string): {
   );
 
   if (candidates.length === 0) {
-    if (postMBALabels.length === 0) return { score: 0, titleUsed: null, classification: 'Nenhum título informado' };
-    return { score: 20, titleUsed: postMBALabels[0], classification: 'Não relacionado à área — pontuação mínima (20 pts)' };
+    if (postMBALabels.length === 0) return { score: 0, titleUsed: null, classification: 'Nenhum título de Pós/MBA informado — 0 de 40 pts possíveis' };
+    // Tem título mas não é da área: pontuação mínima de 20 pts
+    const bestLabel = postMBALabels[0];
+    return {
+      score: 20,
+      titleUsed: bestLabel,
+      classification: `Título não relacionado à área ${area} — recebe pontuação mínima de 20 pts (de 40 possíveis). Para obter 40 pts seria necessário um título específico ou transversal desta área.`,
+    };
   }
 
   // Seleciona o candidato de maior pontuação
   const best = candidates.reduce((a, b) => ((b as any).points ?? 20) > ((a as any).points ?? 20) ? b : a);
   const pts = (best as any).points ?? 20;
   const cls = (best as any).classification === 'transversal'
-    ? 'Transversal — vale para qualquer área'
-    : `Específico da área ${area}`;
+    ? `Título transversal — válido para qualquer área — ${pts} de 40 pts possíveis`
+    : `Título específico para a área ${area} — ${pts} de 40 pts possíveis`;
 
   return { score: pts, titleUsed: best.label, classification: cls };
 }
@@ -137,19 +143,30 @@ function computeTechnicalAdherence(
       {
         name: 'Experiência gerencial/interina',
         value: Math.round(expScore * 10) / 10,
-        detail: `Gerencial: ${managerialMonths}m + Interino: ${interimMonths}m = ${managerialMonths + interimMonths}m totais (5 pts/ano, máx. 20)`,
+        detail: (() => {
+          const totalM = managerialMonths + interimMonths;
+          const years = Math.floor((totalM / 12) * 10) / 10;
+          const raw = years * 5;
+          const capped = expScore === 20 && raw > 20;
+          return `Gerencial: ${managerialMonths}m + Interino: ${interimMonths}m = ${totalM}m totais (${years} anos × 5 pts/ano = ${Math.round(raw * 10) / 10} pts)`
+            + (capped ? ` — cap atingido: máximo é 20 pts` : ` — ${expScore} de 20 pts possíveis`);
+        })(),
       },
       {
         name: 'Projetos estratégicos da área',
         value: projScore,
         detail: projItems.length > 0
-          ? projItems.map((i) => `"${i.label}" = ${i.points} pts`).join(' | ') + ` — máx. 20 pts`
-          : 'Nenhum projeto vinculado a esta área',
+          ? projItems.map((i) => `"${i.label}" = ${i.points} pts`).join(' | ')
+            + ` — total: ${projScore} pts (máx. 20 pts por área)`
+            + (projScore === 20 && projItems.reduce((a, i) => a + i.points, 0) > 20
+                ? ` — cap atingido: projetos adicionais não somam mais pontos`
+                : '')
+          : `Nenhum projeto vinculado a esta área — 0 de 20 pts possíveis. Projetos são vinculados pelo administrador na auditoria.`,
       },
       {
         name: 'Total bruto (0–80)',
         value: total80,
-        detail: `Convertido para escala 0–10: ${score10}`,
+        detail: `Pós/MBA (${postMBADet.score} pts) + Experiência (${Math.round(expScore * 10) / 10} pts) + Projetos (${projScore} pts) = ${total80} pts — convertido para escala 0–10: ${score10} pts`,
       },
     ],
   };
