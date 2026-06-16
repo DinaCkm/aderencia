@@ -86,29 +86,11 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
   const [data, setData] = useState<EmployeeProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const downloadingPdf = false;
 
-  const handleDownloadPdf = async () => {
-    if (downloadingPdf) return;
-    setDownloadingPdf(true);
-    try {
-      const res = await fetch(`/api/admin/generate-pdf?email=${encodeURIComponent(email)}`);
-      if (!res.ok) throw new Error('Erro ao gerar PDF');
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const safeName = (data?.profile?.name || email).replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
-      a.download = `analise_${safeName}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch {
-      alert('Erro ao gerar o PDF. Tente novamente.');
-    } finally {
-      setDownloadingPdf(false);
-    }
+  const handleDownloadPdf = () => {
+    // Abre a página de impressão em nova aba — o admin usa Ctrl+P > Salvar como PDF
+    window.open(`/admin/print-profile?email=${encodeURIComponent(email)}`, '_blank');
   };
 
   useEffect(() => {
@@ -158,7 +140,7 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
           <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             <button type="button" onClick={handleDownloadPdf} disabled={loading || !!error || downloadingPdf}
               style={{ background: downloadingPdf ? '#e5e7eb' : '#5B2D8E', border: 'none', borderRadius: 8, padding: '6px 16px', cursor: loading || !!error || downloadingPdf ? 'not-allowed' : 'pointer', fontSize: '0.82rem', color: downloadingPdf ? '#6b7280' : 'white', fontWeight: 600, opacity: loading || !!error ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: 6 }}>
-              {downloadingPdf ? '\u23F3 Gerando PDF...' : '\uD83D\uDCE5 Baixar PDF'}
+              {'\uD83D\uDCE5 Ver / Imprimir PDF'}
             </button>
             <button type="button" onClick={onClose}
               style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
