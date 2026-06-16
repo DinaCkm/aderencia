@@ -383,6 +383,28 @@ export default function AdminAudit() {
   const getValidation = (key: string) =>
     selected?.audit.itemValidations.find((v) => v.itemKey === key);
 
+  // Salva a área vinculada a um projeto (quando o admin corrige manualmente)
+  const saveProjectArea = async (proj: string, area: string) => {
+    if (!selected) return;
+    const newMap = { ...(selected.profile.projectAreaMap || {}), [proj]: area };
+    await fetch('/api/admin/update-participant-field', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ participantId: selected.profile.id, field: 'projectAreaMap', value: newMap }),
+    });
+    setSelected((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        profile: {
+          ...prev.profile,
+          projectAreaMap: newMap as ParticipantProfile['projectAreaMap'],
+        },
+      };
+    });
+    showToast(`Área vinculada ao projeto salva!`);
+  };
+
   // Atualiza o estado local após upload de comprovante pelo admin
   const updateProofFile = (itemKey: string, base64: string) => {
     setSelected((prev) => {
@@ -864,11 +886,42 @@ export default function AdminAudit() {
                     const projKey = `proj:${proj}`;
                     const mode = p.proofMode?.[projKey];
                     return (
-                      <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+                      <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: `1px solid ${!p.projectAreaMap?.[proj] ? '#fcd34d' : '#e2e8f0'}`, borderRadius: 8 }}>
                         <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b', marginBottom: 4 }}>{proj}</div>
-                        {p.projectAreaMap?.[proj] && (
-                          <div style={{ fontSize: '0.72rem', color: '#5b21b6', marginBottom: 4 }}>
+                        {p.projectAreaMap?.[proj] ? (
+                          <div style={{ fontSize: '0.72rem', color: '#5b21b6', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                             🎯 Área de aplicação: {AREA_LABELS[p.projectAreaMap[proj]] || p.projectAreaMap[proj]}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newMap = { ...(p.projectAreaMap || {}) };
+                                delete newMap[proj];
+                                saveProjectArea(proj, '');
+                              }}
+                              style={{ fontSize: '0.65rem', color: '#94a3b8', background: 'none', border: '1px solid #e2e8f0', borderRadius: 4, padding: '1px 6px', cursor: 'pointer' }}
+                              title="Alterar área"
+                            >
+                              ✏️ Alterar
+                            </button>
+                          </div>
+                        ) : (
+                          <div style={{ marginBottom: 8, padding: '8px 10px', background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 6 }}>
+                            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#92400e', marginBottom: 6 }}>
+                              ⚠️ Sem área vinculada — este projeto não entrará no cálculo. Vincule uma área abaixo:
+                            </div>
+                            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                              <select
+                                defaultValue=""
+                                onChange={(e) => { if (e.target.value) saveProjectArea(proj, e.target.value); }}
+                                style={{ fontSize: '0.75rem', padding: '4px 8px', borderRadius: 6, border: '1.5px solid #fcd34d', background: 'white', color: '#1e293b', cursor: 'pointer' }}
+                              >
+                                <option value="">Selecione a área...</option>
+                                {Object.entries(AREA_LABELS).map(([key, label]) => (
+                                  <option key={key} value={key}>{label}</option>
+                                ))}
+                              </select>
+                              <span style={{ fontSize: '0.68rem', color: '#92400e' }}>Somente áreas de interesse do candidato serão consideradas no cálculo.</span>
+                            </div>
                           </div>
                         )}
                         {!mode ? (
