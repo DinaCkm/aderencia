@@ -312,6 +312,13 @@ export default function MyResults() {
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
             Veja abaixo sua pontuação detalhada para cada área de interesse.
           </p>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 8 }}>
+            Em caso de dúvida se o seu título de pós-graduação ou projeto recebeu a pontuação correta, consulte o{' '}
+            <a href="/catalogo_pontuacao.pdf" target="_blank" rel="noreferrer"
+              style={{ color: 'var(--purple)', fontWeight: 700, textDecoration: 'underline' }}>
+              📋 Catálogo de Pontuação
+            </a>.
+          </p>
         </div>
 
         <div className="section-card" style={{ marginBottom: 28, background: 'var(--gradient-soft)', border: '1px solid #d8b4fe' }}>

@@ -829,6 +829,22 @@ export default function ParticipantForm() {
           </div>
         )}
 
+        {/* Banner do catálogo de pontuação */}
+        <div style={{
+          background: '#f5f3ff', border: '1.5px solid #a78bfa', borderRadius: 10,
+          padding: '12px 18px', marginBottom: 20,
+          display: 'flex', gap: 12, alignItems: 'center',
+        }}>
+          <div style={{ fontSize: '1.2rem', flexShrink: 0 }}>&#128203;</div>
+          <p style={{ fontSize: '0.82rem', color: '#4c1d95', lineHeight: 1.6, margin: 0 }}>
+            Em caso de dúvida se o seu título de pós-graduação ou projeto recebeu a pontuação correta, consulte o{' '}
+            <a href="/catalogo_pontuacao.pdf" target="_blank" rel="noreferrer"
+              style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'underline' }}>
+              Catálogo de Pontuação
+            </a>.
+          </p>
+        </div>
+
         {/* Banner de alerta: projetos sem área vinculada */}
         {projectAreaAlert && !isReadOnly && (
           <div style={{
