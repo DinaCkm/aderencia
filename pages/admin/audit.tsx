@@ -953,7 +953,18 @@ export default function AdminAudit() {
 
               {/* ── Conclusão da Auditoria ── */}
               <div style={{ background: 'white', border: '2px solid var(--purple)', borderRadius: 12, padding: '20px 24px', marginTop: 8 }}>
-                <h3 style={{ color: 'var(--purple)', marginBottom: 14, fontSize: '0.95rem' }}>📝 Conclusão da Auditoria</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                  <h3 style={{ color: 'var(--purple)', margin: 0, fontSize: '0.95rem' }}>📝 Conclusão da Auditoria</h3>
+                  {selected.audit.overallStatus === 'validated' && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#d1fae5', color: '#065f46', border: '1.5px solid #6ee7b7', borderRadius: 20, padding: '3px 10px', fontSize: '0.75rem', fontWeight: 700 }}>✓ Status atual: Validada</span>
+                  )}
+                  {selected.audit.overallStatus === 'adjusted' && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#fef3c7', color: '#92400e', border: '1.5px solid #fcd34d', borderRadius: 20, padding: '3px 10px', fontSize: '0.75rem', fontWeight: 700 }}>⚠️ Status atual: Ajustada</span>
+                  )}
+                  {selected.audit.overallStatus === 'provisional' && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#f1f5f9', color: '#64748b', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: '3px 10px', fontSize: '0.75rem', fontWeight: 700 }}>⏳ Status atual: Provisória</span>
+                  )}
+                </div>
                 <div style={{ marginBottom: 12 }}>
                   <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: 6 }}>
                     Observação geral (opcional)
@@ -968,8 +979,8 @@ export default function AdminAudit() {
                     <button type="button"
                       onClick={() => saveOverallStatus('validated')}
                       disabled={saving}
-                      style={{ flex: 1, padding: '10px 16px', background: 'linear-gradient(135deg, #15803d, #16a34a)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
-                      ✓ Marcar como Validada
+                      style={{ flex: 1, padding: '10px 16px', background: selected.audit.overallStatus === 'validated' ? 'linear-gradient(135deg, #14532d, #15803d)' : 'linear-gradient(135deg, #15803d, #16a34a)', color: 'white', border: selected.audit.overallStatus === 'validated' ? '3px solid #14532d' : 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', boxShadow: selected.audit.overallStatus === 'validated' ? '0 0 0 3px #6ee7b7' : 'none' }}>
+                      {selected.audit.overallStatus === 'validated' ? '✓ Validada (ativo)' : '✓ Marcar como Validada'}
                     </button>
                     <span title="A ficha foi auditada e está aprovada sem ressalvas — todos os comprovantes foram aceitos e a pontuação está correta."
                       style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', background: '#15803d', color: 'white', fontSize: '0.7rem', fontWeight: 700, cursor: 'help', flexShrink: 0, userSelect: 'none' }}>?</span>
@@ -979,8 +990,8 @@ export default function AdminAudit() {
                     <button type="button"
                       onClick={() => saveOverallStatus('adjusted')}
                       disabled={saving}
-                      style={{ flex: 1, padding: '10px 16px', background: 'linear-gradient(135deg, #d97706, #f59e0b)', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
-                      ⚠️ Marcar como Ajustada
+                      style={{ flex: 1, padding: '10px 16px', background: selected.audit.overallStatus === 'adjusted' ? 'linear-gradient(135deg, #92400e, #d97706)' : 'linear-gradient(135deg, #d97706, #f59e0b)', color: 'white', border: selected.audit.overallStatus === 'adjusted' ? '3px solid #92400e' : 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', boxShadow: selected.audit.overallStatus === 'adjusted' ? '0 0 0 3px #fcd34d' : 'none' }}>
+                      {selected.audit.overallStatus === 'adjusted' ? '⚠️ Ajustada (ativo)' : '⚠️ Marcar como Ajustada'}
                     </button>
                     <span title="A ficha foi auditada mas precisou de alguma correção ou ajuste — por exemplo, um item foi rejeitado, a pontuação foi alterada ou há uma observação relevante. Indica que houve intervenção do auditor."
                       style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', background: '#d97706', color: 'white', fontSize: '0.7rem', fontWeight: 700, cursor: 'help', flexShrink: 0, userSelect: 'none' }}>?</span>
@@ -990,8 +1001,8 @@ export default function AdminAudit() {
                     <button type="button"
                       onClick={() => saveOverallStatus('provisional')}
                       disabled={saving}
-                      style={{ flex: 1, padding: '10px 16px', background: '#f1f5f9', color: '#64748b', border: '1.5px solid #e2e8f0', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>
-                      ⏳ Manter Provisória
+                      style={{ flex: 1, padding: '10px 16px', background: selected.audit.overallStatus === 'provisional' ? '#e2e8f0' : '#f1f5f9', color: '#64748b', border: selected.audit.overallStatus === 'provisional' ? '3px solid #94a3b8' : '1.5px solid #e2e8f0', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', boxShadow: selected.audit.overallStatus === 'provisional' ? '0 0 0 3px #cbd5e1' : 'none' }}>
+                      {selected.audit.overallStatus === 'provisional' ? '⏳ Provisória (ativo)' : '⏳ Manter Provisória'}
                     </button>
                     <span title="A auditoria ainda não foi concluída — a ficha fica no estado provisório, aguardando análise posterior. É o estado padrão enquanto a auditoria está em andamento."
                       style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: '50%', background: '#94a3b8', color: 'white', fontSize: '0.7rem', fontWeight: 700, cursor: 'help', flexShrink: 0, userSelect: 'none' }}>?</span>
