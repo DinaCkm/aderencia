@@ -234,6 +234,12 @@ function normalizeKey(key: string): string {
   return `${prefix}:${name}`;
 }
 
+function hasInlineProof(value?: string): boolean {
+  if (!value) return false;
+  if (value.startsWith('data:')) return true;
+  return value.length > 100;
+}
+
 // ─── Upload de comprovante pelo administrador ────────────────────────────────
 function AdminProofUploader({ email, itemKey, onUploaded }: {
   email: string;
@@ -693,7 +699,7 @@ export default function AdminAudit() {
                           📎 Enviou documento para comprovação
                         </div>
                       )}
-                      {mode === 'upload' && p.proofFiles?.[fileKey] && p.proofFiles[fileKey].startsWith('data:') && (
+                      {mode === 'upload' && hasInlineProof(p.proofFiles?.[fileKey]) && (
                         <FileViewer base64={p.proofFiles[fileKey]} fileName="comprovante-graduacao" label="Comprovante de graduação" />
                       )}
                       {(!mode || (mode !== 'ugp-knows' && mode !== 'upload')) && (
@@ -748,7 +754,7 @@ export default function AdminAudit() {
                                 📎 Enviou documento para comprovação
                               </div>
                             )}
-                            {mode === 'upload' && p.proofFiles?.[mbaKey] && p.proofFiles[mbaKey].startsWith('data:') && (
+                            {mode === 'upload' && hasInlineProof(p.proofFiles?.[mbaKey]) && (
                               <FileViewer
                                 base64={p.proofFiles[mbaKey]}
                                 fileName={`comprovante-pos-${i + 1}`}
@@ -811,7 +817,7 @@ export default function AdminAudit() {
                             <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>{course.name}</div>
                             <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>Área: {course.area} • {course.hours}h</div>
                             <ProofBadge mode={mode} />
-                            {mode === 'upload' && p.proofFiles?.[key] && p.proofFiles[key].startsWith('data:') && (
+                            {mode === 'upload' && hasInlineProof(p.proofFiles?.[key]) && (
                               <FileViewer base64={p.proofFiles[key]} fileName={`comprovante-curso-${i + 1}`} label="Comprovante enviado" />
                             )}
                             {(!mode || (mode !== 'ugp-knows' && mode !== 'upload')) && (
@@ -837,7 +843,7 @@ export default function AdminAudit() {
                               <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>Carga horária: {p.courseHours[course]}h</div>
                             )}
                             <ProofBadge mode={mode} />
-                            {mode === 'upload' && p.proofFiles?.[key] && p.proofFiles[key].startsWith('data:') && (
+                            {mode === 'upload' && hasInlineProof(p.proofFiles?.[key]) && (
                               <FileViewer base64={p.proofFiles[key]} fileName={`comprovante-curso-cat-${i + 1}`} label="Comprovante enviado" />
                             )}
                             {(!mode || (mode !== 'ugp-knows' && mode !== 'upload')) && (
@@ -883,8 +889,11 @@ export default function AdminAudit() {
                 ) : (
                   (p.selectedProjects || []).map((proj, i) => {
                     // Chave correta: proj:<nome do projeto>
-                    const projKey = `proj:${proj}`;
-                    const mode = p.proofMode?.[projKey];
+                    const rawProjKey = `proj:${proj}`;
+                    const projKey = normalizeKey(rawProjKey);
+                    const mode = p.proofMode?.[rawProjKey] || p.proofMode?.[projKey];
+                    const projProof = p.proofFiles?.[rawProjKey] || p.proofFiles?.[projKey];
+                    const projProofLink = (p as any).proofLinks?.[rawProjKey] || (p as any).proofLinks?.[projKey];
                     return (
                       <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: `1px solid ${!p.projectAreaMap?.[proj] ? '#fcd34d' : '#e2e8f0'}`, borderRadius: 8 }}>
                         <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b', marginBottom: 4 }}>{proj}</div>
@@ -937,9 +946,9 @@ export default function AdminAudit() {
                             📎 Enviou documento para comprovação
                           </div>
                         )}
-                        {mode === 'upload' && p.proofFiles?.[projKey] && p.proofFiles[projKey].startsWith('data:') && (
+                        {mode === 'upload' && hasInlineProof(projProof) && (
                           <FileViewer
-                            base64={p.proofFiles[projKey]}
+                            base64={projProof!}
                             fileName={`comprovante-projeto-${i + 1}`}
                             label="Comprovante enviado"
                           />
@@ -947,10 +956,10 @@ export default function AdminAudit() {
                         {(!mode || (mode !== 'ugp-knows' && mode !== 'upload')) && (
                           <AdminProofUploader email={p.email!} itemKey={projKey} onUploaded={(b) => updateProofFile(projKey, b)} />
                         )}
-                        {mode === 'upload' && (p as any).proofLinks?.[projKey] && (
+                        {mode === 'upload' && projProofLink && (
                           <div style={{ marginTop: 6, padding: '6px 10px', background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 6 }}>
                             <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#1e40af' }}>🔗 Link externo: </span>
-                            <a href={(p as any).proofLinks[projKey]} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.7rem', color: '#1d4ed8', wordBreak: 'break-all' }}>{(p as any).proofLinks[projKey]}</a>
+                            <a href={projProofLink} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.7rem', color: '#1d4ed8', wordBreak: 'break-all' }}>{projProofLink}</a>
                           </div>
                         )}
                         <ValidationControls itemKey={`projeto-${i}`} validation={getValidation(`projeto-${i}`)} onSave={saveItemValidation} />
