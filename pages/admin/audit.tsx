@@ -678,12 +678,15 @@ export default function AdminAudit() {
                 {/* Badge de comprovação da graduação — chave: grad:<area> ou grad:<nome_curso> para __outro__ */}
                 {(() => {
                   // Para __outro__, a chave usa o nome do curso digitado (igual ao participant.tsx)
-                  const gradKey = p.graduation === '__outro__'
+                  const rawGradKey = p.graduation === '__outro__'
                     ? `grad:${p.graduationCourseName?.trim() || '__outro__'}`
                     : `grad:${p.graduation}`;
-                  const gradKey2 = p.graduation2 ? `grad2:${(p as any).graduation2CourseName?.trim() || p.graduation2}` : null;
-                  const mode = p.proofMode?.[gradKey] || (gradKey2 ? p.proofMode?.[gradKey2] : undefined);
-                  const fileKey = mode === 'upload' ? (p.proofFiles?.[gradKey] ? gradKey : gradKey2 || gradKey) : gradKey;
+                  const gradKey = normalizeKey(rawGradKey);
+                  const rawGradKey2 = p.graduation2 ? `grad2:${(p as any).graduation2CourseName?.trim() || p.graduation2}` : null;
+                  const gradKey2 = rawGradKey2 ? normalizeKey(rawGradKey2) : null;
+                  // Tenta buscar proofMode com ambas as variações (raw e normalizada)
+                  const mode = p.proofMode?.[rawGradKey] || p.proofMode?.[gradKey] || (gradKey2 && rawGradKey2 ? (p.proofMode?.[rawGradKey2] || p.proofMode?.[gradKey2]) : undefined);
+                  const fileKey = mode === 'upload' ? (p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey] ? (p.proofFiles?.[rawGradKey] ? rawGradKey : gradKey) : (gradKey2 || gradKey)) : gradKey;
                   return (
                     <>
                       {!mode ? (
@@ -699,11 +702,11 @@ export default function AdminAudit() {
                           📎 Enviou documento para comprovação
                         </div>
                       )}
-                      {mode === 'upload' && hasInlineProof(p.proofFiles?.[fileKey]) && (
-                        <FileViewer base64={p.proofFiles[fileKey]} fileName="comprovante-graduacao" label="Comprovante de graduação" />
+                      {mode === 'upload' && (p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]) && hasInlineProof(p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]) && (
+                        <FileViewer base64={p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]!} fileName="comprovante-graduacao" label="Comprovante de graduação" />
                       )}
-                      {(!mode || (mode !== 'ugp-knows' && mode !== 'upload')) && (
-                        <AdminProofUploader email={p.email!} itemKey={fileKey} onUploaded={(b) => updateProofFile(fileKey, b)} />
+                      {(!mode || (mode !== 'ugp-knows' && mode !== 'upload') || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]))) && (
+                        <AdminProofUploader email={p.email!} itemKey={gradKey} onUploaded={(b) => updateProofFile(gradKey, b)} />
                       )}
                       {mode === 'upload' && (p as any).proofLinks?.[fileKey] && (
                         <div style={{ marginTop: 6, padding: '6px 10px', background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 6 }}>
@@ -754,14 +757,14 @@ export default function AdminAudit() {
                                 📎 Enviou documento para comprovação
                               </div>
                             )}
-                            {mode === 'upload' && hasInlineProof(p.proofFiles?.[mbaKey]) && (
+                            {mode === 'upload' && (p.proofFiles?.[mbaKey]) && hasInlineProof(p.proofFiles?.[mbaKey]) && (
                               <FileViewer
-                                base64={p.proofFiles[mbaKey]}
+                                base64={p.proofFiles[mbaKey]!}
                                 fileName={`comprovante-pos-${i + 1}`}
                                 label="Comprovante enviado"
                               />
                             )}
-                            {(!mode || (mode !== 'ugp-knows' && mode !== 'upload')) && (
+                            {(!mode || (mode !== 'ugp-knows' && mode !== 'upload') || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[mbaKey]))) && (
                               <AdminProofUploader email={p.email!} itemKey={mbaKey} onUploaded={(b) => updateProofFile(mbaKey, b)} />
                             )}
                             {mode === 'upload' && (p as any).proofLinks?.[mbaKey] && (
@@ -810,17 +813,18 @@ export default function AdminAudit() {
                   return (
                     <>
                       {validFree.map((course, i) => {
-                        const key = normalizeKey(`curso5_${i}:${course.name!.trim()}`);
-                        const mode = p.proofMode?.[key];
+                        const rawKey = `curso5_${i}:${course.name!.trim()}`;
+                        const key = normalizeKey(rawKey);
+                        const mode = p.proofMode?.[rawKey] || p.proofMode?.[key];
                         return (
                           <div key={`free-${i}`} style={{ marginBottom: 10, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
                             <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>{course.name}</div>
                             <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>Área: {course.area} • {course.hours}h</div>
                             <ProofBadge mode={mode} />
-                            {mode === 'upload' && hasInlineProof(p.proofFiles?.[key]) && (
-                              <FileViewer base64={p.proofFiles[key]} fileName={`comprovante-curso-${i + 1}`} label="Comprovante enviado" />
+                            {mode === 'upload' && (p.proofFiles?.[rawKey] || p.proofFiles?.[key]) && hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]) && (
+                              <FileViewer base64={p.proofFiles?.[rawKey] || p.proofFiles?.[key]!} fileName={`comprovante-curso-${i + 1}`} label="Comprovante enviado" />
                             )}
-                            {(!mode || (mode !== 'ugp-knows' && mode !== 'upload')) && (
+                            {(!mode || (mode !== 'ugp-knows' && mode !== 'upload') || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]))) && (
                               <AdminProofUploader email={p.email!} itemKey={key} onUploaded={(b) => updateProofFile(key, b)} />
                             )}
                             {mode === 'upload' && (p as any).proofLinks?.[key] && (
@@ -834,8 +838,9 @@ export default function AdminAudit() {
                         );
                       })}
                       {catCourses.map((course, i) => {
-                        const key = `curso7:${course}`;
-                        const mode = p.proofMode?.[key];
+                        const rawKey = `curso7:${course}`;
+                        const key = normalizeKey(rawKey);
+                        const mode = p.proofMode?.[rawKey] || p.proofMode?.[key];
                         return (
                           <div key={`cat-${i}`} style={{ marginBottom: 10, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
                             <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>{course}</div>
@@ -843,10 +848,10 @@ export default function AdminAudit() {
                               <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>Carga horária: {p.courseHours[course]}h</div>
                             )}
                             <ProofBadge mode={mode} />
-                            {mode === 'upload' && hasInlineProof(p.proofFiles?.[key]) && (
-                              <FileViewer base64={p.proofFiles[key]} fileName={`comprovante-curso-cat-${i + 1}`} label="Comprovante enviado" />
+                            {mode === 'upload' && (p.proofFiles?.[rawKey] || p.proofFiles?.[key]) && hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]) && (
+                              <FileViewer base64={p.proofFiles?.[rawKey] || p.proofFiles?.[key]!} fileName={`comprovante-curso-cat-${i + 1}`} label="Comprovante enviado" />
                             )}
-                            {(!mode || (mode !== 'ugp-knows' && mode !== 'upload')) && (
+                            {(!mode || (mode !== 'ugp-knows' && mode !== 'upload') || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]))) && (
                               <AdminProofUploader email={p.email!} itemKey={key} onUploaded={(b) => updateProofFile(key, b)} />
                             )}
                             {mode === 'upload' && (p as any).proofLinks?.[key] && (
@@ -888,11 +893,14 @@ export default function AdminAudit() {
                   <p style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Nenhum projeto selecionado.</p>
                 ) : (
                   (p.selectedProjects || []).map((proj, i) => {
-                    // Chave correta: proj:<nome do projeto>
+                    // Chave correta: proj:<nome do projeto> — tenta ambas as variações (raw e normalizada)
                     const rawProjKey = `proj:${proj}`;
                     const projKey = normalizeKey(rawProjKey);
+                    // Busca em proofMode com ambas as variações
                     const mode = p.proofMode?.[rawProjKey] || p.proofMode?.[projKey];
+                    // Busca em proofFiles com ambas as variações
                     const projProof = p.proofFiles?.[rawProjKey] || p.proofFiles?.[projKey];
+                    // Busca em proofLinks com ambas as variações
                     const projProofLink = (p as any).proofLinks?.[rawProjKey] || (p as any).proofLinks?.[projKey];
                     return (
                       <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: `1px solid ${!p.projectAreaMap?.[proj] ? '#fcd34d' : '#e2e8f0'}`, borderRadius: 8 }}>
@@ -946,14 +954,14 @@ export default function AdminAudit() {
                             📎 Enviou documento para comprovação
                           </div>
                         )}
-                        {mode === 'upload' && hasInlineProof(projProof) && (
+                        {mode === 'upload' && projProof && hasInlineProof(projProof) && (
                           <FileViewer
-                            base64={projProof!}
+                            base64={projProof}
                             fileName={`comprovante-projeto-${i + 1}`}
                             label="Comprovante enviado"
                           />
                         )}
-                        {(!mode || (mode !== 'ugp-knows' && mode !== 'upload')) && (
+                        {(!mode || (mode !== 'ugp-knows' && mode !== 'upload') || (mode === 'upload' && !hasInlineProof(projProof))) && (
                           <AdminProofUploader email={p.email!} itemKey={projKey} onUploaded={(b) => updateProofFile(projKey, b)} />
                         )}
                         {mode === 'upload' && projProofLink && (
