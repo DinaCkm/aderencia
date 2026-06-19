@@ -590,12 +590,10 @@ export default function AdminAudit() {
 
               {/* Botão de e-mail geral */}
               {(() => {
-                // Detectar arquivos legários (apenas nome salvo, sem base64)
+                // Detectar arquivos legados (apenas nome salvo, sem base64 válido)
                 const legacyFiles = Object.entries(p.proofFiles || {}).filter(([, v]) => {
                   if (!v || typeof v !== 'string') return false;
-                  if (v.startsWith('data:')) return false;
-                  if (v.length >= 50) { try { atob(v.slice(0, 100)); return false; } catch { /* não é base64 */ } }
-                  return true;
+                  return !hasInlineProof(v);
                 });
 
                 // Formatar lista de itens para o e-mail
