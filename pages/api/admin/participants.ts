@@ -63,6 +63,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           })
         : false;
 
+      // hasPendingDocs: itens declarados sem comprovação (sem proofMode, sem arquivo válido e sem ugp-knows)
+      // Conceito separado de hasLegacyFiles — representa documentos obrigatórios ausentes
+      function hasValidProof(key: string): boolean {
+        const mode = p?.proofMode?.[key];
+        if (mode === 'ugp-knows') return true;
+        if (mode === 'upload') {
+          const v = p?.proofFiles?.[key];
+          if (!v || typeof v !== 'string') return false;
+          if (v.startsWith('data:')) return true;
+          if (v.length >= 50) {
+            try { Buffer.from(v.slice(0, 100), 'base64'); return true; } catch { /* não é base64 */ }
+          }
+          if (dbKeys.has(key)) return true;
+          return false;
+        }
+        return false;
+      }
+
+      let hasPendingDocs = false;
+      if (p) {
+        const keysToCheck: string[] = [];
+        if (p.graduation) keysToCheck.push(p.graduation);
+        if ((p as any).graduation2) keysToCheck.push((p as any).graduation2);
+        for (const mba of (p.postMBAs || [])) keysToCheck.push(mba);
+        for (const cert of (p.certifications || [])) keysToCheck.push(cert);
+        for (const proj of (p.selectedProjects || [])) keysToCheck.push(proj);
+        hasPendingDocs = keysToCheck.some((key) => !hasValidProof(key));
+      }
+
       return {
         userId: u.id || u.email,
         name: u.name || '—',
@@ -76,6 +105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         exceptionRequested: p?.exceptionRequested ?? false,
         exceptionStatus: p?.exceptionStatus ?? null,
         hasLegacyFiles,
+        hasPendingDocs,
       };
     });
 

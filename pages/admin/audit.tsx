@@ -29,6 +29,7 @@ interface ParticipantSummary {
   exceptionRequested: boolean;
   exceptionStatus: string | null;
   hasLegacyFiles?: boolean;
+  hasPendingDocs?: boolean;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -516,9 +517,19 @@ export default function AdminAudit() {
                       📧 Reenviar docs
                     </span>
                   )}
-                  {pt.exceptionRequested && (
+                  {pt.hasPendingDocs && !pt.hasLegacyFiles && (
+                    <span style={{ fontSize: '0.62rem', background: '#fff7ed', border: '1px solid #fdba74', borderRadius: 3, padding: '1px 5px', color: '#c2410c', fontWeight: 700 }}>
+                      📄 Docs pendentes
+                    </span>
+                  )}
+                  {pt.exceptionRequested && pt.exceptionStatus === 'pending' && (
                     <span style={{ fontSize: '0.62rem', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 3, padding: '1px 5px', color: '#92400e', fontWeight: 700 }}>
-                      ⚠️ Exceção
+                      ⚠️ Exceção pendente
+                    </span>
+                  )}
+                  {pt.exceptionRequested && pt.exceptionStatus === 'approved' && (
+                    <span style={{ fontSize: '0.62rem', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 3, padding: '1px 5px', color: '#065f46', fontWeight: 700 }}>
+                      ✓ Exceção aprovada
                     </span>
                   )}
                   {(pt.selectedAreas || []).map((a) => (
@@ -703,7 +714,7 @@ export default function AdminAudit() {
                       {mode === 'upload' && (p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]) && hasInlineProof(p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]) && (
                         <FileViewer base64={p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]!} fileName="comprovante-graduacao" label="Comprovante de graduação" />
                       )}
-                      {(!mode || (mode !== 'ugp-knows' && mode !== 'upload') || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]))) && (
+                      {(!mode || mode === 'ugp-knows' || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]))) && (
                         <AdminProofUploader email={p.email!} itemKey={gradKey} onUploaded={(b) => updateProofFile(gradKey, b)} />
                       )}
                       {mode === 'upload' && (p as any).proofLinks?.[fileKey] && (
@@ -762,7 +773,7 @@ export default function AdminAudit() {
                                 label="Comprovante enviado"
                               />
                             )}
-                            {(!mode || (mode !== 'ugp-knows' && mode !== 'upload') || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[mbaKey]))) && (
+                            {(!mode || mode === 'ugp-knows' || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[mbaKey]))) && (
                               <AdminProofUploader email={p.email!} itemKey={mbaKey} onUploaded={(b) => updateProofFile(mbaKey, b)} />
                             )}
                             {mode === 'upload' && (p as any).proofLinks?.[mbaKey] && (
@@ -822,7 +833,7 @@ export default function AdminAudit() {
                             {mode === 'upload' && (p.proofFiles?.[rawKey] || p.proofFiles?.[key]) && hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]) && (
                               <FileViewer base64={p.proofFiles?.[rawKey] || p.proofFiles?.[key]!} fileName={`comprovante-curso-${i + 1}`} label="Comprovante enviado" />
                             )}
-                            {(!mode || (mode !== 'ugp-knows' && mode !== 'upload') || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]))) && (
+                            {(!mode || mode === 'ugp-knows' || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]))) && (
                               <AdminProofUploader email={p.email!} itemKey={key} onUploaded={(b) => updateProofFile(key, b)} />
                             )}
                             {mode === 'upload' && (p as any).proofLinks?.[key] && (
@@ -849,7 +860,7 @@ export default function AdminAudit() {
                             {mode === 'upload' && (p.proofFiles?.[rawKey] || p.proofFiles?.[key]) && hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]) && (
                               <FileViewer base64={p.proofFiles?.[rawKey] || p.proofFiles?.[key]!} fileName={`comprovante-curso-cat-${i + 1}`} label="Comprovante enviado" />
                             )}
-                            {(!mode || (mode !== 'ugp-knows' && mode !== 'upload') || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]))) && (
+                            {(!mode || mode === 'ugp-knows' || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]))) && (
                               <AdminProofUploader email={p.email!} itemKey={key} onUploaded={(b) => updateProofFile(key, b)} />
                             )}
                             {mode === 'upload' && (p as any).proofLinks?.[key] && (
@@ -959,7 +970,7 @@ export default function AdminAudit() {
                             label="Comprovante enviado"
                           />
                         )}
-                        {(!mode || (mode !== 'ugp-knows' && mode !== 'upload') || (mode === 'upload' && !hasInlineProof(projProof))) && (
+                        {(!mode || mode === 'ugp-knows' || (mode === 'upload' && !hasInlineProof(projProof))) && (
                           <AdminProofUploader email={p.email!} itemKey={projKey} onUploaded={(b) => updateProofFile(projKey, b)} />
                         )}
                         {mode === 'upload' && projProofLink && (
