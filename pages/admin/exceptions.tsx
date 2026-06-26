@@ -87,9 +87,13 @@ export default function AdminExceptions() {
   const confirmApprove = async () => {
     if (!approveModal) return;
     setApprovingId(approveModal.participant.id);
-    const exType = (approveModal.participant as any).exceptionItems?.[0]?.type || '';
-    const catalogType = exType === 'pos-mba' ? 'pos-mba' : exType === 'projeto' ? 'projeto' : undefined;
-    await updateStatus(approveModal.participant.id, 'approve', selectedCatalogLabel || undefined, catalogType);
+    // selectedCatalogLabel formato: "mba:Label" ou "proj:Label"
+    const catalogType = selectedCatalogLabel.startsWith('mba:') ? 'pos-mba'
+      : selectedCatalogLabel.startsWith('proj:') ? 'projeto' : undefined;
+    const catalogLabel = selectedCatalogLabel.includes(':')
+      ? selectedCatalogLabel.slice(selectedCatalogLabel.indexOf(':') + 1)
+      : undefined;
+    await updateStatus(approveModal.participant.id, 'approve', catalogLabel, catalogType);
     setApproveModal(null);
     setApprovingId(null);
   };
@@ -331,58 +335,66 @@ export default function AdminExceptions() {
         const p = approveModal.participant;
         const items = (p as any).exceptionItems || [];
         const exType = items[0]?.type || '';
-        const isMBA = exType === 'pos-mba';
-        const isProject = exType === 'projeto';
-        const needsCatalog = isMBA || isProject;
+        // Sempre mostra o select — admin escolhe o tipo e o item
+        const mbaCatalog = CATALOG_ITEMS
+          .filter((i) => i.group === 'postMBA')
+          .filter((item, idx, arr) => arr.findIndex((i) => i.label === item.label) === idx)
+          .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
+        const projCatalog = CATALOG_ITEMS
+          .filter((i) => i.group === 'project')
+          .filter((item, idx, arr) => arr.findIndex((i) => i.label === item.label) === idx)
+          .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
 
-        // Itens do catálogo filtrados por tipo
-        const catalogOptions = needsCatalog
-          ? CATALOG_ITEMS.filter((i) =>
-              isMBA ? i.group === 'postMBA' : i.group === 'project'
-            ).sort((a, b) => (a.label).localeCompare(b.label, 'pt-BR'))
-          : [];
-
-        // Deduplica por label
-        const uniqueOptions = catalogOptions.filter((item, idx, arr) =>
-          arr.findIndex((i) => i.label === item.label) === idx
-        );
+        // catalogType inferido do select: prefixo "mba:" ou "proj:"
+        const selType = selectedCatalogLabel.startsWith('mba:') ? 'pos-mba'
+          : selectedCatalogLabel.startsWith('proj:') ? 'projeto' : undefined;
+        const selLabel = selectedCatalogLabel.includes(':')
+          ? selectedCatalogLabel.slice(selectedCatalogLabel.indexOf(':') + 1)
+          : selectedCatalogLabel;
 
         return (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-            <div style={{ background: 'white', borderRadius: 12, width: '100%', maxWidth: 520, padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+            <div style={{ background: 'white', borderRadius: 12, width: '100%', maxWidth: 540, padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#15803d', marginBottom: 6 }}>✓ Aprovar exceção</h3>
               <p style={{ fontSize: '0.82rem', color: '#374151', marginBottom: 16 }}>
-                <strong>{p.name}</strong> — {items[0]?.itemName || (p as any).exceptionJustification?.substring(0, 60) || 'item solicitado'}
+                <strong>{p.name}</strong> — {items[0]?.itemName || (p as any).exceptionJustification?.substring(0, 80) || 'item solicitado'}
               </p>
 
-              {needsCatalog && (
-                <div style={{ marginBottom: 20 }}>
-                  <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>
-                    {isMBA ? '🎓 Vincular ao título do catálogo (opcional mas recomendado):' : '📋 Vincular ao projeto do catálogo (opcional mas recomendado):'}
-                  </label>
-                  <select
-                    value={selectedCatalogLabel}
-                    onChange={(e) => setSelectedCatalogLabel(e.target.value)}
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1.5px solid #d1d5db', fontSize: '0.82rem', color: '#1f2937' }}>
-                    <option value="">— Aprovar sem vincular ao catálogo (sem pontuação) —</option>
-                    {uniqueOptions.map((item) => (
-                      <option key={item.id} value={item.label}>
-                        {item.label}{(item as any).points ? ` — ${(item as any).points} pts` : ''}{(item as any).classification === 'transversal' ? ' (transversal)' : (item as any).area ? ` (${(item as any).area})` : ''}
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>
+                  🔗 Vincular ao item do catálogo para gerar pontuação:
+                </label>
+                <select
+                  value={selectedCatalogLabel}
+                  onChange={(e) => setSelectedCatalogLabel(e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1.5px solid #d1d5db', fontSize: '0.82rem', color: '#1f2937' }}>
+                  <option value="">— Aprovar sem vincular ao catálogo (sem pontuação) —</option>
+                  <optgroup label="🎓 Pós/MBA">
+                    {mbaCatalog.map((item) => (
+                      <option key={item.id} value={`mba:${item.label}`}>
+                        {item.label} — {(item as any).points ?? 20} pts{(item as any).classification === 'transversal' ? ' (transversal)' : (item as any).area ? ` (${(item as any).area})` : ''}
                       </option>
                     ))}
-                  </select>
-                  {selectedCatalogLabel && (
-                    <div style={{ marginTop: 8, padding: '6px 10px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 6, fontSize: '0.75rem', color: '#15803d' }}>
-                      ✓ O título <strong>"{selectedCatalogLabel}"</strong> será adicionado ao perfil do participante e contará pontos automaticamente.
-                    </div>
-                  )}
-                  {!selectedCatalogLabel && (
-                    <div style={{ marginTop: 8, padding: '6px 10px', background: '#fef9c3', border: '1px solid #fde047', borderRadius: 6, fontSize: '0.75rem', color: '#854d0e' }}>
-                      ⚠️ Sem vínculo ao catálogo, a exceção será aprovada mas não gerará pontuação. Para pontuar, selecione o item correspondente acima.
-                    </div>
-                  )}
-                </div>
-              )}
+                  </optgroup>
+                  <optgroup label="📋 Projetos Estratégicos">
+                    {projCatalog.map((item) => (
+                      <option key={item.id} value={`proj:${item.label}`}>
+                        {item.label} — {(item as any).points ?? 15} pts{(item as any).area ? ` (${(item as any).area})` : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                {selectedCatalogLabel && (
+                  <div style={{ marginTop: 8, padding: '6px 10px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 6, fontSize: '0.75rem', color: '#15803d' }}>
+                    ✓ <strong>"{selLabel}"</strong> será adicionado ao perfil e contará pontos automaticamente.
+                  </div>
+                )}
+                {!selectedCatalogLabel && (
+                  <div style={{ marginTop: 8, padding: '6px 10px', background: '#fef9c3', border: '1px solid #fde047', borderRadius: 6, fontSize: '0.75rem', color: '#854d0e' }}>
+                    ⚠️ Sem vínculo, a exceção será aprovada mas não gerará pontuação.
+                  </div>
+                )}
+              </div>
 
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                 <button type="button"
