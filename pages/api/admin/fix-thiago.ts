@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).end();
   const participants = await readJsonAsync<any[]>('participants', []);
   const idx = participants.findIndex((p) => p.email === 'thiago.soares@to.sebrae.com.br');
   if (idx < 0) return res.status(404).json({ error: 'não encontrado' });
