@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import type { ParticipantProfile } from '../../../lib/types';
+import { CATALOG_ITEMS } from '../../../lib/constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const participants = await readJsonAsync<ParticipantProfile[]>('participants', []);
@@ -50,6 +51,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Registra comprovação como ugp-knows
         if (!participants[index].proofMode) participants[index].proofMode = {} as any;
         (participants[index].proofMode as any)[`proj:${catalogLabel}`] = 'ugp-knows';
+        // Vincula projeto à área correta no projectAreaMap
+        const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === catalogLabel);
+        if (catalogItem?.area) {
+          if (!(participants[index] as any).projectAreaMap) (participants[index] as any).projectAreaMap = {};
+          (participants[index] as any).projectAreaMap[catalogLabel] = catalogItem.area;
+        }
       }
     }
 
