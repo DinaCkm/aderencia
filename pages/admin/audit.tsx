@@ -657,6 +657,7 @@ export default function AdminAudit() {
                 ).join('\n');
 
                 return (
+                  <>
                   <div style={{ marginBottom: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <button type="button"
                       onClick={() => openEmailModal(
@@ -688,6 +689,7 @@ export default function AdminAudit() {
                       ))}
                     </div>
                   )}
+                  </>
                 );
               })()}
 
