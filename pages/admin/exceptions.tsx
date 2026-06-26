@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ParticipantProfile } from '../../lib/types';
+import { CATALOG_ITEMS } from '../../lib/constants';
 
 const TYPE_LABELS: Record<string, string> = {
   projeto: 'Projeto Estratégico fora do catálogo',
@@ -47,6 +48,9 @@ export default function AdminExceptions() {
   const [emailBody, setEmailBody] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [approveModal, setApproveModal] = useState<{ participant: ParticipantProfile } | null>(null);
+  const [selectedCatalogLabel, setSelectedCatalogLabel] = useState('');
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
 
@@ -59,20 +63,35 @@ export default function AdminExceptions() {
       .then((data) => setPending(data.pending || []));
   }, [router]);
 
-  const updateStatus = async (id: string, action: 'approve' | 'reject') => {
+  const updateStatus = async (id: string, action: 'approve' | 'reject', catalogLabel?: string, catalogType?: string) => {
     const res = await fetch('/api/admin/exceptions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, action }),
+      body: JSON.stringify({ id, action, catalogLabel, catalogType }),
     });
     if (res.ok) {
       setPending((cur) => cur.filter((p) => p.id !== id));
       setIsError(false);
-      setMessage(`Exceção ${action === 'approve' ? 'aprovada' : 'rejeitada'} com sucesso.`);
+      setMessage(`Exceção ${action === 'approve' ? 'aprovada' : 'rejeitada'} com sucesso.${catalogLabel ? ` Vinculado ao catálogo: "${catalogLabel}".` : ''}`);
     } else {
       setIsError(true);
       setMessage('Erro ao processar exceção.');
     }
+  };
+
+  const openApproveModal = (participant: ParticipantProfile) => {
+    setSelectedCatalogLabel('');
+    setApproveModal({ participant });
+  };
+
+  const confirmApprove = async () => {
+    if (!approveModal) return;
+    setApprovingId(approveModal.participant.id);
+    const exType = (approveModal.participant as any).exceptionItems?.[0]?.type || '';
+    const catalogType = exType === 'pos-mba' ? 'pos-mba' : exType === 'projeto' ? 'projeto' : undefined;
+    await updateStatus(approveModal.participant.id, 'approve', selectedCatalogLabel || undefined, catalogType);
+    setApproveModal(null);
+    setApprovingId(null);
   };
 
   const openEmailModal = (participant: ParticipantProfile) => {
@@ -289,7 +308,7 @@ export default function AdminExceptions() {
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button type="button" className="btn-primary"
                           style={{ background: 'linear-gradient(135deg, #15803d, #16a34a)', padding: '7px 18px', fontSize: '0.78rem', width: 'auto' }}
-                          onClick={() => updateStatus(p.id, 'approve')}>
+                          onClick={() => openApproveModal(p)}>
                           ✓ Aprovar
                         </button>
                         <button type="button" className="btn-outline"
@@ -306,6 +325,82 @@ export default function AdminExceptions() {
           )}
         </div>
       </main>
+
+      {/* Modal de aprovação com vínculo ao catálogo */}
+      {approveModal && (() => {
+        const p = approveModal.participant;
+        const items = (p as any).exceptionItems || [];
+        const exType = items[0]?.type || '';
+        const isMBA = exType === 'pos-mba';
+        const isProject = exType === 'projeto';
+        const needsCatalog = isMBA || isProject;
+
+        // Itens do catálogo filtrados por tipo
+        const catalogOptions = needsCatalog
+          ? CATALOG_ITEMS.filter((i) =>
+              isMBA ? i.group === 'postMBA' : i.group === 'project'
+            ).sort((a, b) => (a.label).localeCompare(b.label, 'pt-BR'))
+          : [];
+
+        // Deduplica por label
+        const uniqueOptions = catalogOptions.filter((item, idx, arr) =>
+          arr.findIndex((i) => i.label === item.label) === idx
+        );
+
+        return (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div style={{ background: 'white', borderRadius: 12, width: '100%', maxWidth: 520, padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#15803d', marginBottom: 6 }}>✓ Aprovar exceção</h3>
+              <p style={{ fontSize: '0.82rem', color: '#374151', marginBottom: 16 }}>
+                <strong>{p.name}</strong> — {items[0]?.itemName || (p as any).exceptionJustification?.substring(0, 60) || 'item solicitado'}
+              </p>
+
+              {needsCatalog && (
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>
+                    {isMBA ? '🎓 Vincular ao título do catálogo (opcional mas recomendado):' : '📋 Vincular ao projeto do catálogo (opcional mas recomendado):'}
+                  </label>
+                  <select
+                    value={selectedCatalogLabel}
+                    onChange={(e) => setSelectedCatalogLabel(e.target.value)}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1.5px solid #d1d5db', fontSize: '0.82rem', color: '#1f2937' }}>
+                    <option value="">— Aprovar sem vincular ao catálogo (sem pontuação) —</option>
+                    {uniqueOptions.map((item) => (
+                      <option key={item.id} value={item.label}>
+                        {item.label}{(item as any).points ? ` — ${(item as any).points} pts` : ''}{(item as any).classification === 'transversal' ? ' (transversal)' : (item as any).area ? ` (${(item as any).area})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {selectedCatalogLabel && (
+                    <div style={{ marginTop: 8, padding: '6px 10px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 6, fontSize: '0.75rem', color: '#15803d' }}>
+                      ✓ O título <strong>"{selectedCatalogLabel}"</strong> será adicionado ao perfil do participante e contará pontos automaticamente.
+                    </div>
+                  )}
+                  {!selectedCatalogLabel && (
+                    <div style={{ marginTop: 8, padding: '6px 10px', background: '#fef9c3', border: '1px solid #fde047', borderRadius: 6, fontSize: '0.75rem', color: '#854d0e' }}>
+                      ⚠️ Sem vínculo ao catálogo, a exceção será aprovada mas não gerará pontuação. Para pontuar, selecione o item correspondente acima.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                <button type="button"
+                  onClick={() => setApproveModal(null)}
+                  style={{ padding: '8px 18px', borderRadius: 7, border: '1.5px solid #d1d5db', background: 'white', color: '#374151', fontSize: '0.82rem', cursor: 'pointer', fontWeight: 600 }}>
+                  Cancelar
+                </button>
+                <button type="button"
+                  onClick={confirmApprove}
+                  disabled={!!approvingId}
+                  style={{ padding: '8px 20px', borderRadius: 7, border: 'none', background: 'linear-gradient(135deg, #15803d, #16a34a)', color: 'white', fontSize: '0.82rem', cursor: 'pointer', fontWeight: 700 }}>
+                  {approvingId ? 'Aprovando...' : '✓ Confirmar aprovação'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal de e-mail */}
       {emailModal && (
