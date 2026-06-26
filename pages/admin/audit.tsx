@@ -638,14 +638,21 @@ export default function AdminAudit() {
               {/* Botão de e-mail geral */}
               {(() => {
                 // Detectar arquivos legados (apenas nome salvo, sem base64 válido)
-                // Exclui itens que estão em modo 'upload' — o arquivo pode estar no banco
-                // e o ProofFileViewer vai buscá-lo corretamente
                 const legacyFiles = Object.entries(p.proofFiles || {}).filter(([key, v]) => {
                   if (!v || typeof v !== 'string') return false;
                   if (hasInlineProof(v)) return false;
-                  // Se proofMode é 'upload', o arquivo pode estar no banco — não é legado para fins de e-mail
-                  const mode = p.proofMode?.[key] || p.proofMode?.[normalizeKey(key)];
+                  // Se proofMode é 'upload', o arquivo pode estar no banco
+                  const normKey = normalizeKey(key);
+                  const mode = p.proofMode?.[key] || p.proofMode?.[normKey];
                   if (mode === 'upload') return false;
+                  // Se o slot (prefixo numerado) tem outro arquivo no proofMode mais recente, ignorar entrada órfã
+                  const slotPrefix = key.includes(':') ? key.slice(0, key.indexOf(':')) : '';
+                  if (slotPrefix && /\d+$/.test(slotPrefix)) {
+                    const slotHasNewerEntry = Object.keys(p.proofMode || {}).some(
+                      (mk) => mk !== key && mk !== normKey && mk.startsWith(slotPrefix + ':') && p.proofMode![mk] === 'upload'
+                    );
+                    if (slotHasNewerEntry) return false;
+                  }
                   return true;
                 });
 
