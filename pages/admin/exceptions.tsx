@@ -48,6 +48,8 @@ export default function AdminExceptions() {
   const [emailBody, setEmailBody] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [resolved, setResolved] = useState<ParticipantProfile[]>([]);
+  const [showResolved, setShowResolved] = useState(false);
   const [approveModal, setApproveModal] = useState<{ participant: ParticipantProfile } | null>(null);
   const [selectedCatalogLabel, setSelectedCatalogLabel] = useState('');
   const [approvingId, setApprovingId] = useState<string | null>(null);
@@ -60,7 +62,10 @@ export default function AdminExceptions() {
     if (role !== 'admin') { router.push('/login'); return; }
     fetch('/api/admin/exceptions')
       .then((res) => res.json())
-      .then((data) => setPending(data.pending || []));
+      .then((data) => {
+        setPending(data.pending || []);
+        setResolved(data.resolved || []);
+      });
   }, [router]);
 
   const updateStatus = async (id: string, action: 'approve' | 'reject', catalogLabel?: string, catalogType?: string) => {
@@ -70,9 +75,20 @@ export default function AdminExceptions() {
       body: JSON.stringify({ id, action, catalogLabel, catalogType }),
     });
     if (res.ok) {
+      const moved = pending.find((p) => p.id === id);
+      if (moved) {
+        const updatedMoved = {
+          ...moved,
+          exceptionStatus: action === 'approve' ? 'approved' : 'rejected',
+          exceptionResolvedAt: new Date().toISOString(),
+          ...(catalogLabel ? { exceptionCatalogLabel: catalogLabel } : {}),
+          ...(catalogType ? { exceptionCatalogType: catalogType } : {}),
+        } as any;
+        setResolved((cur) => [updatedMoved, ...cur]);
+      }
       setPending((cur) => cur.filter((p) => p.id !== id));
       setIsError(false);
-      setMessage(`Exceção ${action === 'approve' ? 'aprovada' : 'rejeitada'} com sucesso.${catalogLabel ? ` Vinculado ao catálogo: "${catalogLabel}".` : ''}`);
+      setMessage(`Exceção ${action === 'approve' ? 'aprovada' : 'rejeitada'} com sucesso.${catalogLabel ? ` Vinculado: "${catalogLabel}".` : ''}`);
     } else {
       setIsError(true);
       setMessage('Erro ao processar exceção.');
@@ -326,6 +342,64 @@ export default function AdminExceptions() {
                 );
               })}
             </div>
+          )}
+        </div>
+
+        {/* Histórico de exceções resolvidas */}
+        <div style={{ maxWidth: 900, margin: '32px auto 0', padding: '0 16px 40px' }}>
+          <button
+            type="button"
+            onClick={() => setShowResolved((v) => !v)}
+            style={{ fontSize: '0.82rem', background: 'white', border: '1.5px solid #d1d5db', borderRadius: 8, padding: '8px 18px', cursor: 'pointer', color: '#374151', fontWeight: 600, marginBottom: 16 }}>
+            {showResolved ? '▲' : '▼'} Histórico de exceções resolvidas ({resolved.length})
+          </button>
+
+          {showResolved && resolved.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {resolved.map((p) => {
+                const isApproved = p.exceptionStatus === 'approved';
+                const resolvedAt = (p as any).exceptionResolvedAt
+                  ? new Date((p as any).exceptionResolvedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                  : '—';
+                const catalogLabel = (p as any).exceptionCatalogLabel;
+                const catalogType = (p as any).exceptionCatalogType;
+                const items = (p as any).exceptionItems || [];
+                const itemName = items[0]?.itemName || p.exceptionJustification?.substring(0, 80) || '—';
+                const exType = items[0]?.type || 'outro';
+
+                return (
+                  <div key={p.id} style={{ background: 'white', border: `1.5px solid ${isApproved ? '#86efac' : '#fca5a5'}`, borderRadius: 10, padding: '14px 18px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                    <div style={{ fontSize: '1.2rem', marginTop: 2 }}>{isApproved ? '✅' : '❌'}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1f2937' }}>{p.name}</span>
+                        <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{p.email}</span>
+                        <span style={{ fontSize: '0.7rem', background: isApproved ? '#f0fdf4' : '#fef2f2', color: isApproved ? '#15803d' : '#dc2626', border: `1px solid ${isApproved ? '#86efac' : '#fca5a5'}`, borderRadius: 4, padding: '1px 7px', fontWeight: 700 }}>
+                          {isApproved ? 'Aprovada' : 'Rejeitada'}
+                        </span>
+                        <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{resolvedAt}</span>
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#374151', marginBottom: catalogLabel ? 4 : 0 }}>
+                        <span style={{ color: '#6b7280' }}>{TYPE_LABELS[exType] || exType}: </span>{itemName}
+                      </div>
+                      {catalogLabel && (
+                        <div style={{ fontSize: '0.75rem', color: '#15803d', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 5, padding: '3px 8px', display: 'inline-block', marginTop: 4 }}>
+                          🔗 Vinculado: <strong>{catalogLabel}</strong>{catalogType === 'pos-mba' ? ' (Pós/MBA)' : catalogType === 'projeto' ? ' (Projeto)' : ''}
+                        </div>
+                      )}
+                      {isApproved && !catalogLabel && (
+                        <div style={{ fontSize: '0.72rem', color: '#b45309', marginTop: 4 }}>
+                          ⚠️ Aprovada sem vínculo ao catálogo — sem pontuação gerada
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {showResolved && resolved.length === 0 && (
+            <p style={{ fontSize: '0.82rem', color: '#9ca3af' }}>Nenhuma exceção resolvida ainda.</p>
           )}
         </div>
       </main>

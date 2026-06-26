@@ -7,7 +7,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'GET') {
     const pending = participants.filter((item) => item.exceptionStatus === 'pending');
-    return res.status(200).json({ pending });
+    const resolved = participants.filter((item) =>
+      item.exceptionStatus === 'approved' || item.exceptionStatus === 'rejected'
+    ).sort((a: any, b: any) => (b.exceptionResolvedAt || '').localeCompare(a.exceptionResolvedAt || ''));
+    return res.status(200).json({ pending, resolved });
   }
 
   if (req.method === 'POST') {
@@ -22,6 +25,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (index < 0) return res.status(404).json({ error: 'Participante não encontrado.' });
 
     participants[index].exceptionStatus = action === 'approve' ? 'approved' : 'rejected';
+    (participants[index] as any).exceptionResolvedAt = new Date().toISOString();
+    if (catalogLabel) (participants[index] as any).exceptionCatalogLabel = catalogLabel;
+    if (catalogType) (participants[index] as any).exceptionCatalogType = catalogType;
 
     // Se aprovado com vínculo ao catálogo, adiciona o label ao campo correto
     if (action === 'approve' && catalogLabel && catalogType) {
