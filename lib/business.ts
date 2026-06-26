@@ -113,12 +113,15 @@ function computeTechnicalAdherence(
   // Usa projectAreaMap como fonte de verdade: se o admin vinculou um projeto a esta área,
   // ele pontua aqui — buscando os pontos no catálogo pelo label (independente da área original do catálogo)
   const projectAreaMap: Record<string, string> = (profile as any).projectAreaMap ?? {};
+  const projectPointsOverride: Record<string, number> = (profile as any).projectPointsOverride ?? {};
+
   const projItems = (profile.selectedProjects ?? [])
     .filter((label) => projectAreaMap[label] === area)
     .map((label) => {
-      // Busca no catálogo pelo label (qualquer área) para obter os pontos
+      // Usa pontuação customizada (definida na aprovação de exceção) se disponível
+      const overridePts = projectPointsOverride[label];
       const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === label);
-      const pts = catalogItem ? ((catalogItem as any).points ?? 15) : 15;
+      const pts = overridePts ?? (catalogItem ? ((catalogItem as any).points ?? 15) : 15);
       const weight = pts >= 20 ? 'projeto estratégico central' : 'projeto de suporte/complementar';
       return { label, points: pts, weight };
     });

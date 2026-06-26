@@ -69,6 +69,7 @@ export default function AdminExceptions() {
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [selectedArea, setSelectedArea] = useState('');
   const [approvalJustification, setApprovalJustification] = useState('');
+  const [selectedPoints, setSelectedPoints] = useState<number | null>(null);
 
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
 
@@ -84,11 +85,11 @@ export default function AdminExceptions() {
       });
   }, [router]);
 
-  const updateStatus = async (id: string, action: 'approve' | 'reject', catalogLabel?: string, catalogType?: string, catalogArea?: string, approvalJustification?: string) => {
+  const updateStatus = async (id: string, action: 'approve' | 'reject', catalogLabel?: string, catalogType?: string, catalogArea?: string, approvalJustification?: string, catalogPoints?: number) => {
     const res = await fetch('/api/admin/exceptions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, action, catalogLabel, catalogType, catalogArea, approvalJustification }),
+      body: JSON.stringify({ id, action, catalogLabel, catalogType, catalogArea, approvalJustification, catalogPoints }),
     });
     if (res.ok) {
       const moved = pending.find((p) => p.id === id);
@@ -117,6 +118,7 @@ export default function AdminExceptions() {
     setSelectedCatalogLabel('');
     setSelectedArea('');
     setApprovalJustification('');
+    setSelectedPoints(null);
     setApproveModal({ participant });
   };
 
@@ -129,7 +131,7 @@ export default function AdminExceptions() {
     const catalogLabel = selectedCatalogLabel.includes(':')
       ? selectedCatalogLabel.slice(selectedCatalogLabel.indexOf(':') + 1)
       : undefined;
-    await updateStatus(approveModal.participant.id, 'approve', catalogLabel, catalogType, selectedArea || undefined, approvalJustification || undefined);
+    await updateStatus(approveModal.participant.id, 'approve', catalogLabel, catalogType, selectedArea || undefined, approvalJustification || undefined, selectedPoints ?? undefined);
     setApproveModal(null);
     setApprovingId(null);
   };
@@ -514,6 +516,31 @@ export default function AdminExceptions() {
                     </div>
                   )}
 
+                  {/* Pontuação — obrigatório para projetos após selecionar área */}
+                  {selectedCatalogLabel.startsWith('proj:') && selectedArea && (
+                    <div style={{ marginTop: 12 }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: 8 }}>
+                        🏆 Classificação do projeto nesta área: <span style={{ color: '#dc2626' }}>*</span>
+                      </label>
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', border: `2px solid ${selectedPoints === 20 ? '#15803d' : '#d1d5db'}`, borderRadius: 8, cursor: 'pointer', background: selectedPoints === 20 ? '#f0fdf4' : 'white' }}>
+                          <input type="radio" name="points" value={20} checked={selectedPoints === 20} onChange={() => setSelectedPoints(20)} style={{ accentColor: '#15803d' }} />
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#15803d' }}>20 pts — Estratégico Central</div>
+                            <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>Projeto central da área, impacto direto</div>
+                          </div>
+                        </label>
+                        <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', border: `2px solid ${selectedPoints === 15 ? '#0891b2' : '#d1d5db'}`, borderRadius: 8, cursor: 'pointer', background: selectedPoints === 15 ? '#eff6ff' : 'white' }}>
+                          <input type="radio" name="points" value={15} checked={selectedPoints === 15} onChange={() => setSelectedPoints(15)} style={{ accentColor: '#0891b2' }} />
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: '0.82rem', color: '#0891b2' }}>15 pts — Complementar</div>
+                            <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>Projeto de suporte, contribuição indireta</div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
                   {selectedCatalogLabel && (!selectedCatalogLabel.startsWith('proj:') || selectedArea) && (
                     <div style={{ marginTop: 8, padding: '6px 10px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 6, fontSize: '0.75rem', color: '#15803d' }}>
                       ✓ <strong>"{selLabel}"</strong> será adicionado ao perfil{selectedArea ? ` e pontuará na área ${selectedArea}` : ''} automaticamente.
@@ -550,8 +577,9 @@ export default function AdminExceptions() {
                 </button>
                 <button type="button"
                   onClick={confirmApprove}
-                  disabled={!!approvingId}
-                  style={{ padding: '8px 20px', borderRadius: 7, border: 'none', background: 'linear-gradient(135deg, #15803d, #16a34a)', color: 'white', fontSize: '0.82rem', cursor: 'pointer', fontWeight: 700 }}>
+                  disabled={!!approvingId || (selectedCatalogLabel.startsWith('proj:') && (!selectedArea || selectedPoints === null))}
+                  title={selectedCatalogLabel.startsWith('proj:') && !selectedArea ? 'Selecione a área antes de confirmar' : selectedCatalogLabel.startsWith('proj:') && selectedPoints === null ? 'Selecione a classificação do projeto' : ''}
+                  style={{ padding: '8px 20px', borderRadius: 7, border: 'none', background: (selectedCatalogLabel.startsWith('proj:') && (!selectedArea || selectedPoints === null)) ? '#9ca3af' : 'linear-gradient(135deg, #15803d, #16a34a)', color: 'white', fontSize: '0.82rem', cursor: (selectedCatalogLabel.startsWith('proj:') && (!selectedArea || selectedPoints === null)) ? 'not-allowed' : 'pointer', fontWeight: 700 }}>
                   {approvingId ? 'Aprovando...' : '✓ Confirmar aprovação'}
                 </button>
               </div>
