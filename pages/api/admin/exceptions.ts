@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === 'POST') {
-    const { id, action, catalogLabel, catalogType, catalogArea, approvalJustification, catalogPoints } = req.body as {
+    const { id, action, catalogLabel, catalogType, catalogArea, approvalJustification } = req.body as {
       id?: string;
       action?: 'approve' | 'reject';
       catalogLabel?: string;
