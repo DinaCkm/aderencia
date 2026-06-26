@@ -68,6 +68,7 @@ export default function AdminExceptions() {
   const [selectedCatalogLabel, setSelectedCatalogLabel] = useState('');
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [selectedArea, setSelectedArea] = useState('');
+  const [approvalJustification, setApprovalJustification] = useState('');
 
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
 
@@ -83,11 +84,11 @@ export default function AdminExceptions() {
       });
   }, [router]);
 
-  const updateStatus = async (id: string, action: 'approve' | 'reject', catalogLabel?: string, catalogType?: string, catalogArea?: string) => {
+  const updateStatus = async (id: string, action: 'approve' | 'reject', catalogLabel?: string, catalogType?: string, catalogArea?: string, approvalJustification?: string) => {
     const res = await fetch('/api/admin/exceptions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, action, catalogLabel, catalogType, catalogArea }),
+      body: JSON.stringify({ id, action, catalogLabel, catalogType, catalogArea, approvalJustification }),
     });
     if (res.ok) {
       const moved = pending.find((p) => p.id === id);
@@ -99,6 +100,7 @@ export default function AdminExceptions() {
           ...(catalogLabel ? { exceptionCatalogLabel: catalogLabel } : {}),
           ...(catalogType ? { exceptionCatalogType: catalogType } : {}),
           ...(catalogArea ? { exceptionCatalogArea: catalogArea } : {}),
+          ...(approvalJustification ? { exceptionApprovalJustification: approvalJustification } : {}),
         } as any;
         setResolved((cur) => [updatedMoved, ...cur]);
       }
@@ -114,6 +116,7 @@ export default function AdminExceptions() {
   const openApproveModal = (participant: ParticipantProfile) => {
     setSelectedCatalogLabel('');
     setSelectedArea('');
+    setApprovalJustification('');
     setApproveModal({ participant });
   };
 
@@ -126,7 +129,7 @@ export default function AdminExceptions() {
     const catalogLabel = selectedCatalogLabel.includes(':')
       ? selectedCatalogLabel.slice(selectedCatalogLabel.indexOf(':') + 1)
       : undefined;
-    await updateStatus(approveModal.participant.id, 'approve', catalogLabel, catalogType, selectedArea || undefined);
+    await updateStatus(approveModal.participant.id, 'approve', catalogLabel, catalogType, selectedArea || undefined, approvalJustification || undefined);
     setApproveModal(null);
     setApprovingId(null);
   };
@@ -523,6 +526,21 @@ export default function AdminExceptions() {
                   )}
                 </div>
               )}
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>
+                  📝 Justificativa da aprovação (será exibida ao candidato):
+                </label>
+                <textarea
+                  value={approvalJustification}
+                  onChange={(e) => setApprovalJustification(e.target.value)}
+                  rows={3}
+                  placeholder="Ex: O projeto apresentado é compatível com as atividades estratégicas da área REGIONAIS, sendo classificado como Projeto Estratégico Central por envolver execução direta do portfólio regional..."
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1.5px solid #d1d5db', fontSize: '0.78rem', color: '#1f2937', resize: 'vertical', boxSizing: 'border-box' }} />
+                <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginTop: 4 }}>
+                  Esta justificativa ficará visível no formulário do candidato após a aprovação.
+                </div>
+              </div>
 
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                 <button type="button"

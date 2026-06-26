@@ -2228,6 +2228,24 @@ export default function ParticipantForm() {
                   </span>
                 </label>
 
+                {profile.exceptionRequested && profile.exceptionStatus === 'approved' && (profile as any).exceptionApprovalJustification && (
+                  <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 10, padding: '16px 18px', marginTop: 8, marginBottom: 8 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#15803d', marginBottom: 6 }}>✅ Exceção aprovada pela UGP</div>
+                    <p style={{ fontSize: '0.78rem', color: '#166534', lineHeight: 1.6, margin: 0 }}>
+                      {(profile as any).exceptionApprovalJustification}
+                    </p>
+                  </div>
+                )}
+
+                {profile.exceptionRequested && profile.exceptionStatus === 'rejected' && (
+                  <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 10, padding: '16px 18px', marginTop: 8, marginBottom: 8 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#dc2626', marginBottom: 6 }}>❌ Exceção não aprovada pela UGP</div>
+                    <p style={{ fontSize: '0.78rem', color: '#991b1b', lineHeight: 1.6, margin: 0 }}>
+                      Sua solicitação de exceção não foi aprovada. Entre em contato com a UGP para mais informações.
+                    </p>
+                  </div>
+                )}
+
                 {profile.exceptionRequested && (
                   <div style={{ background: '#fefce8', border: '1.5px solid #fde68a', borderRadius: 10, padding: '16px 18px', marginTop: 4 }}>
                     <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#92400e', marginBottom: 6 }}>&#9888; Solicitação de Análise de Exceção</div>

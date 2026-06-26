@@ -15,12 +15,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === 'POST') {
-    const { id, action, catalogLabel, catalogType, catalogArea } = req.body as {
+    const { id, action, catalogLabel, catalogType, catalogArea, approvalJustification } = req.body as {
       id?: string;
       action?: 'approve' | 'reject';
       catalogLabel?: string;
       catalogType?: 'pos-mba' | 'projeto';
-      catalogArea?: string; // área para qual o projeto deve pontuar
+      catalogArea?: string;
+      approvalJustification?: string;
     };
     if (!id || !action) return res.status(400).json({ error: 'ID e ação são obrigatórios.' });
     const index = participants.findIndex((item) => item.id === id);
@@ -30,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     (participants[index] as any).exceptionResolvedAt = new Date().toISOString();
     if (catalogLabel) (participants[index] as any).exceptionCatalogLabel = catalogLabel;
     if (catalogType) (participants[index] as any).exceptionCatalogType = catalogType;
+    if (approvalJustification) (participants[index] as any).exceptionApprovalJustification = approvalJustification;
 
     // Se aprovado com vínculo ao catálogo, adiciona o label ao campo correto
     // e registra proofMode como 'ugp-knows' para que pontue automaticamente
