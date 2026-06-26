@@ -335,7 +335,13 @@ export default function AdminExceptions() {
         const p = approveModal.participant;
         const items = (p as any).exceptionItems || [];
         const exType = items[0]?.type || '';
-        // Sempre mostra o select — admin escolhe o tipo e o item
+        // Tipo da exceção: inferido de exceptionItems ou exceptionJustification
+        const exTypeRaw = items[0]?.type || exType || 'outro';
+        const isMBAType = exTypeRaw === 'pos-mba';
+        const isProjType = exTypeRaw === 'projeto';
+        // Se tipo desconhecido/outro, mostra ambos os grupos
+        const showBoth = !isMBAType && !isProjType;
+
         const mbaCatalog = CATALOG_ITEMS
           .filter((i) => i.group === 'postMBA')
           .filter((item, idx, arr) => arr.findIndex((i) => i.label === item.label) === idx)
@@ -345,56 +351,64 @@ export default function AdminExceptions() {
           .filter((item, idx, arr) => arr.findIndex((i) => i.label === item.label) === idx)
           .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
 
-        // catalogType inferido do select: prefixo "mba:" ou "proj:"
-        const selType = selectedCatalogLabel.startsWith('mba:') ? 'pos-mba'
-          : selectedCatalogLabel.startsWith('proj:') ? 'projeto' : undefined;
         const selLabel = selectedCatalogLabel.includes(':')
           ? selectedCatalogLabel.slice(selectedCatalogLabel.indexOf(':') + 1)
           : selectedCatalogLabel;
+
+        const typeLabel = isMBAType ? '🎓 Pós/MBA' : isProjType ? '📋 Projeto' : '🔗 Item';
 
         return (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
             <div style={{ background: 'white', borderRadius: 12, width: '100%', maxWidth: 540, padding: 28, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#15803d', marginBottom: 6 }}>✓ Aprovar exceção</h3>
-              <p style={{ fontSize: '0.82rem', color: '#374151', marginBottom: 16 }}>
-                <strong>{p.name}</strong> — {items[0]?.itemName || (p as any).exceptionJustification?.substring(0, 80) || 'item solicitado'}
+              <p style={{ fontSize: '0.82rem', color: '#374151', marginBottom: 4 }}>
+                <strong>{p.name}</strong>
+              </p>
+              <p style={{ fontSize: '0.78rem', color: '#6b7280', marginBottom: 16 }}>
+                {TYPE_LABELS[exTypeRaw] || exTypeRaw} — {items[0]?.itemName || (p as any).exceptionJustification?.substring(0, 80) || 'item solicitado'}
               </p>
 
-              <div style={{ marginBottom: 20 }}>
-                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>
-                  🔗 Vincular ao item do catálogo para gerar pontuação:
-                </label>
-                <select
-                  value={selectedCatalogLabel}
-                  onChange={(e) => setSelectedCatalogLabel(e.target.value)}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1.5px solid #d1d5db', fontSize: '0.82rem', color: '#1f2937' }}>
-                  <option value="">— Aprovar sem vincular ao catálogo (sem pontuação) —</option>
-                  <optgroup label="🎓 Pós/MBA">
-                    {mbaCatalog.map((item) => (
-                      <option key={item.id} value={`mba:${item.label}`}>
-                        {item.label} — {(item as any).points ?? 20} pts{(item as any).classification === 'transversal' ? ' (transversal)' : (item as any).area ? ` (${(item as any).area})` : ''}
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="📋 Projetos Estratégicos">
-                    {projCatalog.map((item) => (
-                      <option key={item.id} value={`proj:${item.label}`}>
-                        {item.label} — {(item as any).points ?? 15} pts{(item as any).area ? ` (${(item as any).area})` : ''}
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-                {selectedCatalogLabel && (
-                  <div style={{ marginTop: 8, padding: '6px 10px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 6, fontSize: '0.75rem', color: '#15803d' }}>
-                    ✓ <strong>"{selLabel}"</strong> será adicionado ao perfil e contará pontos automaticamente.
-                  </div>
-                )}
-                {!selectedCatalogLabel && (
-                  <div style={{ marginTop: 8, padding: '6px 10px', background: '#fef9c3', border: '1px solid #fde047', borderRadius: 6, fontSize: '0.75rem', color: '#854d0e' }}>
-                    ⚠️ Sem vínculo, a exceção será aprovada mas não gerará pontuação.
-                  </div>
-                )}
-              </div>
+              {(isMBAType || isProjType || showBoth) && (
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>
+                    {typeLabel} — Vincular ao item do catálogo para gerar pontuação:
+                  </label>
+                  <select
+                    value={selectedCatalogLabel}
+                    onChange={(e) => setSelectedCatalogLabel(e.target.value)}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1.5px solid #d1d5db', fontSize: '0.82rem', color: '#1f2937' }}>
+                    <option value="">— Aprovar sem vincular ao catálogo (sem pontuação) —</option>
+                    {(isMBAType || showBoth) && (
+                      <optgroup label="🎓 Pós/MBA">
+                        {mbaCatalog.map((item) => (
+                          <option key={item.id} value={`mba:${item.label}`}>
+                            {item.label} — {(item as any).points ?? 20} pts{(item as any).classification === 'transversal' ? ' (transversal)' : (item as any).area ? ` (${(item as any).area})` : ''}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {(isProjType || showBoth) && (
+                      <optgroup label="📋 Projetos Estratégicos">
+                        {projCatalog.map((item) => (
+                          <option key={item.id} value={`proj:${item.label}`}>
+                            {item.label} — {(item as any).points ?? 15} pts{(item as any).area ? ` (${(item as any).area})` : ''}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
+                  {selectedCatalogLabel && (
+                    <div style={{ marginTop: 8, padding: '6px 10px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 6, fontSize: '0.75rem', color: '#15803d' }}>
+                      ✓ <strong>"{selLabel}"</strong> será adicionado ao perfil e contará pontos automaticamente.
+                    </div>
+                  )}
+                  {!selectedCatalogLabel && (
+                    <div style={{ marginTop: 8, padding: '6px 10px', background: '#fef9c3', border: '1px solid #fde047', borderRadius: 6, fontSize: '0.75rem', color: '#854d0e' }}>
+                      ⚠️ Sem vínculo, a exceção será aprovada mas não gerará pontuação.
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                 <button type="button"
