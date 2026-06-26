@@ -638,9 +638,15 @@ export default function AdminAudit() {
               {/* Botão de e-mail geral */}
               {(() => {
                 // Detectar arquivos legados (apenas nome salvo, sem base64 válido)
-                const legacyFiles = Object.entries(p.proofFiles || {}).filter(([, v]) => {
+                // Exclui itens que estão em modo 'upload' — o arquivo pode estar no banco
+                // e o ProofFileViewer vai buscá-lo corretamente
+                const legacyFiles = Object.entries(p.proofFiles || {}).filter(([key, v]) => {
                   if (!v || typeof v !== 'string') return false;
-                  return !hasInlineProof(v);
+                  if (hasInlineProof(v)) return false;
+                  // Se proofMode é 'upload', o arquivo pode estar no banco — não é legado para fins de e-mail
+                  const mode = p.proofMode?.[key] || p.proofMode?.[normalizeKey(key)];
+                  if (mode === 'upload') return false;
+                  return true;
                 });
 
                 // Formatar lista de itens para o e-mail
