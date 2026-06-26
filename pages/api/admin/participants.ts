@@ -97,40 +97,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return false;
       }
 
+      // hasPendingDocs: verifica diretamente proofMode e dbKeys sem reconstruir chaves
+      // Abordagem: contar itens declarados que precisam de comprovação vs entradas válidas
       let hasPendingDocs = false;
       if (p) {
-        const keysToCheck: string[] = [];
-        // Graduação — chave: grad:nome ou grad:__outro__ => grad:nomeLivre
-        if (p.graduation) {
-          const gradRaw = p.graduation === '__outro__'
-            ? `grad:${(p as any).graduationCourseName?.trim() || p.graduation}`
-            : `grad:${p.graduation}`;
-          keysToCheck.push(gradRaw);
+        // Contar itens declarados que requerem comprovação
+        const mbaBlocks: Array<{area?: string; name?: string}> = (p as any).mbaBlocks || [];
+        const validMBAs = mbaBlocks.filter((b) => b.area && b.name?.trim());
+        const validFreeCourses = ((p as any).freeCourses || []).filter(
+          (c: any) => c?.name?.trim() && c?.area && (c?.hours || 0) >= 16
+        );
+
+        const totalDeclared =
+          (p.graduation ? 1 : 0) +
+          ((p as any).graduation2 ? 1 : 0) +
+          validMBAs.length +
+          (p.selectedCourses || []).length +
+          validFreeCourses.length +
+          (p.selectedProjects || []).length;
+
+        if (totalDeclared > 0) {
+          // Contar entradas válidas no proofMode + dbKeys
+          const allProofModeKeys = Object.keys(p.proofMode || {});
+          const validProofModeCount = allProofModeKeys.filter((key) => {
+            const mode = p.proofMode![key];
+            if (mode === 'ugp-knows') return true;
+            if (mode === 'upload') {
+              const v = p.proofFiles?.[key];
+              if (v && isValidBase64Proof(v)) return true;
+              if (dbKeys.has(key)) return true;
+              return false;
+            }
+            return false;
+          }).length;
+
+          // Entradas válidas = proofMode válidos + chaves no banco não cobertas pelo proofMode
+          const dbOnlyKeys = Array.from(dbKeys).filter((k) => !p.proofMode?.[k]).length;
+          const totalValid = validProofModeCount + dbOnlyKeys;
+
+          hasPendingDocs = totalValid < totalDeclared;
         }
-        if ((p as any).graduation2) {
-          const grad2Raw = `grad2:${(p as any).graduation2CourseName?.trim() || (p as any).graduation2}`;
-          keysToCheck.push(grad2Raw);
-        }
-        // Pós/MBA — chave: mba_i:nome (i = índice original)
-        for (const [i, mba] of ((p as any).postMBAs || []).entries()) {
-          keysToCheck.push(`mba_${i}:${(typeof mba === 'string' ? mba : mba?.name || '').trim()}`);
-        }
-        // Cursos do catálogo — chave: curso7:nome
-        for (const course of (p.selectedCourses || [])) {
-          keysToCheck.push(`curso7:${course}`);
-        }
-        // Cursos livres — chave: curso5_i:nome
-        for (const [i, course] of ((p as any).freeCourses || []).entries()) {
-          if (course?.name?.trim() && course?.area && (course?.hours || 0) >= 16) {
-            keysToCheck.push(`curso5_${i}:${course.name.trim()}`);
-          }
-        }
-        // Projetos — chave: proj:nome
-        for (const proj of (p.selectedProjects || [])) {
-          keysToCheck.push(`proj:${proj}`);
-        }
-        hasPendingDocs = keysToCheck.some((key) => !hasValidProof(key));
       }
+
 
       return {
         userId: u.id || u.email,
