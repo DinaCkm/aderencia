@@ -245,6 +245,36 @@ function hasInlineProof(value?: string): boolean {
   try { atob(value.slice(0, 100)); return true; } catch { return false; }
 }
 
+// ─── Visualizador de comprovante (inline ou banco) ──────────────────────────
+// Busca o arquivo da API quando não está no proofFiles inline
+function ProofFileViewer({ email, itemKey, inlineValue, fileName, label }: {
+  email: string;
+  itemKey: string;
+  inlineValue?: string;
+  fileName: string;
+  label?: string;
+}) {
+  const [base64, setBase64] = React.useState<string | null>(inlineValue && hasInlineProof(inlineValue) ? inlineValue : null);
+  const [loading, setLoading] = React.useState(false);
+  const [notFound, setNotFound] = React.useState(false);
+
+  React.useEffect(() => {
+    if (base64) return; // já tem inline
+    setLoading(true);
+    setNotFound(false);
+    fetch(`/api/admin/proof-file?email=${encodeURIComponent(email)}&itemKey=${encodeURIComponent(itemKey)}`)
+      .then((r) => r.ok ? r.json() : Promise.reject(r.status))
+      .then((data) => { if (data.fileData) setBase64(data.fileData); else setNotFound(true); })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [email, itemKey]);
+
+  if (loading) return <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 6 }}>⏳ Carregando comprovante...</div>;
+  if (notFound) return <div style={{ fontSize: '0.72rem', color: '#b45309', marginTop: 6 }}>⚠️ Comprovante não encontrado no banco.</div>;
+  if (!base64) return null;
+  return <FileViewer base64={base64} fileName={fileName} label={label} />;
+}
+
 // ─── Upload de comprovante pelo administrador ────────────────────────────────
 function AdminProofUploader({ email, itemKey, onUploaded }: {
   email: string;
@@ -715,8 +745,8 @@ export default function AdminAudit() {
                           📎 Enviou documento para comprovação
                         </div>
                       )}
-                      {mode === 'upload' && (p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]) && hasInlineProof(p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]) && (
-                        <FileViewer base64={p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]!} fileName="comprovante-graduacao" label="Comprovante de graduação" />
+                      {mode === 'upload' && (
+                        <ProofFileViewer email={p.email!} itemKey={gradKey} inlineValue={p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]} fileName="comprovante-graduacao" label="Comprovante de graduação" />
                       )}
                       {(!mode || mode === 'ugp-knows' || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[rawGradKey] || p.proofFiles?.[gradKey]))) && (
                         <AdminProofUploader email={p.email!} itemKey={gradKey} onUploaded={(b) => updateProofFile(gradKey, b)} />
@@ -770,12 +800,8 @@ export default function AdminAudit() {
                                 📎 Enviou documento para comprovação
                               </div>
                             )}
-                            {mode === 'upload' && (p.proofFiles?.[mbaKey]) && hasInlineProof(p.proofFiles?.[mbaKey]) && (
-                              <FileViewer
-                                base64={p.proofFiles[mbaKey]!}
-                                fileName={`comprovante-pos-${i + 1}`}
-                                label="Comprovante enviado"
-                              />
+                            {mode === 'upload' && (
+                              <ProofFileViewer email={p.email!} itemKey={mbaKey} inlineValue={p.proofFiles?.[mbaKey]} fileName={`comprovante-pos-${i + 1}`} label="Comprovante enviado" />
                             )}
                             {(!mode || mode === 'ugp-knows' || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[mbaKey]))) && (
                               <AdminProofUploader email={p.email!} itemKey={mbaKey} onUploaded={(b) => updateProofFile(mbaKey, b)} />
@@ -834,8 +860,8 @@ export default function AdminAudit() {
                             <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>{course.name}</div>
                             <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>Área: {course.area} • {course.hours}h</div>
                             <ProofBadge mode={mode} />
-                            {mode === 'upload' && (p.proofFiles?.[rawKey] || p.proofFiles?.[key]) && hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]) && (
-                              <FileViewer base64={p.proofFiles?.[rawKey] || p.proofFiles?.[key]!} fileName={`comprovante-curso-${i + 1}`} label="Comprovante enviado" />
+                            {mode === 'upload' && (
+                              <ProofFileViewer email={p.email!} itemKey={key} inlineValue={p.proofFiles?.[rawKey] || p.proofFiles?.[key]} fileName={`comprovante-curso-${i + 1}`} label="Comprovante enviado" />
                             )}
                             {(!mode || mode === 'ugp-knows' || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]))) && (
                               <AdminProofUploader email={p.email!} itemKey={key} onUploaded={(b) => updateProofFile(key, b)} />
@@ -861,8 +887,8 @@ export default function AdminAudit() {
                               <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 2 }}>Carga horária: {p.courseHours[course]}h</div>
                             )}
                             <ProofBadge mode={mode} />
-                            {mode === 'upload' && (p.proofFiles?.[rawKey] || p.proofFiles?.[key]) && hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]) && (
-                              <FileViewer base64={p.proofFiles?.[rawKey] || p.proofFiles?.[key]!} fileName={`comprovante-curso-cat-${i + 1}`} label="Comprovante enviado" />
+                            {mode === 'upload' && (
+                              <ProofFileViewer email={p.email!} itemKey={key} inlineValue={p.proofFiles?.[rawKey] || p.proofFiles?.[key]} fileName={`comprovante-curso-cat-${i + 1}`} label="Comprovante enviado" />
                             )}
                             {(!mode || mode === 'ugp-knows' || (mode === 'upload' && !hasInlineProof(p.proofFiles?.[rawKey] || p.proofFiles?.[key]))) && (
                               <AdminProofUploader email={p.email!} itemKey={key} onUploaded={(b) => updateProofFile(key, b)} />
@@ -967,12 +993,8 @@ export default function AdminAudit() {
                             📎 Enviou documento para comprovação
                           </div>
                         )}
-                        {mode === 'upload' && projProof && hasInlineProof(projProof) && (
-                          <FileViewer
-                            base64={projProof}
-                            fileName={`comprovante-projeto-${i + 1}`}
-                            label="Comprovante enviado"
-                          />
+                        {mode === 'upload' && (
+                          <ProofFileViewer email={p.email!} itemKey={projKey} inlineValue={projProof} fileName={`comprovante-projeto-${i + 1}`} label="Comprovante enviado" />
                         )}
                         {(!mode || mode === 'ugp-knows' || (mode === 'upload' && !hasInlineProof(projProof))) && (
                           <AdminProofUploader email={p.email!} itemKey={projKey} onUploaded={(b) => updateProofFile(projKey, b)} />
