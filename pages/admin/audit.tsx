@@ -683,7 +683,7 @@ export default function AdminAudit() {
                       <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#92400e', marginBottom: 4 }}>📄 Documento(s) com problema de envio:</div>
                       {legacyFiles.map(([key, filename]) => (
                         <div key={key} style={{ fontSize: '0.72rem', color: '#78350f', marginTop: 2 }}>
-                          • <strong>{formatKey(key)}</strong> — arquivo: <em>{String(filename)}</em>
+                          {'• '}<strong>{formatKey(key)}</strong>{' — arquivo: '}<em>{filename as string}</em>
                         </div>
                       ))}
                     </div>
