@@ -79,9 +79,26 @@ export default function PrintProfile() {
   const itemValidations = audit?.itemValidations || [];
   const getAuditV = (key: string) => itemValidations.find((v) => v.itemKey === key);
 
+  function validationBadge(key: string): string {
+    const v = getAuditV(key);
+    if (!v) return '⏳ Aguardando validação do administrador';
+    if (v.status === 'approved') return `✅ Validado pelo administrador${v.note ? ` — Obs: ${v.note}` : ''}`;
+    if (v.status === 'rejected') return `❌ Rejeitado pelo administrador${v.note ? ` — Motivo: ${v.note}` : ''}`;
+    return '⏳ Aguardando validação do administrador';
+  }
+
   const allMBAs = p.postMBAs || [];
   const allProjects = p.selectedProjects || [];
   const allCourses = p.selectedCourses || [];
+  const allFreeCourses = ((p as any).freeCourses || []).filter((c: any) => c?.name?.trim() && c?.area && (c?.hours || 0) >= 16);
+
+  // Helper: status do comprovante de um item
+  function proofStatus(key: string): string {
+    const mode = (p as any).proofMode?.[key];
+    if (mode === 'ugp-knows') return '📁 UGP possui o documento';
+    if (mode === 'upload') return '📎 Comprovante enviado pelo candidato';
+    return '⚠️ Sem comprovante informado';
+  }
   const totalMonths = (p.managerialMonths ?? 0) + (p.interimMonths ?? 0);
   const expPts = Math.min(20, Math.floor((totalMonths / 12) * 5 * 10) / 10);
   const expAuditV = getAuditV('experiencia-gerencial');
@@ -89,34 +106,50 @@ export default function PrintProfile() {
 
   const mbaAnalysis = allMBAs.map((title, idx) => {
     const auditV = getAuditV(`postmba-${idx}`);
+    // Chave do proofMode para este MBA
+    const mbaBlock = ((p as any).mbaBlocks || [])[idx];
+    const mbaKey = `mba_${idx}:${mbaBlock?.name?.trim() || title}`;
+    const proof = proofStatus(mbaKey);
     if (auditV?.status === 'rejected') {
-      return { title, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0 };
+      return { title, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, proof };
     }
     const matches = CATALOG_ITEMS.filter((i) => i.group === 'postMBA' && i.label === title);
     if (matches.length === 0) {
-      return { title, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo — pontuação mínima de 20 pts', pts: 20 };
+      return { title, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo oficial — recebe pontuação mínima de 20 pts por possuir pós-graduação', pts: 20, proof };
     }
     const best = matches.reduce((a, b) => (b.points > a.points ? b : a));
     const cls = (best as any).classification === 'transversal'
-      ? 'Transversal — vale para qualquer área'
-      : `Específico para ${(best as any).area || 'área(s) específica(s)'}`;
-    return { title, status: 'pontua' as const, reason: `${cls} — ${best.points} pts`, pts: best.points };
+      ? 'Título transversal — válido para qualquer área de interesse — pontuação máxima de 40 pts'
+      : `Título específico para ${(best as any).area || 'área(s) específica(s)'} — 20 pts`;
+    return { title, status: 'pontua' as const, reason: cls, pts: best.points, proof };
   });
 
   const projAnalysis = allProjects.map((proj, idx) => {
     const auditV = getAuditV(`projeto-${idx}`);
+    const projKey = `proj:${proj}`;
+    const proof = proofStatus(projKey);
     if (auditV?.status === 'rejected') {
-      return { proj, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, area: '' };
+      return { proj, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, area: '', proof };
     }
     const assignedArea = (p.projectAreaMap || {})[proj];
     if (!assignedArea) {
-      return { proj, status: 'nao-pontua' as const, reason: 'Área não vinculada — não entra no cálculo', pts: 0, area: '' };
+      // Verifica se existe no catálogo para alguma das áreas do candidato
+      const catalogMatch = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj && (p.selectedAreas || []).includes((i.area || '') as any));
+      if (catalogMatch) {
+        return { proj, status: 'nao-pontua' as const, reason: `Projeto reconhecido no catálogo para a área ${catalogMatch.area}, mas ainda não vinculado pelo administrador durante a auditoria`, pts: 0, area: '', proof };
+      }
+      const catalogAny = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj);
+      if (catalogAny) {
+        return { proj, status: 'nao-pontua' as const, reason: `Projeto reconhecido no catálogo para a área ${catalogAny.area}, que não está entre as áreas de interesse do candidato — não pontua`, pts: 0, area: catalogAny.area || '', proof };
+      }
+      return { proj, status: 'nao-pontua' as const, reason: 'Projeto não encontrado no catálogo oficial de projetos estratégicos — não pontua', pts: 0, area: '', proof };
     }
     const match = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj && i.area === assignedArea);
     if (!match) {
-      return { proj, status: 'nao-pontua' as const, reason: `O tema deste projeto não é aderente à área ${assignedArea} conforme o catálogo oficial de projetos estratégicos`, pts: 0, area: assignedArea };
+      return { proj, status: 'nao-pontua' as const, reason: `Projeto não reconhecido no catálogo oficial para a área ${assignedArea} — não pontua`, pts: 0, area: assignedArea, proof };
     }
-    return { proj, status: 'pontua' as const, reason: `Área ${assignedArea} — ${match.points} pts no catálogo`, pts: match.points, area: assignedArea };
+    const tipo = (match as any).classification === 'area-specific' && match.points >= 20 ? 'Estratégico Central' : 'Complementar';
+    return { proj, status: 'pontua' as const, reason: `Área ${assignedArea} — ${tipo} — ${match.points} pts conforme catálogo oficial`, pts: match.points, area: assignedArea, proof };
   });
 
   const hasRejections = mbaAnalysis.some((m) => m.status === 'rejeitado') || projAnalysis.some((m) => m.status === 'rejeitado') || expRejected;
@@ -327,8 +360,34 @@ export default function PrintProfile() {
           )}
 
           {/* Pós/MBA */}
+          {/* Status de validação — Dados e Áreas */}
+          <div style={{ marginBottom: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {[
+              { label: 'Dados Básicos', key: 'dados-basicos' },
+              { label: 'Áreas de Interesse', key: 'areas-interesse' },
+            ].map(({ label, key }) => {
+              const v = getAuditV(key);
+              const color = !v ? '#64748b' : v.status === 'approved' ? '#15803d' : v.status === 'rejected' ? '#dc2626' : '#64748b';
+              const bg = !v ? '#f8fafc' : v.status === 'approved' ? '#f0fdf4' : v.status === 'rejected' ? '#fef2f2' : '#f8fafc';
+              const border = !v ? '#e2e8f0' : v.status === 'approved' ? '#86efac' : v.status === 'rejected' ? '#fca5a5' : '#e2e8f0';
+              const icon = !v ? '⏳' : v.status === 'approved' ? '✅' : '❌';
+              return (
+                <div key={key} style={{ fontSize: 10, padding: '4px 10px', background: bg, border: `1px solid ${border}`, borderRadius: 5, color }}>
+                  {icon} {label}: {!v ? 'Aguardando validação' : v.status === 'approved' ? `Validado${v.note ? ` — ${v.note}` : ''}` : `Rejeitado${v.note ? ` — ${v.note}` : ''}`}
+                </div>
+              );
+            })}
+          </div>
+
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Pós/MBA (entra no cálculo)</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pós/MBA (entra no cálculo)</div>
+            </div>
+            {allMBAs.map((_, i) => (
+              <div key={i} style={{ fontSize: 10, color: '#64748b', marginBottom: 4, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
+                {validationBadge(`postmba-${i}`)}
+              </div>
+            ))}
             {mbaAnalysis.length > 0 ? mbaAnalysis.map((m, i) => {
               const isRej = m.status === 'rejeitado'; const isPon = m.status === 'pontua';
               return (
@@ -337,6 +396,7 @@ export default function PrintProfile() {
                   <div style={{ flex: 1 }}>
                     <div className="label">{m.title}</div>
                     <div className="reason" style={{ color: isRej ? '#b91c1c' : isPon ? '#15803d' : '#92400e' }}>{m.reason}</div>
+                    {(m as any).proof && <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{(m as any).proof}</div>}
                   </div>
                   <span className="pts" style={{ color: isRej ? '#b91c1c' : isPon ? '#15803d' : '#92400e' }}>{m.pts} pts</span>
                 </div>
@@ -346,7 +406,10 @@ export default function PrintProfile() {
 
           {/* Experiência */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Experiência Gerencial / Interina (entra no cálculo)</div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Experiência Gerencial / Interina (entra no cálculo)</div>
+            <div style={{ fontSize: 10, color: '#64748b', marginBottom: 6, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
+              {validationBadge('experiencia-gerencial')}
+            </div>
             <div className="row-item" style={{ background: expRejected ? '#fef2f2' : expPts > 0 ? '#f0fdf4' : '#f8fafc', border: `1px solid ${expRejected ? '#fca5a5' : expPts > 0 ? '#86efac' : '#e2e8f0'}` }}>
               <span style={{ fontSize: 14, flexShrink: 0 }}>{expRejected ? '❌' : expPts > 0 ? '✅' : '❌'}</span>
               <div style={{ flex: 1 }}>
@@ -361,7 +424,12 @@ export default function PrintProfile() {
 
           {/* Projetos */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Projetos Estratégicos (entram no cálculo — máx. 20 pts por área)</div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Projetos Estratégicos (entram no cálculo — máx. 20 pts por área)</div>
+            {allProjects.map((_, i) => (
+              <div key={i} style={{ fontSize: 10, color: '#64748b', marginBottom: 4, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
+                {validationBadge(`projeto-${i}`)}
+              </div>
+            ))}
             {projAnalysis.length > 0 ? projAnalysis.map((m, i) => {
               const isRej = m.status === 'rejeitado'; const isPon = m.status === 'pontua';
               return (
@@ -370,6 +438,7 @@ export default function PrintProfile() {
                   <div style={{ flex: 1 }}>
                     <div className="label">{m.proj}</div>
                     <div className="reason" style={{ color: isRej ? '#b91c1c' : isPon ? '#15803d' : '#92400e' }}>{m.reason}</div>
+                    {(m as any).proof && <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{(m as any).proof}</div>}
                   </div>
                   <span className="pts" style={{ color: isRej ? '#b91c1c' : isPon ? '#15803d' : '#92400e' }}>{m.pts} pts</span>
                 </div>
@@ -377,10 +446,33 @@ export default function PrintProfile() {
             }) : <div style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic', padding: '6px 10px', background: '#f8fafc', borderRadius: 6, border: '1px solid #e2e8f0' }}>❌ Nenhum projeto informado — 0 pts</div>}
           </div>
 
+          {/* Cursos Livres */}
+          {allFreeCourses.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Cursos Livres (registrados — não entram na nota)</div>
+              {allFreeCourses.map((c: any, i: number) => (
+                <div key={i}>
+                  <div className="row-item" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                    <span style={{ fontSize: 14, flexShrink: 0 }}>📋</span>
+                    <div style={{ flex: 1 }}>
+                      <div className="label">{c.name} ({c.hours}h — {c.area})</div>
+                      <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{proofStatus(`curso5_${i}:${c.name}`)}</div>
+                      <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{validationBadge(`curso-free-${i}`)}</div>
+                    </div>
+                    <span style={{ fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>Não pontua</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Graduação */}
           {(p.graduation || p.graduation2 || p.graduationCourseName) && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Graduação (registrada — não entra na nota)</div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Graduação (registrada — não entra na nota)</div>
+              <div style={{ fontSize: 10, color: '#64748b', marginBottom: 6, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
+                {validationBadge('graduacao')}
+              </div>
               {[p.graduation, p.graduation2, p.graduationCourseName].filter(Boolean).map((g, i) => (
                 <div key={i} className="row-item" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                   <span style={{ fontSize: 14, flexShrink: 0 }}>📋</span>
@@ -394,7 +486,12 @@ export default function PrintProfile() {
           {/* Cursos */}
           {allCourses.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Cursos Extracurriculares (registrados — não entram na nota)</div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Cursos Extracurriculares (registrados — não entram na nota)</div>
+              {allCourses.map((_, i) => (
+                <div key={i} style={{ fontSize: 10, color: '#64748b', marginBottom: 4, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
+                  {validationBadge(`curso-cat-${i}`)}
+                </div>
+              ))}
               {allCourses.map((c, i) => (
                 <div key={i} className="row-item" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                   <span style={{ fontSize: 14, flexShrink: 0 }}>📋</span>
