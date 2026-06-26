@@ -55,13 +55,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // hasLegacyFiles: tem itens legados no proofFiles inline que NÃO estão na tabela proof_files
       // e também NÃO têm link externo válido (proofLinks) — link externo é comprovação válida
       const proofLinks: Record<string, string> = (p as any)?.proofLinks || {};
+      // Extrai prefixo de uma chave (ex: 'curso5_2' de 'curso5_2:Nome')
+      function keyPrefix(k: string): string {
+        const i = k.indexOf(':');
+        return i >= 0 ? k.slice(0, i) : k;
+      }
+
       const hasLegacyFiles = p
         ? Object.entries(p.proofFiles || {}).some(([key, v]) => {
             if (!isLegacyFile(v)) return false;
-            // Se já existe na tabela proof_files, não é mais legado
+            // Se já existe na tabela proof_files com a mesma chave exata, não é legado
             if (dbKeys.has(key)) return false;
-            // Se tem link externo para este item, não precisa reenviar arquivo
-            // proofLinks usa o nome do item como chave (sem prefixo), então testa também sem prefixo
+            // Se existe no banco qualquer chave com o mesmo prefixo (ex: curso5_2:*),
+            // significa que o admin já subiu um arquivo para este slot — não precisa reenviar
+            const prefix = keyPrefix(key);
+            if (prefix && Array.from(dbKeys).some((k) => keyPrefix(k) === prefix)) return false;
+            // Se tem link externo para este item (chave com ou sem prefixo)
             const keyWithoutPrefix = key.includes(':') ? key.slice(key.indexOf(':') + 1) : key;
             if (proofLinks[key] || proofLinks[keyWithoutPrefix]) return false;
             return true;
@@ -102,46 +111,57 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return false;
       }
 
-      // hasPendingDocs: verifica diretamente proofMode e dbKeys sem reconstruir chaves
-      // Abordagem: contar itens declarados que precisam de comprovação vs entradas válidas
+      // hasPendingDocs: reconstrói chaves reais de cada item e verifica comprovação
+      function hasValidProofForKey(rawKey: string): boolean {
+        const key = normalizeKey(rawKey);
+        const mode = p?.proofMode?.[rawKey] ?? p?.proofMode?.[key];
+        if (mode === 'ugp-knows') return true;
+        if (mode === 'upload') {
+          const v = p?.proofFiles?.[rawKey] ?? p?.proofFiles?.[key];
+          if (v && isValidBase64Proof(v)) return true;
+          if (dbKeys.has(rawKey) || dbKeys.has(key)) return true;
+          // Verifica se há arquivo no banco com o mesmo prefixo (slot)
+          const prefix = keyPrefix(rawKey);
+          if (prefix && Array.from(dbKeys).some((k) => keyPrefix(k) === prefix)) return true;
+          return false;
+        }
+        // Sem proofMode: verifica se há arquivo no banco para este slot
+        const prefix = keyPrefix(rawKey);
+        if (dbKeys.has(rawKey) || dbKeys.has(key)) return true;
+        if (prefix && Array.from(dbKeys).some((k) => keyPrefix(k) === prefix)) return true;
+        return false;
+      }
+
       let hasPendingDocs = false;
       if (p) {
-        // Contar itens declarados que requerem comprovação
-        const mbaBlocks: Array<{area?: string; name?: string}> = (p as any).mbaBlocks || [];
-        const validMBAs = mbaBlocks.filter((b) => b.area && b.name?.trim());
-        const validFreeCourses = ((p as any).freeCourses || []).filter(
-          (c: any) => c?.name?.trim() && c?.area && (c?.hours || 0) >= 16
-        );
+        const keysToCheck: string[] = [];
 
-        const totalDeclared =
-          (p.graduation ? 1 : 0) +
-          ((p as any).graduation2 ? 1 : 0) +
-          validMBAs.length +
-          (p.selectedCourses || []).length +
-          validFreeCourses.length +
-          (p.selectedProjects || []).length;
-
-        if (totalDeclared > 0) {
-          // Contar entradas válidas no proofMode + dbKeys
-          const allProofModeKeys = Object.keys(p.proofMode || {});
-          const validProofModeCount = allProofModeKeys.filter((key) => {
-            const mode = p.proofMode![key];
-            if (mode === 'ugp-knows') return true;
-            if (mode === 'upload') {
-              const v = p.proofFiles?.[key];
-              if (v && isValidBase64Proof(v)) return true;
-              if (dbKeys.has(key)) return true;
-              return false;
-            }
-            return false;
-          }).length;
-
-          // Entradas válidas = proofMode válidos + chaves no banco não cobertas pelo proofMode
-          const dbOnlyKeys = Array.from(dbKeys).filter((k) => !p.proofMode?.[k]).length;
-          const totalValid = validProofModeCount + dbOnlyKeys;
-
-          hasPendingDocs = totalValid < totalDeclared;
+        // Graduação
+        if (p.graduation) {
+          keysToCheck.push(p.graduation === '__outro__'
+            ? `grad:${(p as any).graduationCourseName?.trim() || p.graduation}`
+            : `grad:${p.graduation}`);
         }
+        if ((p as any).graduation2) {
+          keysToCheck.push(`grad2:${(p as any).graduation2CourseName?.trim() || (p as any).graduation2}`);
+        }
+        // Pós/MBA — usa mbaBlocks com índice original (igual ao audit.tsx)
+        const mbaBlocksArr: Array<{area?: string; name?: string}> = (p as any).mbaBlocks || [];
+        mbaBlocksArr
+          .map((b, origIdx) => ({ ...b, origIdx }))
+          .filter((b) => b.area && b.name?.trim())
+          .forEach((b) => keysToCheck.push(`mba_${b.origIdx}:${b.name!.trim()}`));
+        // Cursos do catálogo
+        for (const course of (p.selectedCourses || [])) keysToCheck.push(`curso7:${course}`);
+        // Cursos livres
+        ((p as any).freeCourses || []).forEach((c: any, i: number) => {
+          if (c?.name?.trim() && c?.area && (c?.hours || 0) >= 16)
+            keysToCheck.push(`curso5_${i}:${c.name.trim()}`);
+        });
+        // Projetos
+        for (const proj of (p.selectedProjects || [])) keysToCheck.push(`proj:${proj}`);
+
+        hasPendingDocs = keysToCheck.length > 0 && keysToCheck.some((k) => !hasValidProofForKey(k));
       }
 
 
