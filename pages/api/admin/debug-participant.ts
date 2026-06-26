@@ -78,11 +78,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     keysToCheck.push({ rawKey: raw, result: hasValidProof(raw) });
   }
 
+  // Check legacy files detail
+  const proofLinks2: Record<string, string> = (p as any)?.proofLinks || {};
+  const legacyDetail = Object.entries(p.proofFiles || {}).map(([key, v]) => {
+    const isLeg = !v || typeof v !== 'string' ? false :
+      v.startsWith('data:') ? false :
+      v.length >= 50 ? (() => { try { Buffer.from(v.slice(0,100),'base64'); return false; } catch { return true; } })() :
+      true;
+    const inDb = dbKeys.has(key);
+    const kwp = key.includes(':') ? key.slice(key.indexOf(':')+1) : key;
+    const hasLink = !!(proofLinks2[key] || proofLinks2[kwp]);
+    return { key, isLegacy: isLeg, inDb, hasLink, value: typeof v === 'string' ? v.slice(0,40) : v };
+  });
+
   return res.status(200).json({
     email: p.email,
     proofMode: p.proofMode,
     proofFilesKeys: Object.keys(p.proofFiles || {}),
     dbKeys: Array.from(dbKeys),
+    legacyDetail,
     keysChecked: keysToCheck,
     hasPendingDocs: keysToCheck.some((k) => !k.result.valid),
   });

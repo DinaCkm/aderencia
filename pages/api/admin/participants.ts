@@ -64,15 +64,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const hasLegacyFiles = p
         ? Object.entries(p.proofFiles || {}).some(([key, v]) => {
             if (!isLegacyFile(v)) return false;
-            // Se já existe na tabela proof_files com a mesma chave exata, não é legado
-            if (dbKeys.has(key)) return false;
-            // Se existe no banco qualquer chave com o mesmo prefixo (ex: curso5_2:*),
-            // significa que o admin já subiu um arquivo para este slot — não precisa reenviar
+            const normalizedKey = normalizeKey(key);
+            // Se já existe na tabela proof_files (chave exata ou normalizada)
+            if (dbKeys.has(key) || dbKeys.has(normalizedKey)) return false;
+            // Se prefixo numerado (ex: curso5_2, mba_1): verifica slot no banco
             const prefix = keyPrefix(key);
-            if (prefix && Array.from(dbKeys).some((k) => keyPrefix(k) === prefix)) return false;
-            // Se tem link externo para este item (chave com ou sem prefixo)
+            const isNumberedPrefix = /^[a-z]+\d+_\d+$/.test(prefix) || /^mba_\d+$/.test(prefix);
+            if (isNumberedPrefix && Array.from(dbKeys).some((k) => keyPrefix(k) === prefix)) return false;
+            // Se tem link externo (chave com ou sem prefixo)
             const keyWithoutPrefix = key.includes(':') ? key.slice(key.indexOf(':') + 1) : key;
-            if (proofLinks[key] || proofLinks[keyWithoutPrefix]) return false;
+            if (proofLinks[key] || proofLinks[normalizedKey] || proofLinks[keyWithoutPrefix]) return false;
             return true;
           })
         : false;
