@@ -53,12 +53,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const dbKeys = proofFilesInDB.get(emailLower) ?? new Set<string>();
 
       // hasLegacyFiles: tem itens legados no proofFiles inline que NÃO estão na tabela proof_files
-      // (se o arquivo já foi migrado para a tabela, não precisa reenviar)
+      // e também NÃO têm link externo válido (proofLinks) — link externo é comprovação válida
+      const proofLinks: Record<string, string> = (p as any)?.proofLinks || {};
       const hasLegacyFiles = p
         ? Object.entries(p.proofFiles || {}).some(([key, v]) => {
             if (!isLegacyFile(v)) return false;
             // Se já existe na tabela proof_files, não é mais legado
             if (dbKeys.has(key)) return false;
+            // Se tem link externo para este item, não precisa reenviar arquivo
+            if (proofLinks[key]) return false;
             return true;
           })
         : false;
