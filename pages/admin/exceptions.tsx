@@ -467,25 +467,40 @@ export default function AdminExceptions() {
                   <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>
                     {typeLabel} — Vincular ao item do catálogo para gerar pontuação:
                   </label>
+                  {/* Filtro de tipo — só aparece quando tipo é desconhecido */}
+                  {showBoth && (
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                      {(['', 'mba', 'proj'] as const).map((f) => (
+                        <button key={f} type="button"
+                          onClick={() => { setCatalogTypeFilter(f); setSelectedCatalogLabel(''); }}
+                          style={{ padding: '4px 14px', borderRadius: 20, border: '1.5px solid', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+                            borderColor: catalogTypeFilter === f ? '#6366f1' : '#d1d5db',
+                            background: catalogTypeFilter === f ? '#ede9fe' : 'white',
+                            color: catalogTypeFilter === f ? '#4f46e5' : '#6b7280' }}>
+                          {f === '' ? 'Todos' : f === 'mba' ? '🎓 Pós/MBA' : '📋 Projetos'}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <select
                     value={selectedCatalogLabel}
                     onChange={(e) => setSelectedCatalogLabel(e.target.value)}
                     style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1.5px solid #d1d5db', fontSize: '0.82rem', color: '#1f2937' }}>
                     <option value="">— Aprovar sem vincular ao catálogo (sem pontuação) —</option>
-                    {(isMBAType || showBoth) && (
-                      <optgroup label="─────── 🎓 PÓS/MBA ───────">
+                    {(isMBAType || (showBoth && catalogTypeFilter !== 'proj')) && (
+                      <optgroup label="🎓 Pós/MBA">
                         {mbaCatalog.map((item) => (
                           <option key={item.id} value={`mba:${item.label}`}>
-                            [Pós/MBA] {item.label} — {(item as any).points ?? 20} pts{(item as any).classification === 'transversal' ? ' (transversal)' : (item as any).area ? ` (${(item as any).area})` : ''}
+                            {item.label}{(item as any).classification === 'transversal' ? ' (transversal)' : (item as any).area ? ` — ${(item as any).area}` : ''}
                           </option>
                         ))}
                       </optgroup>
                     )}
-                    {(isProjType || showBoth) && (
-                      <optgroup label="─────── 📋 PROJETOS ───────">
+                    {(isProjType || (showBoth && catalogTypeFilter !== 'mba')) && (
+                      <optgroup label="📋 Projetos Estratégicos">
                         {projCatalog.map((item) => (
                           <option key={item.id} value={`proj:${item.label}`}>
-                            [Projeto] {item.label} — {(item as any).points ?? 15} pts{(item as any).area ? ` (${(item as any).area})` : ''}
+                            {item.label}{(item as any).area ? ` — ${(item as any).area}` : ''}
                           </option>
                         ))}
                       </optgroup>
