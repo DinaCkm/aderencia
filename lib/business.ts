@@ -116,11 +116,14 @@ function computeTechnicalAdherence(
   const projItems = (profile.selectedProjects ?? [])
     .filter((label) => projectAreaMap[label] === area)
     .map((label) => {
-      const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === label);
-      const pts = catalogItem ? ((catalogItem as any).points ?? 15) : 15;
+      // Projeto deve existir no catálogo para a área vinculada
+      const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === label && i.area === area);
+      if (!catalogItem) return null;
+      const pts = (catalogItem as any).points ?? 15;
       const weight = pts >= 20 ? 'projeto estratégico central' : 'projeto de suporte/complementar';
       return { label, points: pts, weight };
-    });
+    })
+    .filter((item): item is { label: string; points: number; weight: string } => item !== null);
   const projScore = Math.min(20, projItems.reduce((acc, i) => acc + i.points, 0));
 
   const total80 = postMBADet.score + expScore + projScore;

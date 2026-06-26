@@ -114,16 +114,6 @@ export default function PrintProfile() {
     }
     const match = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj && i.area === assignedArea);
     if (!match) {
-      // Projeto pode ter sido adicionado por exceção aprovada — busca em qualquer área
-      const matchAnyArea = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj);
-      if (matchAnyArea) {
-        return { proj, status: 'pontua' as const, reason: `Área ${assignedArea} — ${matchAnyArea.points} pts (reconhecido por exceção aprovada)`, pts: matchAnyArea.points, area: assignedArea };
-      }
-      // Projeto fora do catálogo mas com exceção aprovada — pontua com 15 pts padrão
-      const isException = !!(p as any).exceptionStatus && (p as any).exceptionCatalogLabel === proj;
-      if (isException) {
-        return { proj, status: 'pontua' as const, reason: `Área ${assignedArea} — reconhecido por exceção aprovada pela UGP`, pts: 15, area: assignedArea };
-      }
       return { proj, status: 'nao-pontua' as const, reason: `O tema deste projeto não é aderente à área ${assignedArea} conforme o catálogo oficial de projetos estratégicos`, pts: 0, area: assignedArea };
     }
     return { proj, status: 'pontua' as const, reason: `Área ${assignedArea} — ${match.points} pts no catálogo`, pts: match.points, area: assignedArea };
