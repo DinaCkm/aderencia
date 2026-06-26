@@ -398,14 +398,7 @@ export default function PrintProfile() {
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pós/MBA (entra no cálculo)</div>
-            </div>
-            {allMBAs.map((_, i) => (
-              <div key={i} style={{ fontSize: 10, color: '#64748b', marginBottom: 4, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
-                <ValidationBadge itemKey={`postmba-${i}`} />
-              </div>
-            ))}
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Pós/MBA (entra no cálculo)</div>
             {mbaAnalysis.length > 0 ? mbaAnalysis.map((m, i) => {
               const isRej = m.status === 'rejeitado'; const isPon = m.status === 'pontua';
               return (
@@ -415,6 +408,7 @@ export default function PrintProfile() {
                     <div className="label">{m.title}</div>
                     <div className="reason" style={{ color: isRej ? '#b91c1c' : isPon ? '#15803d' : '#92400e' }}>{m.reason}</div>
                     {(m as any).proof && <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{(m as any).proof}</div>}
+                    <div style={{ marginTop: 4 }}><ValidationBadge itemKey={`postmba-${i}`} /></div>
                   </div>
                   <span className="pts" style={{ color: isRej ? '#b91c1c' : isPon ? '#15803d' : '#92400e' }}>{m.pts} pts</span>
                 </div>
@@ -424,10 +418,7 @@ export default function PrintProfile() {
 
           {/* Experiência */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Experiência Gerencial / Interina (entra no cálculo)</div>
-            <div style={{ fontSize: 10, color: '#64748b', marginBottom: 6, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
-              <ValidationBadge itemKey="experiencia-gerencial" />
-            </div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Experiência Gerencial / Interina (entra no cálculo)</div>
             <div className="row-item" style={{ background: expRejected ? '#fef2f2' : expPts > 0 ? '#f0fdf4' : '#f8fafc', border: `1px solid ${expRejected ? '#fca5a5' : expPts > 0 ? '#86efac' : '#e2e8f0'}` }}>
               <span style={{ fontSize: 14, flexShrink: 0 }}>{expRejected ? '❌' : expPts > 0 ? '✅' : '❌'}</span>
               <div style={{ flex: 1 }}>
@@ -435,6 +426,7 @@ export default function PrintProfile() {
                 <div className="reason" style={{ color: expRejected ? '#b91c1c' : '#64748b' }}>
                   {expRejected ? `Experiência rejeitada pelo auditor` : totalMonths > 0 ? `${(totalMonths / 12).toFixed(1)} anos × 5 pts/ano = ${expPts} pts (máx. 20 pts)` : 'Nenhuma experiência informada — 0 pts'}
                 </div>
+                <div style={{ marginTop: 4 }}><ValidationBadge itemKey="experiencia-gerencial" /></div>
               </div>
               <span className="pts" style={{ color: expRejected ? '#b91c1c' : expPts > 0 ? '#15803d' : '#94a3b8' }}>{expPts} pts</span>
             </div>
@@ -442,12 +434,7 @@ export default function PrintProfile() {
 
           {/* Projetos */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Projetos Estratégicos (entram no cálculo — máx. 20 pts por área)</div>
-            {allProjects.map((_, i) => (
-              <div key={i} style={{ fontSize: 10, color: '#64748b', marginBottom: 4, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
-                <ValidationBadge itemKey={`projeto-${i}`} />
-              </div>
-            ))}
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Projetos Estratégicos (entram no cálculo — máx. 20 pts por área)</div>
             {projAnalysis.length > 0 ? projAnalysis.map((m, i) => {
               const isRej = m.status === 'rejeitado'; const isPon = m.status === 'pontua';
               return (
@@ -457,6 +444,7 @@ export default function PrintProfile() {
                     <div className="label">{m.proj}</div>
                     <div className="reason" style={{ color: isRej ? '#b91c1c' : isPon ? '#15803d' : '#92400e' }}>{m.reason}</div>
                     {(m as any).proof && <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{(m as any).proof}</div>}
+                    <div style={{ marginTop: 4 }}><ValidationBadge itemKey={`projeto-${i}`} /></div>
                   </div>
                   <span className="pts" style={{ color: isRej ? '#b91c1c' : isPon ? '#15803d' : '#92400e' }}>{m.pts} pts</span>
                 </div>
@@ -487,14 +475,14 @@ export default function PrintProfile() {
           {/* Graduação */}
           {(p.graduation || p.graduation2 || p.graduationCourseName) && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Graduação (registrada — não entra na nota)</div>
-              <div style={{ fontSize: 10, color: '#64748b', marginBottom: 6, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
-                <ValidationBadge itemKey="graduacao" />
-              </div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Graduação (registrada — não entra na nota)</div>
               {[p.graduation, p.graduation2, p.graduationCourseName].filter(Boolean).map((g, i) => (
                 <div key={i} className="row-item" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                   <span style={{ fontSize: 14, flexShrink: 0 }}>📋</span>
-                  <div style={{ flex: 1 }}><div className="label">{g}</div></div>
+                  <div style={{ flex: 1 }}>
+                    <div className="label">{g}</div>
+                    {i === 0 && <div style={{ marginTop: 4 }}><ValidationBadge itemKey="graduacao" /></div>}
+                  </div>
                   <span style={{ fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>Não pontua</span>
                 </div>
               ))}
@@ -504,16 +492,14 @@ export default function PrintProfile() {
           {/* Cursos */}
           {allCourses.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Cursos Extracurriculares (registrados — não entram na nota)</div>
-              {allCourses.map((_, i) => (
-                <div key={i} style={{ fontSize: 10, color: '#64748b', marginBottom: 4, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
-                  <ValidationBadge itemKey={`curso-cat-${i}`} />
-                </div>
-              ))}
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Cursos Extracurriculares (registrados — não entram na nota)</div>
               {allCourses.map((c, i) => (
                 <div key={i} className="row-item" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                   <span style={{ fontSize: 14, flexShrink: 0 }}>📋</span>
-                  <div style={{ flex: 1 }}><div className="label">{c}{p.courseHours?.[c] ? ` (${p.courseHours[c]}h)` : ''}</div></div>
+                  <div style={{ flex: 1 }}>
+                    <div className="label">{c}{p.courseHours?.[c] ? ` (${p.courseHours[c]}h)` : ''}</div>
+                    <div style={{ marginTop: 4 }}><ValidationBadge itemKey={`curso-cat-${i}`} /></div>
+                  </div>
                   <span style={{ fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>Não pontua</span>
                 </div>
               ))}
