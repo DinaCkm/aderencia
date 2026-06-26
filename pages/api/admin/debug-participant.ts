@@ -59,10 +59,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const raw = `grad2:${(p as any).graduation2CourseName?.trim() || (p as any).graduation2}`;
     keysToCheck.push({ rawKey: raw, result: hasValidProof(raw) });
   }
-  for (const [i, mba] of ((p as any).postMBAs || []).entries()) {
-    const raw = `mba_${i}:${(typeof mba === 'string' ? mba : mba?.name || '').trim()}`;
-    keysToCheck.push({ rawKey: raw, result: hasValidProof(raw) });
-  }
+  const mbaBlocksDebug: Array<{area?: string; name?: string}> = (p as any).mbaBlocks || [];
+  mbaBlocksDebug
+    .map((b, origIdx) => ({ ...b, origIdx }))
+    .filter((b) => b.area && b.name?.trim())
+    .forEach((b) => {
+      const raw = `mba_${b.origIdx}:${b.name!.trim()}`;
+      keysToCheck.push({ rawKey: raw, result: hasValidProof(raw) });
+    });
   for (const course of (p.selectedCourses || [])) {
     const raw = `curso7:${course}`;
     keysToCheck.push({ rawKey: raw, result: hasValidProof(raw) });
