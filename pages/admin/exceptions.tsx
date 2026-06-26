@@ -499,8 +499,8 @@ export default function AdminExceptions() {
                         onChange={(e) => setSelectedArea(e.target.value)}
                         style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: `1.5px solid ${!selectedArea ? '#f59e0b' : '#86efac'}`, fontSize: '0.82rem', color: '#1f2937' }}>
                         <option value="">— Selecione a área —</option>
-                        {Object.entries(AREA_LABELS).map(([code, label]) => (
-                          <option key={code} value={code}>{label}</option>
+                        {(p.selectedAreas || []).map((code) => (
+                          <option key={code} value={code}>{AREA_LABELS[code] || code}</option>
                         ))}
                       </select>
                       {!selectedArea && (
