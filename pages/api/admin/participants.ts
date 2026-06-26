@@ -65,17 +65,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // hasPendingDocs: itens declarados sem comprovação (sem proofMode, sem arquivo válido e sem ugp-knows)
       // Conceito separado de hasLegacyFiles — representa documentos obrigatórios ausentes
-      function hasValidProof(key: string): boolean {
-        const mode = p?.proofMode?.[key];
+
+      // Espelha a lógica de normalizeKey do audit.tsx
+      function normalizeKey(key: string): string {
+        const colonIdx = key.indexOf(':');
+        if (colonIdx < 0) return key.trim();
+        return `${key.slice(0, colonIdx).trim()}:${key.slice(colonIdx + 1).trim()}`;
+      }
+
+      // Retorna true se o valor inline é base64 real (não nome de arquivo legado)
+      function isValidBase64Proof(v: string): boolean {
+        if (v.startsWith('data:')) return true;
+        if (v.length < 50) return false;
+        if (/\.(pdf|docx?|xlsx?|png|jpe?g|gif|webp)$/i.test(v.trim())) return false;
+        try { Buffer.from(v.slice(0, 100), 'base64'); return true; } catch { return false; }
+      }
+
+      function hasValidProof(rawKey: string): boolean {
+        const key = normalizeKey(rawKey);
+        // Checa proofMode com ambas as variações (raw e normalizada)
+        const mode = p?.proofMode?.[rawKey] ?? p?.proofMode?.[key];
         if (mode === 'ugp-knows') return true;
         if (mode === 'upload') {
-          const v = p?.proofFiles?.[key];
-          if (!v || typeof v !== 'string') return false;
-          if (v.startsWith('data:')) return true;
-          if (v.length >= 50) {
-            try { Buffer.from(v.slice(0, 100), 'base64'); return true; } catch { /* não é base64 */ }
-          }
-          if (dbKeys.has(key)) return true;
+          // 1. Arquivo inline válido
+          const v = p?.proofFiles?.[rawKey] ?? p?.proofFiles?.[key];
+          if (v && typeof v === 'string' && isValidBase64Proof(v)) return true;
+          // 2. Arquivo na tabela proof_files do banco
+          if (dbKeys.has(rawKey) || dbKeys.has(key)) return true;
           return false;
         }
         return false;
@@ -84,11 +100,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       let hasPendingDocs = false;
       if (p) {
         const keysToCheck: string[] = [];
-        if (p.graduation) keysToCheck.push(p.graduation);
-        if ((p as any).graduation2) keysToCheck.push((p as any).graduation2);
-        for (const mba of (p.postMBAs || [])) keysToCheck.push(mba);
-        for (const cert of (p.certifications || [])) keysToCheck.push(cert);
-        for (const proj of (p.selectedProjects || [])) keysToCheck.push(proj);
+        // Graduação — chave: grad:nome ou grad:__outro__ => grad:nomeLivre
+        if (p.graduation) {
+          const gradRaw = p.graduation === '__outro__'
+            ? `grad:${(p as any).graduationCourseName?.trim() || p.graduation}`
+            : `grad:${p.graduation}`;
+          keysToCheck.push(gradRaw);
+        }
+        if ((p as any).graduation2) {
+          const grad2Raw = `grad2:${(p as any).graduation2CourseName?.trim() || (p as any).graduation2}`;
+          keysToCheck.push(grad2Raw);
+        }
+        // Pós/MBA — chave: mba_i:nome (i = índice original)
+        for (const [i, mba] of ((p as any).postMBAs || []).entries()) {
+          keysToCheck.push(`mba_${i}:${(typeof mba === 'string' ? mba : mba?.name || '').trim()}`);
+        }
+        // Cursos do catálogo — chave: curso7:nome
+        for (const course of (p.selectedCourses || [])) {
+          keysToCheck.push(`curso7:${course}`);
+        }
+        // Cursos livres — chave: curso5_i:nome
+        for (const [i, course] of ((p as any).freeCourses || []).entries()) {
+          if (course?.name?.trim() && course?.area && (course?.hours || 0) >= 16) {
+            keysToCheck.push(`curso5_${i}:${course.name.trim()}`);
+          }
+        }
+        // Projetos — chave: proj:nome
+        for (const proj of (p.selectedProjects || [])) {
+          keysToCheck.push(`proj:${proj}`);
+        }
         hasPendingDocs = keysToCheck.some((key) => !hasValidProof(key));
       }
 
