@@ -93,6 +93,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   return res.status(200).json({
     email: p.email,
+    mbaBlocks: (p as any).mbaBlocks || [],
+    postMBAs: (p as any).postMBAs || [],
     proofMode: p.proofMode,
     proofFilesKeys: Object.keys(p.proofFiles || {}),
     dbKeys: Array.from(dbKeys),
