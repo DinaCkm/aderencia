@@ -238,7 +238,11 @@ function normalizeKey(key: string): string {
 function hasInlineProof(value?: string): boolean {
   if (!value) return false;
   if (value.startsWith('data:')) return true;
-  return value.length > 100;
+  if (value.length < 100) return false;
+  // Rejeita nomes de arquivo legados: contêm extensão comum de documento
+  if (/\.(pdf|docx?|xlsx?|png|jpe?g|gif|webp)$/i.test(value.trim())) return false;
+  // Testa se é base64 válido
+  try { atob(value.slice(0, 100)); return true; } catch { return false; }
 }
 
 // ─── Upload de comprovante pelo administrador ────────────────────────────────
