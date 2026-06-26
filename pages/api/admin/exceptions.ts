@@ -30,17 +30,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (catalogType) (participants[index] as any).exceptionCatalogType = catalogType;
 
     // Se aprovado com vínculo ao catálogo, adiciona o label ao campo correto
+    // e registra proofMode como 'ugp-knows' para que pontue automaticamente
     if (action === 'approve' && catalogLabel && catalogType) {
       if (catalogType === 'pos-mba') {
         const current = participants[index].postMBAs ?? [];
         if (!current.includes(catalogLabel)) {
           participants[index].postMBAs = [...current, catalogLabel];
         }
+        // Registra comprovação como ugp-knows
+        const mbaIdx = (participants[index].postMBAs ?? []).indexOf(catalogLabel);
+        const mbaKey = `mba_${mbaIdx}:${catalogLabel}`;
+        if (!participants[index].proofMode) participants[index].proofMode = {} as any;
+        (participants[index].proofMode as any)[mbaKey] = 'ugp-knows';
       } else if (catalogType === 'projeto') {
         const current = participants[index].selectedProjects ?? [];
         if (!current.includes(catalogLabel)) {
           participants[index].selectedProjects = [...current, catalogLabel];
         }
+        // Registra comprovação como ugp-knows
+        if (!participants[index].proofMode) participants[index].proofMode = {} as any;
+        (participants[index].proofMode as any)[`proj:${catalogLabel}`] = 'ugp-knows';
       }
     }
 
