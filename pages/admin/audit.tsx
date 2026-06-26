@@ -678,6 +678,16 @@ export default function AdminAudit() {
                       </button>
                     )}
                   </div>
+                  {legacyFiles.length > 0 && (
+                    <div style={{ marginBottom: 12, padding: '8px 12px', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 6 }}>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#92400e', marginBottom: 4 }}>📄 Documento(s) com problema de envio:</div>
+                      {legacyFiles.map(([key, filename]) => (
+                        <div key={key} style={{ fontSize: '0.72rem', color: '#78350f', marginTop: 2 }}>
+                          • <strong>{formatKey(key)}</strong> — arquivo: <em>{String(filename)}</em>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 );
               })()}
 
