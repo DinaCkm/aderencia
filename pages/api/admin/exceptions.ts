@@ -22,7 +22,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       catalogType?: 'pos-mba' | 'projeto';
       catalogArea?: string;
       approvalJustification?: string;
-      catalogPoints?: number;
     };
     if (!id || !action) return res.status(400).json({ error: 'ID e ação são obrigatórios.' });
     const index = participants.findIndex((item) => item.id === id);
@@ -33,7 +32,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (catalogLabel) (participants[index] as any).exceptionCatalogLabel = catalogLabel;
     if (catalogType) (participants[index] as any).exceptionCatalogType = catalogType;
     if (approvalJustification) (participants[index] as any).exceptionApprovalJustification = approvalJustification;
-    if (catalogPoints) (participants[index] as any).exceptionCatalogPoints = catalogPoints;
 
     // Se aprovado com vínculo ao catálogo, adiciona o label ao campo correto
     // e registra proofMode como 'ugp-knows' para que pontue automaticamente
@@ -62,11 +60,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (areaToUse) {
           if (!(participants[index] as any).projectAreaMap) (participants[index] as any).projectAreaMap = {};
           (participants[index] as any).projectAreaMap[catalogLabel] = areaToUse;
-        }
-        // Salva pontuação customizada para sobrescrever o valor do catálogo
-        if (catalogPoints) {
-          if (!(participants[index] as any).projectPointsOverride) (participants[index] as any).projectPointsOverride = {};
-          (participants[index] as any).projectPointsOverride[catalogLabel] = catalogPoints;
         }
         if (catalogArea) (participants[index] as any).exceptionCatalogArea = catalogArea;
       }
