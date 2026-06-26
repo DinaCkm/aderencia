@@ -79,12 +79,28 @@ export default function PrintProfile() {
   const itemValidations = audit?.itemValidations || [];
   const getAuditV = (key: string) => itemValidations.find((v) => v.itemKey === key);
 
-  function validationBadge(key: string): string {
-    const v = getAuditV(key);
-    if (!v) return '⏳ Aguardando validação do administrador';
-    if (v.status === 'approved') return `✅ Validado pelo administrador${v.note ? ` — Obs: ${v.note}` : ''}`;
-    if (v.status === 'rejected') return `❌ Rejeitado pelo administrador${v.note ? ` — Motivo: ${v.note}` : ''}`;
-    return '⏳ Aguardando validação do administrador';
+  function ValidationBadge({ itemKey }: { itemKey: string }) {
+    const v = getAuditV(itemKey);
+    if (!v) return (
+      <div style={{ fontSize: 10, color: '#92400e', background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 4, padding: '3px 8px' }}>
+        ⏳ Aguardando validação do administrador
+      </div>
+    );
+    if (v.status === 'approved') return (
+      <div style={{ fontSize: 10, color: '#15803d', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 4, padding: '3px 8px' }}>
+        ✅ Validado pelo administrador{v.note ? <span style={{ color: '#374151' }}> — <strong>Obs:</strong> {v.note}</span> : ''}
+      </div>
+    );
+    if (v.status === 'rejected') return (
+      <div style={{ fontSize: 10, color: '#dc2626', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 4, padding: '3px 8px' }}>
+        ❌ <strong>Rejeitado — pontuação deste item excluída do cálculo final</strong>{v.note ? <span> — <strong>Motivo:</strong> {v.note}</span> : ''}
+      </div>
+    );
+    return (
+      <div style={{ fontSize: 10, color: '#92400e', background: '#fef9c3', border: '1px solid #fde68a', borderRadius: 4, padding: '3px 8px' }}>
+        ⏳ Aguardando validação do administrador
+      </div>
+    );
   }
 
   const allMBAs = p.postMBAs || [];
@@ -371,9 +387,11 @@ export default function PrintProfile() {
               const bg = !v ? '#f8fafc' : v.status === 'approved' ? '#f0fdf4' : v.status === 'rejected' ? '#fef2f2' : '#f8fafc';
               const border = !v ? '#e2e8f0' : v.status === 'approved' ? '#86efac' : v.status === 'rejected' ? '#fca5a5' : '#e2e8f0';
               const icon = !v ? '⏳' : v.status === 'approved' ? '✅' : '❌';
+              const statusText = !v ? 'Aguardando validação' : v.status === 'approved' ? 'Validado' : 'Rejeitado';
               return (
                 <div key={key} style={{ fontSize: 10, padding: '4px 10px', background: bg, border: `1px solid ${border}`, borderRadius: 5, color }}>
-                  {icon} {label}: {!v ? 'Aguardando validação' : v.status === 'approved' ? `Validado${v.note ? ` — ${v.note}` : ''}` : `Rejeitado${v.note ? ` — ${v.note}` : ''}`}
+                  {icon} <strong>{label}:</strong> {statusText}
+                  {v?.note && <span style={{ color: '#374151' }}> — <strong>{v.status === 'rejected' ? 'Motivo' : 'Obs'}:</strong> {v.note}</span>}
                 </div>
               );
             })}
@@ -385,7 +403,7 @@ export default function PrintProfile() {
             </div>
             {allMBAs.map((_, i) => (
               <div key={i} style={{ fontSize: 10, color: '#64748b', marginBottom: 4, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
-                {validationBadge(`postmba-${i}`)}
+                <ValidationBadge itemKey={`postmba-${i}`} />
               </div>
             ))}
             {mbaAnalysis.length > 0 ? mbaAnalysis.map((m, i) => {
@@ -408,7 +426,7 @@ export default function PrintProfile() {
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Experiência Gerencial / Interina (entra no cálculo)</div>
             <div style={{ fontSize: 10, color: '#64748b', marginBottom: 6, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
-              {validationBadge('experiencia-gerencial')}
+              <ValidationBadge itemKey="experiencia-gerencial" />
             </div>
             <div className="row-item" style={{ background: expRejected ? '#fef2f2' : expPts > 0 ? '#f0fdf4' : '#f8fafc', border: `1px solid ${expRejected ? '#fca5a5' : expPts > 0 ? '#86efac' : '#e2e8f0'}` }}>
               <span style={{ fontSize: 14, flexShrink: 0 }}>{expRejected ? '❌' : expPts > 0 ? '✅' : '❌'}</span>
@@ -427,7 +445,7 @@ export default function PrintProfile() {
             <div style={{ fontSize: 11, fontWeight: 800, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Projetos Estratégicos (entram no cálculo — máx. 20 pts por área)</div>
             {allProjects.map((_, i) => (
               <div key={i} style={{ fontSize: 10, color: '#64748b', marginBottom: 4, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
-                {validationBadge(`projeto-${i}`)}
+                <ValidationBadge itemKey={`projeto-${i}`} />
               </div>
             ))}
             {projAnalysis.length > 0 ? projAnalysis.map((m, i) => {
@@ -457,7 +475,7 @@ export default function PrintProfile() {
                     <div style={{ flex: 1 }}>
                       <div className="label">{c.name} ({c.hours}h — {c.area})</div>
                       <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{proofStatus(`curso5_${i}:${c.name}`)}</div>
-                      <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{validationBadge(`curso-free-${i}`)}</div>
+                      <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}><ValidationBadge itemKey={`curso-free-${i}`} /></div>
                     </div>
                     <span style={{ fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>Não pontua</span>
                   </div>
@@ -471,7 +489,7 @@ export default function PrintProfile() {
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Graduação (registrada — não entra na nota)</div>
               <div style={{ fontSize: 10, color: '#64748b', marginBottom: 6, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
-                {validationBadge('graduacao')}
+                <ValidationBadge itemKey="graduacao" />
               </div>
               {[p.graduation, p.graduation2, p.graduationCourseName].filter(Boolean).map((g, i) => (
                 <div key={i} className="row-item" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
@@ -489,7 +507,7 @@ export default function PrintProfile() {
               <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Cursos Extracurriculares (registrados — não entram na nota)</div>
               {allCourses.map((_, i) => (
                 <div key={i} style={{ fontSize: 10, color: '#64748b', marginBottom: 4, padding: '3px 8px', background: '#f8fafc', borderRadius: 4, border: '1px solid #e2e8f0' }}>
-                  {validationBadge(`curso-cat-${i}`)}
+                  <ValidationBadge itemKey={`curso-cat-${i}`} />
                 </div>
               ))}
               {allCourses.map((c, i) => (
