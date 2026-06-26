@@ -5,6 +5,20 @@ import { useRouter } from 'next/router';
 import type { ParticipantProfile } from '../../lib/types';
 import { CATALOG_ITEMS } from '../../lib/constants';
 
+const AREA_LABELS: Record<string, string> = {
+  UAC: 'UAC — Articulação e Competitividade',
+  UAF: 'UAF — Administração e Finanças',
+  UAUD: 'UAUD — Auditoria Interna',
+  UGE: 'UGE — Gestão Estratégica e Integridade',
+  UGOC: 'UGOC — Gestão Orç. Contabilidade e Finanças',
+  UGP: 'UGP — Gestão de Pessoas',
+  UMC: 'UMC — Marketing e Comunicação',
+  URC: 'URC — Relacionamento com o Cliente',
+  URI: 'URI — Relacionamento Institucional',
+  UTIC: 'UTIC — Tecnologia da Informação',
+  REGIONAIS: 'Unidades Regionais',
+};
+
 const TYPE_LABELS: Record<string, string> = {
   projeto: 'Projeto Estratégico fora do catálogo',
   'pos-mba': 'Título de Pós/MBA fora do catálogo',
@@ -53,6 +67,7 @@ export default function AdminExceptions() {
   const [approveModal, setApproveModal] = useState<{ participant: ParticipantProfile } | null>(null);
   const [selectedCatalogLabel, setSelectedCatalogLabel] = useState('');
   const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [selectedArea, setSelectedArea] = useState('');
 
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
 
@@ -68,11 +83,11 @@ export default function AdminExceptions() {
       });
   }, [router]);
 
-  const updateStatus = async (id: string, action: 'approve' | 'reject', catalogLabel?: string, catalogType?: string) => {
+  const updateStatus = async (id: string, action: 'approve' | 'reject', catalogLabel?: string, catalogType?: string, catalogArea?: string) => {
     const res = await fetch('/api/admin/exceptions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, action, catalogLabel, catalogType }),
+      body: JSON.stringify({ id, action, catalogLabel, catalogType, catalogArea }),
     });
     if (res.ok) {
       const moved = pending.find((p) => p.id === id);
@@ -83,6 +98,7 @@ export default function AdminExceptions() {
           exceptionResolvedAt: new Date().toISOString(),
           ...(catalogLabel ? { exceptionCatalogLabel: catalogLabel } : {}),
           ...(catalogType ? { exceptionCatalogType: catalogType } : {}),
+          ...(catalogArea ? { exceptionCatalogArea: catalogArea } : {}),
         } as any;
         setResolved((cur) => [updatedMoved, ...cur]);
       }
@@ -97,6 +113,7 @@ export default function AdminExceptions() {
 
   const openApproveModal = (participant: ParticipantProfile) => {
     setSelectedCatalogLabel('');
+    setSelectedArea('');
     setApproveModal({ participant });
   };
 
@@ -109,7 +126,7 @@ export default function AdminExceptions() {
     const catalogLabel = selectedCatalogLabel.includes(':')
       ? selectedCatalogLabel.slice(selectedCatalogLabel.indexOf(':') + 1)
       : undefined;
-    await updateStatus(approveModal.participant.id, 'approve', catalogLabel, catalogType);
+    await updateStatus(approveModal.participant.id, 'approve', catalogLabel, catalogType, selectedArea || undefined);
     setApproveModal(null);
     setApprovingId(null);
   };
@@ -471,9 +488,32 @@ export default function AdminExceptions() {
                       </optgroup>
                     )}
                   </select>
-                  {selectedCatalogLabel && (
+                  {/* Seleção de área — obrigatório para projetos */}
+                  {selectedCatalogLabel.startsWith('proj:') && (
+                    <div style={{ marginTop: 12 }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>
+                        🏢 Área para qual o participante concorre com este projeto: <span style={{ color: '#dc2626' }}>*</span>
+                      </label>
+                      <select
+                        value={selectedArea}
+                        onChange={(e) => setSelectedArea(e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: `1.5px solid ${!selectedArea ? '#f59e0b' : '#86efac'}`, fontSize: '0.82rem', color: '#1f2937' }}>
+                        <option value="">— Selecione a área —</option>
+                        {Object.entries(AREA_LABELS).map(([code, label]) => (
+                          <option key={code} value={code}>{label}</option>
+                        ))}
+                      </select>
+                      {!selectedArea && (
+                        <div style={{ marginTop: 6, fontSize: '0.72rem', color: '#b45309' }}>
+                          ⚠️ Selecione a área para que o projeto pontue corretamente.
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedCatalogLabel && (!selectedCatalogLabel.startsWith('proj:') || selectedArea) && (
                     <div style={{ marginTop: 8, padding: '6px 10px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 6, fontSize: '0.75rem', color: '#15803d' }}>
-                      ✓ <strong>"{selLabel}"</strong> será adicionado ao perfil e contará pontos automaticamente.
+                      ✓ <strong>"{selLabel}"</strong> será adicionado ao perfil{selectedArea ? ` e pontuará na área ${selectedArea}` : ''} automaticamente.
                     </div>
                   )}
                   {!selectedCatalogLabel && (

@@ -15,11 +15,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === 'POST') {
-    const { id, action, catalogLabel, catalogType } = req.body as {
+    const { id, action, catalogLabel, catalogType, catalogArea } = req.body as {
       id?: string;
       action?: 'approve' | 'reject';
-      catalogLabel?: string;  // label do item do catálogo selecionado
-      catalogType?: 'pos-mba' | 'projeto'; // tipo para saber onde adicionar
+      catalogLabel?: string;
+      catalogType?: 'pos-mba' | 'projeto';
+      catalogArea?: string; // área para qual o projeto deve pontuar
     };
     if (!id || !action) return res.status(400).json({ error: 'ID e ação são obrigatórios.' });
     const index = participants.findIndex((item) => item.id === id);
@@ -51,12 +52,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Registra comprovação como ugp-knows
         if (!participants[index].proofMode) participants[index].proofMode = {} as any;
         (participants[index].proofMode as any)[`proj:${catalogLabel}`] = 'ugp-knows';
-        // Vincula projeto à área correta no projectAreaMap
+        // Vincula projeto à área selecionada pelo admin (ou área do catálogo como fallback)
         const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === catalogLabel);
-        if (catalogItem?.area) {
+        const areaToUse = catalogArea || catalogItem?.area;
+        if (areaToUse) {
           if (!(participants[index] as any).projectAreaMap) (participants[index] as any).projectAreaMap = {};
-          (participants[index] as any).projectAreaMap[catalogLabel] = catalogItem.area;
+          (participants[index] as any).projectAreaMap[catalogLabel] = areaToUse;
         }
+        if (catalogArea) (participants[index] as any).exceptionCatalogArea = catalogArea;
       }
     }
 
