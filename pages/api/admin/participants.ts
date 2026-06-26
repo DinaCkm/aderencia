@@ -61,7 +61,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // Se já existe na tabela proof_files, não é mais legado
             if (dbKeys.has(key)) return false;
             // Se tem link externo para este item, não precisa reenviar arquivo
-            if (proofLinks[key]) return false;
+            // proofLinks usa o nome do item como chave (sem prefixo), então testa também sem prefixo
+            const keyWithoutPrefix = key.includes(':') ? key.slice(key.indexOf(':') + 1) : key;
+            if (proofLinks[key] || proofLinks[keyWithoutPrefix]) return false;
             return true;
           })
         : false;
