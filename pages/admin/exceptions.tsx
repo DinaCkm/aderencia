@@ -68,6 +68,7 @@ export default function AdminExceptions() {
   const [selectedCatalogLabel, setSelectedCatalogLabel] = useState('');
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [selectedArea, setSelectedArea] = useState('');
+  const [catalogTypeFilter, setCatalogTypeFilter] = useState<'mba' | 'proj' | ''>('');
   const [approvalJustification, setApprovalJustification] = useState('');
 
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
@@ -117,6 +118,7 @@ export default function AdminExceptions() {
     setSelectedCatalogLabel('');
     setSelectedArea('');
     setApprovalJustification('');
+    setCatalogTypeFilter('');
     setApproveModal({ participant });
   };
 
