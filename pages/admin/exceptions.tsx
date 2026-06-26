@@ -473,19 +473,19 @@ export default function AdminExceptions() {
                     style={{ width: '100%', padding: '8px 10px', borderRadius: 7, border: '1.5px solid #d1d5db', fontSize: '0.82rem', color: '#1f2937' }}>
                     <option value="">— Aprovar sem vincular ao catálogo (sem pontuação) —</option>
                     {(isMBAType || showBoth) && (
-                      <optgroup label="🎓 Pós/MBA">
+                      <optgroup label="─────── 🎓 PÓS/MBA ───────">
                         {mbaCatalog.map((item) => (
                           <option key={item.id} value={`mba:${item.label}`}>
-                            {item.label} — {(item as any).points ?? 20} pts{(item as any).classification === 'transversal' ? ' (transversal)' : (item as any).area ? ` (${(item as any).area})` : ''}
+                            [Pós/MBA] {item.label} — {(item as any).points ?? 20} pts{(item as any).classification === 'transversal' ? ' (transversal)' : (item as any).area ? ` (${(item as any).area})` : ''}
                           </option>
                         ))}
                       </optgroup>
                     )}
                     {(isProjType || showBoth) && (
-                      <optgroup label="📋 Projetos Estratégicos">
+                      <optgroup label="─────── 📋 PROJETOS ───────">
                         {projCatalog.map((item) => (
                           <option key={item.id} value={`proj:${item.label}`}>
-                            {item.label} — {(item as any).points ?? 15} pts{(item as any).area ? ` (${(item as any).area})` : ''}
+                            [Projeto] {item.label} — {(item as any).points ?? 15} pts{(item as any).area ? ` (${(item as any).area})` : ''}
                           </option>
                         ))}
                       </optgroup>
