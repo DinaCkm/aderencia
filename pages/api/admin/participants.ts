@@ -65,15 +65,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ? Object.entries(p.proofFiles || {}).some(([key, v]) => {
             if (!isLegacyFile(v)) return false;
             const normalizedKey = normalizeKey(key);
-            // Se já existe na tabela proof_files (chave exata ou normalizada)
-            if (dbKeys.has(key) || dbKeys.has(normalizedKey)) return false;
+            const normalizedKeyFull = normalizeKeyFull(key);
+            // Se já existe na tabela proof_files (chave exata, normalizada ou full-normalizada)
+            if (dbKeys.has(key) || dbKeys.has(normalizedKey) || dbKeys.has(normalizedKeyFull)) return false;
+            // Compara normalizando espaços em torno de ':' em todas as chaves do banco
+            if (Array.from(dbKeys).some((k) => normalizeKeyFull(k) === normalizedKeyFull)) return false;
             // Se prefixo numerado (ex: curso5_2, mba_1): verifica slot no banco
             const prefix = keyPrefix(key);
             const isNumberedPrefix = /^[a-z]+\d+_\d+$/.test(prefix) || /^mba_\d+$/.test(prefix);
             if (isNumberedPrefix && Array.from(dbKeys).some((k) => keyPrefix(k) === prefix)) return false;
             // Se tem link externo (chave com ou sem prefixo)
             const keyWithoutPrefix = key.includes(':') ? key.slice(key.indexOf(':') + 1) : key;
-            if (proofLinks[key] || proofLinks[normalizedKey] || proofLinks[keyWithoutPrefix]) return false;
+            if (proofLinks[key] || proofLinks[normalizedKey] || proofLinks[normalizedKeyFull] || proofLinks[keyWithoutPrefix]) return false;
             return true;
           })
         : false;
@@ -81,11 +84,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // hasPendingDocs: itens declarados sem comprovação (sem proofMode, sem arquivo válido e sem ugp-knows)
       // Conceito separado de hasLegacyFiles — representa documentos obrigatórios ausentes
 
-      // Espelha a lógica de normalizeKey do audit.tsx
+      // Espelha a lógica de normalizeKey do audit.tsx + normaliza espaços em torno de todos os ':'
       function normalizeKey(key: string): string {
         const colonIdx = key.indexOf(':');
         if (colonIdx < 0) return key.trim();
-        return `${key.slice(0, colonIdx).trim()}:${key.slice(colonIdx + 1).trim()}`;
+        // Remove espaços ao redor do primeiro ':' (prefixo:nome)
+        const prefix = key.slice(0, colonIdx).trim();
+        const rest = key.slice(colonIdx + 1).trim();
+        return `${prefix}:${rest}`;
+      }
+      // Versão que também normaliza espaços ao redor de ':' internos no nome
+      function normalizeKeyFull(key: string): string {
+        return key.replace(/\s*:\s*/g, ':').trim();
       }
 
       // Retorna true se o valor inline é base64 real (não nome de arquivo legado)
@@ -115,21 +125,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // hasPendingDocs: reconstrói chaves reais de cada item e verifica comprovação
       function hasValidProofForKey(rawKey: string): boolean {
         const key = normalizeKey(rawKey);
-        const mode = p?.proofMode?.[rawKey] ?? p?.proofMode?.[key];
+        const keyFull = normalizeKeyFull(rawKey);
+        // Busca proofMode com todas as variações de chave
+        const mode = p?.proofMode?.[rawKey] ?? p?.proofMode?.[key] ?? p?.proofMode?.[keyFull];
         if (mode === 'ugp-knows') return true;
         if (mode === 'upload') {
-          const v = p?.proofFiles?.[rawKey] ?? p?.proofFiles?.[key];
+          const v = p?.proofFiles?.[rawKey] ?? p?.proofFiles?.[key] ?? p?.proofFiles?.[keyFull];
           if (v && isValidBase64Proof(v)) return true;
-          if (dbKeys.has(rawKey) || dbKeys.has(key)) return true;
-          // Verifica se há arquivo no banco com o mesmo prefixo (slot)
+          if (dbKeys.has(rawKey) || dbKeys.has(key) || dbKeys.has(keyFull)) return true;
+          // Verifica no banco normalizando todas as chaves (espaços em torno de ':')
+          if (Array.from(dbKeys).some((k) => normalizeKeyFull(k) === keyFull)) return true;
+          // Verifica por prefixo numerado (slot)
           const prefix = keyPrefix(rawKey);
-          if (prefix && Array.from(dbKeys).some((k) => keyPrefix(k) === prefix)) return true;
+          const isNumberedPrefix = /^[a-z]+\d+_\d+$/.test(prefix) || /^mba_\d+$/.test(prefix);
+          if (isNumberedPrefix && Array.from(dbKeys).some((k) => keyPrefix(k) === prefix)) return true;
           return false;
         }
-        // Sem proofMode: verifica se há arquivo no banco para este slot
+        // Sem proofMode: verifica se há arquivo no banco
+        if (dbKeys.has(rawKey) || dbKeys.has(key) || dbKeys.has(keyFull)) return true;
+        if (Array.from(dbKeys).some((k) => normalizeKeyFull(k) === keyFull)) return true;
         const prefix = keyPrefix(rawKey);
-        if (dbKeys.has(rawKey) || dbKeys.has(key)) return true;
-        if (prefix && Array.from(dbKeys).some((k) => keyPrefix(k) === prefix)) return true;
+        const isNumberedPrefix = /^[a-z]+\d+_\d+$/.test(prefix) || /^mba_\d+$/.test(prefix);
+        if (isNumberedPrefix && Array.from(dbKeys).some((k) => keyPrefix(k) === prefix)) return true;
         return false;
       }
 
