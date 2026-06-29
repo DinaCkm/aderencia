@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     'Gestão de parcerias estratégicas': 'URI',
   };
 
-  (p as any).adminNote = 'Correção administrativa realizada pela UGP em 29/06/2026: o projeto "Gestão de parcerias estratégicas" estava vinculado à área REGIONAIS, porém o catálogo oficial reconhece este projeto para a URI — Unidade de Relacionamento Institucional, área que a candidata também concorre. O comprovante apresentado (Termo de Cooperação Técnica e Financeira) confirma a aderência ao tema de parcerias institucionais. O vínculo foi corrigido para URI — 20 pts Estratégico Central. O projeto "Articulação estratégica Conselho-Diretoria" vinculado à UAC não pontua pois o catálogo reconhece este projeto para o CDE, área à qual a candidata não concorre, e a UAC não possui aderência temática com articulação do Conselho-Diretoria.';
+  (p as any).adminNote = 'Correção administrativa realizada pela UGP em 29/06/2026: o projeto "Gestão de parcerias estratégicas" estava vinculado à área REGIONAIS, porém o catálogo oficial reconhece este projeto para a URI — Unidade de Relacionamento Institucional, área que a candidata também concorre. O vínculo foi corrigido para URI — 20 pts Estratégico Central. O projeto "Articulação estratégica Conselho-Diretoria" foi vinculado pela candidata à área UAC, porém o catálogo oficial reconhece este projeto para o CDE — Conselho Deliberativo Estadual, área à qual a candidata não concorre. Por este motivo, o projeto não gera pontuação.';
 
   participants[idx] = p;
   await writeJsonAsync('participants', participants);
