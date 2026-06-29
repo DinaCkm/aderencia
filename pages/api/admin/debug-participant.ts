@@ -99,6 +99,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     email: p.email,
     mbaBlocks: (p as any).mbaBlocks || [],
     postMBAs: (p as any).postMBAs || [],
+    selectedProjects: p.selectedProjects || [],
+    projectAreaMap: (p as any).projectAreaMap || {},
     proofMode: p.proofMode,
     proofFilesKeys: Object.keys(p.proofFiles || {}),
     dbKeys: Array.from(dbKeys),
