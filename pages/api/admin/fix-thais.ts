@@ -8,13 +8,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const p = participants[idx];
 
-  // Corrige "Projeto ESG e sustentabilidade institucional" de UAF para UGE
   p.projectAreaMap = {
     ...p.projectAreaMap,
     'Projeto ESG e sustentabilidade institucional': 'UGE',
+    'Mapeamento e melhoria de controles internos': 'UGOC',
   };
 
-  (p as any).adminNote = 'Correção administrativa realizada pela UGP em 29/06/2026: o projeto "Projeto ESG e sustentabilidade institucional" estava vinculado à área UAF, porém o catálogo oficial reconhece este projeto para a UGE — Unidade de Gestão Estratégica, área que a candidata também concorre. O vínculo foi corrigido para UGE. O projeto "Mapeamento e melhoria de controles internos" (vinculado à UGE) e "Programa de sucessão e desenvolvimento de lideranças" (vinculado à UGOC) permanecem em análise pela UGP.';
+  (p as any).adminNote = 'Correção administrativa realizada pela UGP em 29/06/2026: (1) "Projeto ESG e sustentabilidade institucional" corrigido de UAF para UGE, onde é reconhecido no catálogo oficial e a candidata concorre. (2) "Mapeamento e melhoria de controles internos" corrigido de UGE para UGOC — novo item incluído no catálogo da UGOC por reconhecimento de aderência à área de conformidade e controladoria, classificado como Complementar — 15 pts. O projeto "Programa de sucessão e desenvolvimento de lideranças" não pontua pois não há área compatível entre as que a candidata concorre.';
 
   participants[idx] = p;
   await writeJsonAsync('participants', participants);
