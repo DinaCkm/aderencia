@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ParticipantProfile } from '../../lib/types';
+import { CATALOG_ITEMS } from '../../lib/constants';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 interface ItemValidation {
@@ -969,9 +970,26 @@ export default function AdminAudit() {
                     const projProof = p.proofFiles?.[rawProjKey] || p.proofFiles?.[projKey];
                     // Busca em proofLinks com ambas as variações
                     const projProofLink = (p as any).proofLinks?.[rawProjKey] || (p as any).proofLinks?.[projKey];
+                    const assignedArea2 = p.projectAreaMap?.[proj];
+                    const catalogMatch2 = assignedArea2
+                      ? CATALOG_ITEMS.find((ci) => ci.group === 'project' && ci.label === proj && (ci as any).area === assignedArea2)
+                      : null;
+                    const projScore = catalogMatch2
+                      ? { pts: (catalogMatch2 as any).points ?? 15, type: (catalogMatch2 as any).points >= 20 ? 'Estratégico Central' : 'Complementar', pontua: true }
+                      : assignedArea2
+                      ? { pts: 0, type: 'Não reconhecido no catálogo para esta área', pontua: false }
+                      : { pts: null, type: 'Área não vinculada', pontua: false };
                     return (
-                      <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: `1px solid ${!p.projectAreaMap?.[proj] ? '#fcd34d' : '#e2e8f0'}`, borderRadius: 8 }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b', marginBottom: 4 }}>{proj}</div>
+                      <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: `1px solid ${!assignedArea2 ? '#fcd34d' : projScore.pontua ? '#86efac' : '#fca5a5'}`, borderRadius: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                          <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>{proj}</div>
+                          <div style={{ flexShrink: 0, marginLeft: 8, fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 5,
+                            background: !assignedArea2 ? '#fef3c7' : projScore.pontua ? '#f0fdf4' : '#fef2f2',
+                            color: !assignedArea2 ? '#92400e' : projScore.pontua ? '#15803d' : '#dc2626',
+                            border: `1px solid ${!assignedArea2 ? '#fcd34d' : projScore.pontua ? '#86efac' : '#fca5a5'}` }}>
+                            {!assignedArea2 ? '⚠️ Sem área' : projScore.pontua ? `✅ ${projScore.pts} pts — ${projScore.type}` : `❌ 0 pts — ${projScore.type}`}
+                          </div>
+                        </div>
                         {p.projectAreaMap?.[proj] ? (
                           <div style={{ fontSize: '0.72rem', color: '#5b21b6', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                             🎯 Área de aplicação: {AREA_LABELS[p.projectAreaMap[proj]] || p.projectAreaMap[proj]}
