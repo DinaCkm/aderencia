@@ -223,6 +223,7 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'pos-uri-mbapos-em-lideranca', label: 'MBA/Pós em Liderança', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Liderança', 'Desenvolvimento de Lideranças', 'Liderança Estratégica'] },
   { id: 'pos-uri-mbapos-em-tecnologia', label: 'MBA/Pós em Tecnologia', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Tecnologia', 'Gestão de TI', 'Transformação Digital', 'TI'] },
   { id: 'pos-uri-politicas-publicas', label: 'Políticas Públicas', group: 'postMBA', classification: 'area-specific', points: 20, area: 'URI', aliases: ['Políticas Públicas'] },
+  { id: 'pos-uri-direito-publico', label: 'Direito Público', group: 'postMBA', classification: 'area-specific', points: 20, area: 'URI', aliases: ['Direito Público', 'Direito Constitucional'] },
   { id: 'pos-uri-relacoes-institucionais-e-governamentais', label: 'Relações Institucionais e Governamentais', group: 'postMBA', classification: 'area-specific', points: 20, area: 'URI', aliases: ['Relações Institucionais e Governamentais'] },
   // UGE
   { id: 'pos-uge-esg-e-sustentabilidade', label: 'ESG e Sustentabilidade', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGE', aliases: ['ESG', 'Sustentabilidade'] },
@@ -236,6 +237,7 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'pos-uge-mbapos-em-lideranca', label: 'MBA/Pós em Liderança', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Liderança', 'Desenvolvimento de Lideranças', 'Liderança Estratégica'] },
   { id: 'pos-uge-mbapos-em-tecnologia', label: 'MBA/Pós em Tecnologia', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Tecnologia', 'Gestão de TI', 'Transformação Digital', 'TI'] },
   { id: 'pos-uge-planejamento-estrategico', label: 'Planejamento Estratégico', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGE', aliases: ['Planejamento Estratégico'] },
+  { id: 'pos-uge-governanca-corporativa', label: 'Governança Corporativa', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGE', aliases: ['Governança Corporativa', 'Governança Empresarial'] },
   // UMC
   { id: 'pos-umc-branding-e-gestao-de-marca', label: 'Branding e Gestão de Marca', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UMC', aliases: ['Branding', 'Gestão de Marca'] },
   { id: 'pos-umc-comunicacao-corporativa', label: 'Comunicação Corporativa', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UMC', aliases: ['Comunicação Corporativa'] },
@@ -301,6 +303,7 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'pos-ugoc-gestao-publica', label: 'Gestão Pública ou Gestão Institucional', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGOC', aliases: ['Gestão Pública', 'Gestão Institucional'] },
   { id: 'pos-ugoc-administracao-publica', label: 'Administração Pública', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGOC', aliases: ['Administração Pública'] },
   { id: 'pos-ugoc-direito-administrativo', label: 'Direito Administrativo', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGOC', aliases: ['Direito Administrativo'] },
+  { id: 'pos-ugoc-governanca-corporativa', label: 'Governança Corporativa', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGOC', aliases: ['Governança Corporativa', 'Governança Empresarial'] },
   // UTIC
   { id: 'pos-utic-gestao-de-ti', label: 'Gestão de TI', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de TI', 'Tecnologia'] },
   { id: 'pos-utic-governanca-de-ti', label: 'Governança de TI', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UTIC', aliases: ['Governança de TI'] },
@@ -334,9 +337,13 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'pos-uac-mbapos-em-lideranca', label: 'MBA/Pós em Liderança', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Liderança', 'Desenvolvimento de Lideranças', 'Liderança Estratégica'] },
   { id: 'pos-uac-mbapos-em-tecnologia', label: 'MBA/Pós em Tecnologia', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Tecnologia', 'Gestão de TI', 'Transformação Digital', 'TI'] },
   { id: 'pos-uac-politicas-publicas-para-pequenos-negocios', label: 'Políticas Públicas para Pequenos Negócios', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAC', aliases: ['Políticas Públicas para Pequenos Negócios'] },
+  { id: 'pos-uac-politicas-publicas', label: 'Políticas Públicas', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAC', aliases: ['Políticas Públicas'] },
+  { id: 'pos-uac-gestao-de-pequenos-negocios', label: 'Gestão de Pequenos Negócios', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAC', aliases: ['Gestão de Pequenos Negócios', 'Gestão em Pequenos Negócios'] },
   // REGIONAIS
   { id: 'pos-regionais-desenvolvimento-regional', label: 'Desenvolvimento Regional', group: 'postMBA', classification: 'area-specific', points: 20, area: 'REGIONAIS', aliases: ['Desenvolvimento Regional'] },
   { id: 'pos-regionais-gestao-de-pequenos-negocios', label: 'Gestão de Pequenos Negócios', group: 'postMBA', classification: 'area-specific', points: 20, area: 'REGIONAIS', aliases: ['Gestão de Pequenos Negócios'] },
+  { id: 'pos-regionais-politicas-publicas', label: 'Políticas Públicas', group: 'postMBA', classification: 'area-specific', points: 20, area: 'REGIONAIS', aliases: ['Políticas Públicas'] },
+  { id: 'pos-regionais-gestao-de-processos-organizacionais', label: 'Gestão de Processos Organizacionais', group: 'postMBA', classification: 'area-specific', points: 20, area: 'REGIONAIS', aliases: ['Gestão de Processos Organizacionais', 'Gestão por Processos', 'Processos Organizacionais'] },
   { id: 'pos-regionais-gestao-de-projetos', label: 'Gestão de Projetos', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Projetos', 'Projetos'] },
   { id: 'pos-regionais-gestao-estrategica', label: 'Gestão Estratégica', group: 'postMBA', classification: 'area-specific', points: 20, area: 'REGIONAIS', aliases: ['Gestão Estratégica'] },
   { id: 'pos-regionais-lideranca-e-gestao-de-equipes', label: 'Liderança e Gestão de Equipes', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Liderança e Gestão de Equipes', 'Liderança'] },
