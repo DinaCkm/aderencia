@@ -278,6 +278,7 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'pos-uas-gestao-de-operacoes', label: 'Gestão de Operações', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['Gestão de Operações'] },
   { id: 'pos-uas-gestao-patrimonial', label: 'Gestão Patrimonial', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['Gestão Patrimonial'] },
   { id: 'pos-uas-logistica-e-cadeia-de-suprimentos', label: 'Logística e Cadeia de Suprimentos', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['Logística e Cadeia de Suprimentos', 'Supply Chain'] },
+  { id: 'pos-uaf-financas-corporativas', label: 'Finanças Corporativas', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['Finanças Corporativas', 'Finanças Empresariais'] },
   { id: 'pos-uas-mbapos-em-estrategia-organizacional', label: 'MBA/Pós em Estratégia Organizacional', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Estratégia Organizacional', 'Gestão Estratégica', 'Planejamento Estratégico'] },
   { id: 'pos-uas-mbapos-em-gestao-de-pessoas', label: 'MBA/Pós em Gestão de Pessoas', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Pessoas', 'People Analytics', 'RH Estratégico'] },
   { id: 'pos-uas-mbapos-em-gestao-de-projetos', label: 'MBA/Pós em Gestão de Projetos', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Projetos', 'Projetos', 'PMO', 'Project Management'] },
@@ -295,6 +296,8 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'pos-ugoc-mbapos-em-lideranca', label: 'MBA/Pós em Liderança', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Liderança', 'Desenvolvimento de Lideranças', 'Liderança Estratégica'] },
   { id: 'pos-ugoc-mbapos-em-tecnologia', label: 'MBA/Pós em Tecnologia', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Tecnologia', 'Gestão de TI', 'Transformação Digital', 'TI'] },
   { id: 'pos-ugoc-orcamento-publico', label: 'Orçamento Público', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGOC', aliases: ['Orçamento Público'] },
+  { id: 'pos-ugoc-gestao-publica', label: 'Gestão Pública ou Gestão Institucional', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGOC', aliases: ['Gestão Pública', 'Gestão Institucional'] },
+  { id: 'pos-ugoc-administracao-publica', label: 'Administração Pública', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGOC', aliases: ['Administração Pública'] },
   // UTIC
   { id: 'pos-utic-gestao-de-ti', label: 'Gestão de TI', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de TI', 'Tecnologia'] },
   { id: 'pos-utic-governanca-de-ti', label: 'Governança de TI', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UTIC', aliases: ['Governança de TI'] },
