@@ -581,13 +581,13 @@ export const NINE_BOX_QUADRANTS: {
   label: string;
   description?: string;
 }[] = [
-  { x: 'high', y: 'high', label: 'Alta Prontidão',                                description: 'Alta aderência técnica e comportamental — pronto para assumir.' },
-  { x: 'mid',  y: 'high', label: 'Pronto em Desenvolvimento',                      description: 'Forte perfil comportamental, em evolução técnica.' },
-  { x: 'low',  y: 'high', label: 'Potencial de Curto Prazo (gap técnico)',          description: 'Excelente perfil comportamental, necessita desenvolver competências técnicas.' },
-  { x: 'high', y: 'mid',  label: 'Destaque Técnico, lapidar liderança',             description: 'Alta aderência técnica, perfil comportamental em desenvolvimento.' },
-  { x: 'mid',  y: 'mid',  label: 'Potencial de Médio Prazo',                        description: 'Aderência equilibrada, com espaço de crescimento em ambos os eixos.' },
-  { x: 'low',  y: 'mid',  label: 'Desenvolvimento Direcionado',                     description: 'Perfil comportamental médio, necessita desenvolvimento técnico prioritário.' },
-  { x: 'high', y: 'low',  label: 'Risco de Liderança',                              description: 'Alta aderência técnica, baixo perfil comportamental para liderança.' },
+  { x: 'high', y: 'high', label: 'Tecnicamente Alta — Comportamental Alta',        description: 'Alta aderência técnica e comportamental — pronto para assumir.' },
+  { x: 'mid',  y: 'high', label: 'Tecnicamente Média — Comportamental Alta',        description: 'Forte perfil comportamental, em evolução técnica.' },
+  { x: 'low',  y: 'high', label: 'Tecnicamente Baixa — Comportamental Alta',        description: 'Excelente perfil comportamental, necessita desenvolver competências técnicas.' },
+  { x: 'high', y: 'mid',  label: 'Tecnicamente Alta — Comportamental Média',        description: 'Alta aderência técnica, perfil comportamental em desenvolvimento.' },
+  { x: 'mid',  y: 'mid',  label: 'Tecnicamente Média — Comportamental Média',       description: 'Aderência equilibrada, com espaço de crescimento em ambos os eixos.' },
+  { x: 'low',  y: 'mid',  label: 'Tecnicamente Baixa — Comportamental Média',       description: 'Perfil comportamental médio, necessita desenvolvimento técnico prioritário.' },
+  { x: 'high', y: 'low',  label: 'Tecnicamente Alta — Comportamental Baixa',        description: 'Alta aderência técnica, perfil comportamental em desenvolvimento.' },
   { x: 'mid',  y: 'low',  label: 'Especialista Técnico sem Perfil de Liderança',    description: 'Aderência técnica razoável, baixo perfil comportamental.' },
-  { x: 'low',  y: 'low',  label: 'Baixa Aderência',                                 description: 'Baixa aderência em ambos os eixos — requer plano de desenvolvimento estruturado.' },
+  { x: 'low',  y: 'low',  label: 'Tecnicamente Baixa — Comportamental Baixa',       description: 'Baixa aderência em ambos os eixos — requer plano de desenvolvimento estruturado.' },
 ];

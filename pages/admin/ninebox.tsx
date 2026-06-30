@@ -17,44 +17,44 @@ type AssessmentWithMeta = AreaAssessment & {
 };
 
 const QUADRANT_DESC: Record<string, string> = {
-  'Potencial de Curto Prazo':    'Perfil comportamental alto, mas aderência técnica baixa. Tem o perfil certo para a área, mas ainda precisa de capacitação técnica. Pode ser desenvolvido a médio prazo.',
-  'Pronto em Desenvolvimento':   'Perfil comportamental excelente e aderência técnica em desenvolvimento (média). Tem grande potencial e pode ser preparado rapidamente com capacitação técnica.',
+  'Tecnicamente Baixa — Comportamental Alta':    'Perfil comportamental alto, mas aderência técnica baixa. Tem o perfil certo para a área, mas ainda precisa de capacitação técnica. Pode ser desenvolvido a médio prazo.',
+  'Tecnicamente Média — Comportamental Alta':   'Perfil comportamental excelente e aderência técnica em desenvolvimento (média). Tem grande potencial e pode ser preparado rapidamente com capacitação técnica.',
   'Alta Prontidao':              'Candidato com alta aderência técnica E comportamental. Candidato ideal: está pronto para assumir a posição agora ou em curto prazo.',
-  'Alta Prontidão':              'Candidato com alta aderência técnica E comportamental. Candidato ideal: está pronto para assumir a posição agora ou em curto prazo.',
-  'Desenvolvimento Direcionado': 'Técnica e comportamento ambos baixos-médios. Precisa de um plano de desenvolvimento estruturado antes de ser considerado para sucessão.',
-  'Potencial de Médio Prazo':    'Técnica e comportamento ambos médios. Candidato equilibrado, mas ainda não está pronto. Precisa de desenvolvimento em ambas as dimensões.',
+  'Tecnicamente Alta — Comportamental Alta':              'Candidato com alta aderência técnica E comportamental. Candidato ideal: está pronto para assumir a posição agora ou em curto prazo.',
+  'Tecnicamente Baixa — Comportamental Média': 'Técnica e comportamento ambos baixos-médios. Precisa de um plano de desenvolvimento estruturado antes de ser considerado para sucessão.',
+  'Tecnicamente Média — Comportamental Média':    'Técnica e comportamento ambos médios. Candidato equilibrado, mas ainda não está pronto. Precisa de desenvolvimento em ambas as dimensões.',
   'Destaque Técnico':            'Aderência técnica alta, mas perfil comportamental médio. Domina o conteúdo, mas precisa desenvolver competências de liderança e comportamento.',
-  'Baixa Aderência':             'Técnica e comportamento ambos baixos. Não há aderência significativa à área neste momento. Não é recomendado para sucessão sem um plano de desenvolvimento profundo.',
-  'Especialista sem Liderança':  'Técnica média, mas comportamento baixo para a área. Conhece o trabalho, mas o perfil DISC não se alinha ao cargo. Pode ser um bom especialista, mas não necessariamente um bom gestor nessa área.',
-  'Risco de Liderança':          'Técnica alta, mas comportamento baixo. O candidato tem o conhecimento técnico, mas o perfil comportamental pode gerar conflitos ou dificuldades na gestão.',
+  'Tecnicamente Baixa — Comportamental Baixa':             'Técnica e comportamento ambos baixos. Não há aderência significativa à área neste momento. Não é recomendado para sucessão sem um plano de desenvolvimento profundo.',
+  'Tecnicamente Média — Comportamental Baixa':  'Técnica média, mas comportamento baixo para a área. Conhece o trabalho, mas o perfil DISC não se alinha ao cargo. Pode ser um bom especialista, mas não necessariamente um bom gestor nessa área.',
+  'Tecnicamente Alta — Comportamental Baixa':          'Técnica alta, mas comportamento baixo. O candidato tem o conhecimento técnico, mas o perfil comportamental pode gerar conflitos ou dificuldades na gestão.',
 };
 
 const GRID_CELLS: { x: string; y: string; label: string; color: string; bg: string }[] = [
-  { x: 'low',  y: 'high', label: 'Potencial de Curto Prazo',    color: '#0369a1', bg: '#e0f2fe' },
-  { x: 'mid',  y: 'high', label: 'Pronto em Desenvolvimento',   color: '#7c3aed', bg: '#ede9fe' },
+  { x: 'low',  y: 'high', label: 'Tecnicamente Baixa — Comportamental Alta',    color: '#0369a1', bg: '#e0f2fe' },
+  { x: 'mid',  y: 'high', label: 'Tecnicamente Média — Comportamental Alta',   color: '#7c3aed', bg: '#ede9fe' },
   { x: 'high', y: 'high', label: 'Alta Prontidao',              color: '#15803d', bg: '#dcfce7' },
-  { x: 'low',  y: 'mid',  label: 'Desenvolvimento Direcionado', color: '#92400e', bg: '#fef3c7' },
-  { x: 'mid',  y: 'mid',  label: 'Potencial de Médio Prazo',    color: '#5B2D8E', bg: '#f3e8ff' },
+  { x: 'low',  y: 'mid',  label: 'Tecnicamente Baixa — Comportamental Média', color: '#92400e', bg: '#fef3c7' },
+  { x: 'mid',  y: 'mid',  label: 'Tecnicamente Média — Comportamental Média',    color: '#5B2D8E', bg: '#f3e8ff' },
   { x: 'high', y: 'mid',  label: 'Destaque Técnico',            color: '#0f766e', bg: '#ccfbf1' },
-  { x: 'low',  y: 'low',  label: 'Baixa Aderência',             color: '#9f1239', bg: '#ffe4e6' },
-  { x: 'mid',  y: 'low',  label: 'Especialista sem Liderança',  color: '#c2410c', bg: '#ffedd5' },
-  { x: 'high', y: 'low',  label: 'Risco de Liderança',          color: '#b45309', bg: '#fef9c3' },
+  { x: 'low',  y: 'low',  label: 'Tecnicamente Baixa — Comportamental Baixa',             color: '#9f1239', bg: '#ffe4e6' },
+  { x: 'mid',  y: 'low',  label: 'Tecnicamente Média — Comportamental Baixa',  color: '#c2410c', bg: '#ffedd5' },
+  { x: 'high', y: 'low',  label: 'Tecnicamente Alta — Comportamental Baixa',          color: '#b45309', bg: '#fef9c3' },
 ];
 
 function getCell(quadrantLabel: string) {
   const map: Record<string, { x: string; y: string }> = {
-    'Baixa Aderência': { x: 'low', y: 'low' },
+    'Tecnicamente Baixa — Comportamental Baixa': { x: 'low', y: 'low' },
     'Especialista Técnico sem Perfil de Liderança': { x: 'mid', y: 'low' },
-    'Especialista sem Liderança': { x: 'mid', y: 'low' },
-    'Risco de Liderança': { x: 'high', y: 'low' },
-    'Desenvolvimento Direcionado': { x: 'low', y: 'mid' },
-    'Potencial de Médio Prazo': { x: 'mid', y: 'mid' },
-    'Destaque Técnico, lapidar liderança': { x: 'high', y: 'mid' },
+    'Tecnicamente Média — Comportamental Baixa': { x: 'mid', y: 'low' },
+    'Tecnicamente Alta — Comportamental Baixa': { x: 'high', y: 'low' },
+    'Tecnicamente Baixa — Comportamental Média': { x: 'low', y: 'mid' },
+    'Tecnicamente Média — Comportamental Média': { x: 'mid', y: 'mid' },
+    'Tecnicamente Alta — Comportamental Média': { x: 'high', y: 'mid' },
     'Destaque Técnico': { x: 'high', y: 'mid' },
     'Potencial de Curto Prazo (gap técnico)': { x: 'low', y: 'high' },
-    'Potencial de Curto Prazo': { x: 'low', y: 'high' },
-    'Pronto em Desenvolvimento': { x: 'mid', y: 'high' },
-    'Alta Prontidão': { x: 'high', y: 'high' },
+    'Tecnicamente Baixa — Comportamental Alta': { x: 'low', y: 'high' },
+    'Tecnicamente Média — Comportamental Alta': { x: 'mid', y: 'high' },
+    'Tecnicamente Alta — Comportamental Alta': { x: 'high', y: 'high' },
     'Alta Prontidao': { x: 'high', y: 'high' },
   };
   return map[quadrantLabel] || null;

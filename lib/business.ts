@@ -198,15 +198,15 @@ function computeTechnicalAdherence(
 // ─────────────────────────────────────────────────────────────────────────────
 
 const NINE_BOX_QUADRANTS: { x: 'low' | 'mid' | 'high'; y: 'low' | 'mid' | 'high'; label: string }[] = [
-  { x: 'high', y: 'high', label: 'Alta Prontidão' },
-  { x: 'mid',  y: 'high', label: 'Pronto em Desenvolvimento' },
-  { x: 'low',  y: 'high', label: 'Potencial de Curto Prazo (gap técnico)' },
-  { x: 'high', y: 'mid',  label: 'Destaque Técnico, lapidar liderança' },
-  { x: 'mid',  y: 'mid',  label: 'Potencial de Médio Prazo' },
-  { x: 'low',  y: 'mid',  label: 'Desenvolvimento Direcionado' },
-  { x: 'high', y: 'low',  label: 'Risco de Liderança' },
+  { x: 'high', y: 'high', label: 'Tecnicamente Alta — Comportamental Alta' },
+  { x: 'mid',  y: 'high', label: 'Tecnicamente Média — Comportamental Alta' },
+  { x: 'low',  y: 'high', label: 'Tecnicamente Baixa — Comportamental Alta' },
+  { x: 'high', y: 'mid',  label: 'Tecnicamente Alta — Comportamental Média' },
+  { x: 'mid',  y: 'mid',  label: 'Tecnicamente Média — Comportamental Média' },
+  { x: 'low',  y: 'mid',  label: 'Tecnicamente Baixa — Comportamental Média' },
+  { x: 'high', y: 'low',  label: 'Tecnicamente Alta — Comportamental Baixa' },
   { x: 'mid',  y: 'low',  label: 'Especialista Técnico sem Perfil de Liderança' },
-  { x: 'low',  y: 'low',  label: 'Baixa Aderência' },
+  { x: 'low',  y: 'low',  label: 'Tecnicamente Baixa — Comportamental Baixa' },
 ];
 
 function getQuadrant(technical: number, behavioral: number): string {
