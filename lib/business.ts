@@ -109,14 +109,20 @@ function computeTechnicalAdherence(
   const postMBADet = bestPostMBADetail(profile.postMBAs ?? [], area);
   const expScore = experienceScore(profile.managerialMonths ?? 0, profile.interimMonths ?? 0);
 
+  // Projetos transversais — pontuam automaticamente em todas as áreas do candidato
+  const TRANSVERSAL_PROJECTS = [
+    'Programa de sucessão e desenvolvimento de lideranças',
+  ];
+
   // Projetos com detalhes
   // Usa projectAreaMap como fonte de verdade: se o admin vinculou um projeto a esta área,
   // ele pontua aqui — buscando os pontos no catálogo pelo label (independente da área original do catálogo)
+  // Projetos transversais pontuam em todas as áreas do candidato automaticamente
   const projectAreaMap: Record<string, string> = (profile as any).projectAreaMap ?? {};
   const projItems = (profile.selectedProjects ?? [])
-    .filter((label) => projectAreaMap[label] === area)
+    .filter((label) => projectAreaMap[label] === area || TRANSVERSAL_PROJECTS.includes(label))
     .map((label) => {
-      // Projeto deve existir no catálogo para a área vinculada
+      // Projeto deve existir no catálogo para a área vinculada (ou para projetos transversais, para esta área)
       const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === label && i.area === area);
       if (!catalogItem) return null;
       const pts = (catalogItem as any).points ?? 15;
