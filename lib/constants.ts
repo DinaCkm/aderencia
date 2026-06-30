@@ -238,6 +238,7 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'pos-uge-mbapos-em-tecnologia', label: 'MBA/Pós em Tecnologia', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Tecnologia', 'Gestão de TI', 'Transformação Digital', 'TI'] },
   { id: 'pos-uge-planejamento-estrategico', label: 'Planejamento Estratégico', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGE', aliases: ['Planejamento Estratégico'] },
   { id: 'pos-uge-governanca-corporativa', label: 'Governança Corporativa', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGE', aliases: ['Governança Corporativa', 'Governança Empresarial'] },
+  { id: 'pos-uge-gestao-de-processos-organizacionais', label: 'Gestão de Processos Organizacionais', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UGE', aliases: ['Gestão de Processos Organizacionais', 'Gestão por Processos', 'Processos Organizacionais'] },
   // UMC
   { id: 'pos-umc-branding-e-gestao-de-marca', label: 'Branding e Gestão de Marca', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UMC', aliases: ['Branding', 'Gestão de Marca'] },
   { id: 'pos-umc-comunicacao-corporativa', label: 'Comunicação Corporativa', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UMC', aliases: ['Comunicação Corporativa'] },
@@ -283,6 +284,7 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'pos-uaf-financas-corporativas', label: 'Finanças Corporativas', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['Finanças Corporativas', 'Finanças Empresariais'] },
   { id: 'pos-uaf-direito-administrativo', label: 'Direito Administrativo', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['Direito Administrativo'] },
   { id: 'pos-uaf-controladoria', label: 'Controladoria', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['Controladoria'] },
+  { id: 'pos-uaf-gestao-de-processos-organizacionais', label: 'Gestão de Processos Organizacionais', group: 'postMBA', classification: 'area-specific', points: 20, area: 'UAF', aliases: ['Gestão de Processos Organizacionais', 'Gestão por Processos', 'Processos Organizacionais'] },
   { id: 'pos-uas-mbapos-em-estrategia-organizacional', label: 'MBA/Pós em Estratégia Organizacional', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Estratégia Organizacional', 'Gestão Estratégica', 'Planejamento Estratégico'] },
   { id: 'pos-uas-mbapos-em-gestao-de-pessoas', label: 'MBA/Pós em Gestão de Pessoas', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Pessoas', 'People Analytics', 'RH Estratégico'] },
   { id: 'pos-uas-mbapos-em-gestao-de-projetos', label: 'MBA/Pós em Gestão de Projetos', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Projetos', 'Projetos', 'PMO', 'Project Management'] },
@@ -320,6 +322,7 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'pos-urc-experiencia-do-cliente-cx', label: 'Experiência do Cliente (CX)', group: 'postMBA', classification: 'area-specific', points: 20, area: 'URC', aliases: ['Experiência do Cliente', 'CX'] },
   { id: 'pos-urc-gestao-de-relacionamento-com-clientes', label: 'Gestão de Relacionamento com Clientes', group: 'postMBA', classification: 'area-specific', points: 20, area: 'URC', aliases: ['Gestão de Relacionamento com Clientes', 'CRM'] },
   { id: 'pos-urc-gestao-de-servicos', label: 'Gestão de Serviços', group: 'postMBA', classification: 'area-specific', points: 20, area: 'URC', aliases: ['Gestão de Serviços'] },
+  { id: 'pos-urc-gestao-de-processos-organizacionais', label: 'Gestão de Processos Organizacionais', group: 'postMBA', classification: 'area-specific', points: 20, area: 'URC', aliases: ['Gestão de Processos Organizacionais', 'Gestão por Processos', 'Processos Organizacionais'] },
   { id: 'pos-urc-mbapos-em-estrategia-organizacional', label: 'MBA/Pós em Estratégia Organizacional', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Estratégia Organizacional', 'Gestão Estratégica', 'Planejamento Estratégico'] },
   { id: 'pos-urc-mbapos-em-gestao-de-pessoas', label: 'MBA/Pós em Gestão de Pessoas', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Pessoas', 'People Analytics', 'RH Estratégico'] },
   { id: 'pos-urc-mbapos-em-gestao-de-projetos', label: 'MBA/Pós em Gestão de Projetos', group: 'postMBA', classification: 'transversal', points: 40, aliases: ['Gestão de Projetos', 'Projetos', 'PMO', 'Project Management'] },
