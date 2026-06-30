@@ -17,16 +17,16 @@ type AssessmentWithMeta = AreaAssessment & {
 };
 
 const QUADRANT_DESC: Record<string, string> = {
-  'Tecnicamente Baixa — Comportamental Alta':    'Perfil comportamental alto, mas aderência técnica baixa. Tem o perfil certo para a área, mas ainda precisa de capacitação técnica. Pode ser desenvolvido a médio prazo.',
-  'Tecnicamente Média — Comportamental Alta':   'Perfil comportamental excelente e aderência técnica em desenvolvimento (média). Tem grande potencial e pode ser preparado rapidamente com capacitação técnica.',
+  'Tecnicamente Baixa — Comportamental Alta':    'O perfil comportamental apresenta forte aderência ao perfil de gestão esperado para esta área. A aderência técnica ainda está em desenvolvimento — com capacitação direcionada, o candidato tem grande potencial de evolução.',
+  'Tecnicamente Média — Comportamental Alta':   'O perfil comportamental apresenta excelente aderência ao perfil de gestão esperado para esta área. A aderência técnica está em evolução e pode ser fortalecida com capacitação específica.',
   'Alta Prontidao':              'Candidato com alta aderência técnica E comportamental. Candidato ideal: está pronto para assumir a posição agora ou em curto prazo.',
-  'Tecnicamente Alta — Comportamental Alta':              'Candidato com alta aderência técnica E comportamental. Candidato ideal: está pronto para assumir a posição agora ou em curto prazo.',
-  'Tecnicamente Baixa — Comportamental Média': 'Técnica e comportamento ambos baixos-médios. Precisa de um plano de desenvolvimento estruturado antes de ser considerado para sucessão.',
-  'Tecnicamente Média — Comportamental Média':    'Técnica e comportamento ambos médios. Candidato equilibrado, mas ainda não está pronto. Precisa de desenvolvimento em ambas as dimensões.',
+  'Tecnicamente Alta — Comportamental Alta':              'O candidato apresenta alta aderência tanto nas competências técnicas quanto no perfil comportamental esperado para gestão nesta área. Perfil com maior prontidão para assumir posição de liderança.',
+  'Tecnicamente Baixa — Comportamental Média': 'O perfil comportamental apresenta aderência parcial ao perfil de gestão esperado para esta área. A aderência técnica ainda requer desenvolvimento prioritário. Recomenda-se um plano de capacitação estruturado.',
+  'Tecnicamente Média — Comportamental Média':    'O candidato apresenta aderência parcial em ambas as dimensões. O perfil comportamental tem alinhamento moderado com o perfil de gestão esperado para esta área, assim como a aderência técnica. Há oportunidade de desenvolvimento em ambos os eixos.',
   'Destaque Técnico':            'Aderência técnica alta, mas perfil comportamental médio. Domina o conteúdo, mas precisa desenvolver competências de liderança e comportamento.',
-  'Tecnicamente Baixa — Comportamental Baixa':             'Técnica e comportamento ambos baixos. Não há aderência significativa à área neste momento. Não é recomendado para sucessão sem um plano de desenvolvimento profundo.',
-  'Tecnicamente Média — Comportamental Baixa':  'Técnica média, mas comportamento baixo para a área. Conhece o trabalho, mas o perfil DISC não se alinha ao cargo. Pode ser um bom especialista, mas não necessariamente um bom gestor nessa área.',
-  'Tecnicamente Alta — Comportamental Baixa':          'Técnica alta, mas comportamento baixo. O candidato tem o conhecimento técnico, mas o perfil comportamental pode gerar conflitos ou dificuldades na gestão.',
+  'Tecnicamente Baixa — Comportamental Baixa':             'A aderência técnica e o alinhamento do perfil comportamental com o perfil de gestão esperado para esta área ainda estão em desenvolvimento. Recomenda-se um plano estruturado de desenvolvimento antes de considerar a candidatura para esta posição.',
+  'Tecnicamente Média — Comportamental Baixa':  'A aderência técnica está em desenvolvimento. O perfil comportamental apresenta alinhamento parcial com o perfil de gestão esperado para esta área — há oportunidade de desenvolvimento das competências comportamentais necessárias para a liderança neste contexto.',
+  'Tecnicamente Alta — Comportamental Baixa':          'O candidato apresenta alta aderência técnica à área. O perfil comportamental ainda não apresenta alinhamento pleno com o perfil de gestão esperado para esta posição — o desenvolvimento das competências comportamentais de liderança é o principal ponto de atenção.',
 };
 
 const GRID_CELLS: { x: string; y: string; label: string; color: string; bg: string }[] = [

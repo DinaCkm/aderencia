@@ -581,13 +581,13 @@ export const NINE_BOX_QUADRANTS: {
   label: string;
   description?: string;
 }[] = [
-  { x: 'high', y: 'high', label: 'Tecnicamente Alta — Comportamental Alta',        description: 'Alta aderência técnica e comportamental — pronto para assumir.' },
-  { x: 'mid',  y: 'high', label: 'Tecnicamente Média — Comportamental Alta',        description: 'Forte perfil comportamental, em evolução técnica.' },
-  { x: 'low',  y: 'high', label: 'Tecnicamente Baixa — Comportamental Alta',        description: 'Excelente perfil comportamental, necessita desenvolver competências técnicas.' },
-  { x: 'high', y: 'mid',  label: 'Tecnicamente Alta — Comportamental Média',        description: 'Alta aderência técnica, perfil comportamental em desenvolvimento.' },
-  { x: 'mid',  y: 'mid',  label: 'Tecnicamente Média — Comportamental Média',       description: 'Aderência equilibrada, com espaço de crescimento em ambos os eixos.' },
-  { x: 'low',  y: 'mid',  label: 'Tecnicamente Baixa — Comportamental Média',       description: 'Perfil comportamental médio, necessita desenvolvimento técnico prioritário.' },
-  { x: 'high', y: 'low',  label: 'Tecnicamente Alta — Comportamental Baixa',        description: 'Alta aderência técnica, perfil comportamental em desenvolvimento.' },
-  { x: 'mid',  y: 'low',  label: 'Especialista Técnico sem Perfil de Liderança',    description: 'Aderência técnica razoável, baixo perfil comportamental.' },
-  { x: 'low',  y: 'low',  label: 'Tecnicamente Baixa — Comportamental Baixa',       description: 'Baixa aderência em ambos os eixos — requer plano de desenvolvimento estruturado.' },
+  { x: 'high', y: 'high', label: 'Tecnicamente Alta — Comportamental Alta',        description: 'O candidato apresenta alta aderência técnica e forte alinhamento do perfil comportamental com o perfil de gestão esperado para esta área.' },
+  { x: 'mid',  y: 'high', label: 'Tecnicamente Média — Comportamental Alta',        description: 'O perfil comportamental apresenta excelente alinhamento com o perfil de gestão esperado para esta área. A aderência técnica está em evolução.' },
+  { x: 'low',  y: 'high', label: 'Tecnicamente Baixa — Comportamental Alta',        description: 'O perfil comportamental apresenta forte alinhamento com o perfil de gestão esperado. A aderência técnica ainda requer desenvolvimento.' },
+  { x: 'high', y: 'mid',  label: 'Tecnicamente Alta — Comportamental Média',        description: 'A aderência técnica é alta. O alinhamento do perfil comportamental com o perfil de gestão esperado para esta área está em desenvolvimento.' },
+  { x: 'mid',  y: 'mid',  label: 'Tecnicamente Média — Comportamental Média',       description: 'Há aderência parcial em ambas as dimensões, com oportunidade de desenvolvimento tanto técnico quanto no alinhamento comportamental com o perfil de gestão da área.' },
+  { x: 'low',  y: 'mid',  label: 'Tecnicamente Baixa — Comportamental Média',       description: 'O alinhamento do perfil comportamental com o perfil de gestão da área é parcial. A aderência técnica requer desenvolvimento prioritário.' },
+  { x: 'high', y: 'low',  label: 'Tecnicamente Alta — Comportamental Baixa',        description: 'A aderência técnica é alta. O alinhamento do perfil comportamental com o perfil de gestão esperado para esta posição é o principal ponto de desenvolvimento.' },
+  { x: 'mid',  y: 'low',  label: 'Especialista Técnico sem Perfil de Liderança',    description: 'A aderência técnica está em desenvolvimento. O alinhamento do perfil comportamental com o perfil de gestão esperado para esta área requer atenção e desenvolvimento.' },
+  { x: 'low',  y: 'low',  label: 'Tecnicamente Baixa — Comportamental Baixa',       description: 'A aderência técnica e o alinhamento comportamental com o perfil de gestão da área estão em desenvolvimento. Recomenda-se um plano estruturado de capacitação.' },
 ];
