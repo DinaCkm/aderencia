@@ -436,6 +436,7 @@ export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] 
   { id: 'proj-regionais-desenvolvimento-regional-e-interiorizacao', label: 'Desenvolvimento regional e interiorização', group: 'project', classification: 'area-specific', points: 20, area: 'REGIONAIS', aliases: ['desenvolvimento regional', 'interiorização', 'ações territoriais'] },
   { id: 'proj-regionais-gestao-de-equipes-e-operacoes-regionais', label: 'Gestão de equipes e operações regionais', group: 'project', classification: 'area-specific', points: 15, area: 'REGIONAIS', aliases: ['equipes regionais', 'operações regionais', 'liderança regional'] },
   { id: 'proj-regionais-monitoramento-de-resultados-e-metas-regionais', label: 'Monitoramento de resultados e metas regionais', group: 'project', classification: 'area-specific', points: 15, area: 'REGIONAIS', aliases: ['metas regionais', 'monitoramento regional', 'painel regional'] },
+  { id: 'proj-regionais-campanhas-de-comunicacao-e-marketing-estrategico', label: 'Campanhas de comunicação e marketing estratégico', group: 'project', classification: 'area-specific', points: 15, area: 'REGIONAIS', aliases: ['campanhas regionais', 'divulgação local', 'marketing regional'] },
 ];
 
 // ── helpers de consulta ───────────────────────────────────────────────────────
