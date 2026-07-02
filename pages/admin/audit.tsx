@@ -364,6 +364,7 @@ export default function AdminAudit() {
   const [overallNote, setOverallNote] = useState('');
   const [emailModal, setEmailModal] = useState<{ subject: string; body: string } | null>(null);
   const [toast, setToast] = useState('');
+  const [loadError, setLoadError] = useState('');
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
@@ -381,13 +382,27 @@ export default function AdminAudit() {
   const loadProfile = useCallback(async (email: string) => {
     setLoading(true);
     setSelected(null);
-    const res = await fetch(`/api/admin/audit-profile?email=${encodeURIComponent(email)}`);
-    if (res.ok) {
-      const data = await res.json();
+    setLoadError('');
+    try {
+      const res = await fetch(`/api/admin/audit-profile?email=${encodeURIComponent(email)}`);
+      const rawText = await res.text();
+      let data: any = null;
+      try {
+        data = rawText ? JSON.parse(rawText) : null;
+      } catch {
+        throw new Error(`Resposta inválida do servidor (status ${res.status}): ${rawText.slice(0, 300)}`);
+      }
+      if (!res.ok) {
+        throw new Error(data?.error || `Erro ${res.status} ao carregar ficha`);
+      }
       setSelected(data);
       setOverallNote(data.audit?.overallNote || '');
+    } catch (err: any) {
+      console.error('[audit] erro ao carregar ficha:', err);
+      setLoadError(err?.message || 'Erro desconhecido ao carregar a ficha.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const saveItemValidation = async (v: ItemValidation) => {
@@ -594,7 +609,15 @@ export default function AdminAudit() {
             </div>
           )}
 
-          {!loading && !selected && (
+          {!loading && loadError && (
+            <div style={{ textAlign: 'center', padding: 60, color: '#991b1b' }}>
+              <div style={{ fontSize: '2rem', marginBottom: 12 }}>⚠️</div>
+              <p style={{ fontWeight: 700, marginBottom: 8 }}>Não foi possível carregar a ficha.</p>
+              <p style={{ fontSize: '0.8rem', color: '#7f1d1d', maxWidth: 500, margin: '0 auto' }}>{loadError}</p>
+            </div>
+          )}
+
+          {!loading && !loadError && !selected && (
             <div style={{ textAlign: 'center', padding: 80, color: '#94a3b8' }}>
               <div style={{ fontSize: '3rem', marginBottom: 16 }}>👈</div>
               <p style={{ fontSize: '0.9rem' }}>Selecione um candidato na lista ao lado para visualizar e auditar a ficha completa.</p>
