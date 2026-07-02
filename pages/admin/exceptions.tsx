@@ -20,11 +20,12 @@ const AREA_LABELS: Record<string, string> = {
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  projeto: 'Projeto Estratégico fora do catálogo',
-  'pos-mba': 'Título de Pós/MBA fora do catálogo',
+  projeto: '📋 Projeto Estratégico',
+  'pos-mba': '🎓 Pós/MBA',
   curso: 'Curso Extracurricular fora do catálogo',
   experiencia: 'Experiência Gerencial/Interina não reconhecida',
   outro: 'Outro questionamento',
+  desconhecido: '❓ Tipo não identificado (sem vínculo ao catálogo)',
 };
 
 const TYPE_ICONS: Record<string, string> = {
@@ -389,8 +390,10 @@ export default function AdminExceptions() {
                 const catalogArea = (p as any).exceptionCatalogArea;
                 const approvalJustification = (p as any).exceptionApprovalJustification;
                 const items = (p as any).exceptionItems || [];
-                const itemName = (p as any).exceptionItemName || items[0]?.itemName || p.exceptionJustification?.substring(0, 80) || '—';
-                const exType = items[0]?.type || 'outro';
+                const itemName = (p as any).exceptionItemName || items[0]?.itemName || p.exceptionJustification?.substring(0, 80) || '(nome do item não informado)';
+                // O formulário do participante nunca captura um "tipo" — a única classificação real
+                // é a que o admin escolheu ao aprovar (catalogType). Sem isso, o tipo é desconhecido.
+                const exType = catalogType === 'pos-mba' ? 'pos-mba' : catalogType === 'projeto' ? 'projeto' : 'desconhecido';
                 const isExpanded = expandedResolvedId === p.id;
                 const hasFile = !!(p as any).exceptionFileBase64;
                 const fileType = (p as any).exceptionFileType || '';
@@ -411,7 +414,7 @@ export default function AdminExceptions() {
                           <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{resolvedAt}</span>
                         </div>
                         <div style={{ fontSize: '0.78rem', color: '#374151', marginBottom: catalogLabel ? 4 : 0 }}>
-                          <span style={{ color: '#6b7280' }}>{TYPE_LABELS[exType] || exType}: </span>{itemName}
+                          <span style={{ color: '#6b7280' }}>{TYPE_LABELS[exType]}: </span><strong>{itemName}</strong>
                         </div>
                         {catalogLabel && (
                           <div style={{ fontSize: '0.75rem', color: '#15803d', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 5, padding: '3px 8px', display: 'inline-block', marginTop: 4 }}>
