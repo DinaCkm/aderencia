@@ -57,15 +57,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Garantir que participants seja sempre um array
   const participants: ParticipantProfile[] = Array.isArray(rawParticipants) ? rawParticipants : [];
   const existingIndex = participants.findIndex((item) => item.id === data.id);
+  const existing = existingIndex >= 0 ? (participants[existingIndex] as any) : undefined;
 
   // Se graduation é __outro__, marcar como exceção automaticamente
   const hasGraduationException = data.graduation === '__outro__';
+  const exceptionBeingRequested = data.exceptionRequested || hasGraduationException;
+
+  // Se a exceção já foi analisada pelo admin (aprovada ou rejeitada) anteriormente,
+  // uma resubmissão do formulário (ex: o participante editando outro campo qualquer)
+  // NÃO deve reverter essa decisão de volta para "pending". Sem isso, qualquer novo
+  // salvamento do formulário apaga silenciosamente o trabalho de análise da UGP.
+  const existingResolved = existing && (existing.exceptionStatus === 'approved' || existing.exceptionStatus === 'rejected');
+
+  let exceptionStatus: ParticipantProfile['exceptionStatus'];
+  if (!exceptionBeingRequested) {
+    exceptionStatus = 'approved'; // nenhuma exceção pendente de revisão
+  } else if (existingResolved) {
+    exceptionStatus = existing.exceptionStatus; // preserva decisão já tomada
+  } else {
+    exceptionStatus = 'pending';
+  }
 
   const profile: ParticipantProfile = {
     ...data,
     proofFiles: cleanProofFiles, // sem base64 — arquivos estão na tabela proof_files
     submittedAt: new Date().toISOString(),
-    exceptionStatus: (data.exceptionRequested || hasGraduationException) ? 'pending' : 'approved',
+    exceptionStatus,
+    // Preserva os campos de decisão do admin mesmo que o payload do cliente não os inclua
+    ...(existingResolved ? {
+      exceptionResolvedAt: (data as any).exceptionResolvedAt ?? existing.exceptionResolvedAt,
+      exceptionCatalogLabel: (data as any).exceptionCatalogLabel ?? existing.exceptionCatalogLabel,
+      exceptionCatalogType: (data as any).exceptionCatalogType ?? existing.exceptionCatalogType,
+      exceptionCatalogArea: (data as any).exceptionCatalogArea ?? existing.exceptionCatalogArea,
+      exceptionApprovalJustification: (data as any).exceptionApprovalJustification ?? existing.exceptionApprovalJustification,
+    } as any : {}),
   };
 
   if (existingIndex >= 0) {
