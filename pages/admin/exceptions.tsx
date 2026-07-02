@@ -64,6 +64,7 @@ export default function AdminExceptions() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [resolved, setResolved] = useState<ParticipantProfile[]>([]);
   const [showResolved, setShowResolved] = useState(false);
+  const [expandedResolvedId, setExpandedResolvedId] = useState<string | null>(null);
   const [approveModal, setApproveModal] = useState<{ participant: ParticipantProfile } | null>(null);
   const [selectedCatalogLabel, setSelectedCatalogLabel] = useState('');
   const [approvingId, setApprovingId] = useState<string | null>(null);
@@ -385,36 +386,99 @@ export default function AdminExceptions() {
                   : '—';
                 const catalogLabel = (p as any).exceptionCatalogLabel;
                 const catalogType = (p as any).exceptionCatalogType;
+                const catalogArea = (p as any).exceptionCatalogArea;
+                const approvalJustification = (p as any).exceptionApprovalJustification;
                 const items = (p as any).exceptionItems || [];
                 const itemName = items[0]?.itemName || p.exceptionJustification?.substring(0, 80) || '—';
                 const exType = items[0]?.type || 'outro';
+                const isExpanded = expandedResolvedId === p.id;
+                const hasFile = !!(p as any).exceptionFileBase64;
+                const fileType = (p as any).exceptionFileType || '';
+                const fileName = (p as any).exceptionFileName || 'arquivo';
+                const fileBase64 = (p as any).exceptionFileBase64 || '';
 
                 return (
-                  <div key={p.id} style={{ background: 'white', border: `1.5px solid ${isApproved ? '#86efac' : '#fca5a5'}`, borderRadius: 10, padding: '14px 18px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-                    <div style={{ fontSize: '1.2rem', marginTop: 2 }}>{isApproved ? '✅' : '❌'}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 }}>
-                        <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1f2937' }}>{p.name}</span>
-                        <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{p.email}</span>
-                        <span style={{ fontSize: '0.7rem', background: isApproved ? '#f0fdf4' : '#fef2f2', color: isApproved ? '#15803d' : '#dc2626', border: `1px solid ${isApproved ? '#86efac' : '#fca5a5'}`, borderRadius: 4, padding: '1px 7px', fontWeight: 700 }}>
-                          {isApproved ? 'Aprovada' : 'Rejeitada'}
-                        </span>
-                        <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{resolvedAt}</span>
-                      </div>
-                      <div style={{ fontSize: '0.78rem', color: '#374151', marginBottom: catalogLabel ? 4 : 0 }}>
-                        <span style={{ color: '#6b7280' }}>{TYPE_LABELS[exType] || exType}: </span>{itemName}
-                      </div>
-                      {catalogLabel && (
-                        <div style={{ fontSize: '0.75rem', color: '#15803d', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 5, padding: '3px 8px', display: 'inline-block', marginTop: 4 }}>
-                          🔗 Vinculado: <strong>{catalogLabel}</strong>{catalogType === 'pos-mba' ? ' (Pós/MBA)' : catalogType === 'projeto' ? ' (Projeto)' : ''}
+                  <div key={p.id} style={{ background: 'white', border: `1.5px solid ${isApproved ? '#86efac' : '#fca5a5'}`, borderRadius: 10, overflow: 'hidden' }}>
+                    <div style={{ padding: '14px 18px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+                      <div style={{ fontSize: '1.2rem', marginTop: 2 }}>{isApproved ? '✅' : '❌'}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 4 }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1f2937' }}>{p.name}</span>
+                          <span style={{ fontSize: '0.72rem', color: '#6b7280' }}>{p.email}</span>
+                          <span style={{ fontSize: '0.7rem', background: isApproved ? '#f0fdf4' : '#fef2f2', color: isApproved ? '#15803d' : '#dc2626', border: `1px solid ${isApproved ? '#86efac' : '#fca5a5'}`, borderRadius: 4, padding: '1px 7px', fontWeight: 700 }}>
+                            {isApproved ? 'Aprovada' : 'Rejeitada'}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', color: '#9ca3af' }}>{resolvedAt}</span>
                         </div>
-                      )}
-                      {isApproved && !catalogLabel && (
-                        <div style={{ fontSize: '0.72rem', color: '#b45309', marginTop: 4 }}>
-                          ⚠️ Aprovada sem vínculo ao catálogo — sem pontuação gerada
+                        <div style={{ fontSize: '0.78rem', color: '#374151', marginBottom: catalogLabel ? 4 : 0 }}>
+                          <span style={{ color: '#6b7280' }}>{TYPE_LABELS[exType] || exType}: </span>{itemName}
                         </div>
-                      )}
+                        {catalogLabel && (
+                          <div style={{ fontSize: '0.75rem', color: '#15803d', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 5, padding: '3px 8px', display: 'inline-block', marginTop: 4 }}>
+                            🔗 Vinculado: <strong>{catalogLabel}</strong>{catalogType === 'pos-mba' ? ' (Pós/MBA)' : catalogType === 'projeto' ? ' (Projeto)' : ''}{catalogArea ? ` — ${catalogArea}` : ''}
+                          </div>
+                        )}
+                        {isApproved && !catalogLabel && (
+                          <div style={{ fontSize: '0.72rem', color: '#b45309', marginTop: 4 }}>
+                            ⚠️ Aprovada sem vínculo ao catálogo — sem pontuação gerada
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setExpandedResolvedId(isExpanded ? null : p.id)}
+                        style={{ fontSize: '0.72rem', background: 'white', border: '1.5px solid #d1d5db', borderRadius: 6, padding: '5px 12px', cursor: 'pointer', color: '#374151', fontWeight: 600, flexShrink: 0 }}>
+                        {isExpanded ? '▲ Ocultar' : '▼ Ver detalhes'}
+                      </button>
                     </div>
+
+                    {isExpanded && (
+                      <div style={{ padding: '4px 18px 16px', borderTop: '1px solid #f1f5f9' }}>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '10px 0 6px' }}>
+                          O que o candidato solicitou
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                          <InfoRow label="Nome do projeto / iniciativa" value={items[0]?.itemName} />
+                          <InfoRow label="Área de interesse solicitada" value={items[0]?.targetArea || (p as any).exceptionTargetArea} />
+                          <InfoRow label="Papel no projeto" value={ROLE_LABELS[items[0]?.role || (p as any).exceptionRole] || items[0]?.role || (p as any).exceptionRole} />
+                          <InfoRow label="Período de participação" value={items[0]?.period || (p as any).exceptionPeriod} />
+                        </div>
+                        <InfoRow label="Objetivo do reconhecimento" value={items[0]?.objective} />
+                        <InfoRow label="Entregas e resultados do projeto" value={(p as any).exceptionDelivery} />
+                        <InfoRow label="Justificativa completa do candidato" value={items[0]?.justification || p.exceptionJustification} />
+                        <InfoRow label="Como pode comprovar" value={(p as any).exceptionProofType} />
+
+                        {hasFile && (
+                          <div style={{ marginTop: 10 }}>
+                            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Documento Comprobatório Anexado</div>
+                            <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 8, padding: '12px 14px' }}>
+                              {isImage(fileType) && (
+                                <img src={`data:${fileType};base64,${fileBase64}`} alt={fileName}
+                                  style={{ maxWidth: '100%', maxHeight: 300, borderRadius: 6, border: '1px solid #d1d5db', marginBottom: 8, display: 'block' }} />
+                              )}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <span style={{ fontSize: '0.8rem', color: '#065f46', fontWeight: 600 }}>📎 {fileName}</span>
+                                <button type="button" onClick={() => downloadFile(fileBase64, fileName, fileType)}
+                                  style={{ fontSize: '0.72rem', background: '#16a34a', color: 'white', border: 'none', borderRadius: 5, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}>
+                                  ⬇ Baixar arquivo
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {approvalJustification && (
+                          <div style={{ marginTop: 14 }}>
+                            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+                              {isApproved ? '✅ Justificativa da aprovação (admin)' : '❌ Justificativa da rejeição (admin)'}
+                            </div>
+                            <div style={{ fontSize: '0.82rem', color: '#1f2937', background: isApproved ? '#f0fdf4' : '#fef2f2', border: `1px solid ${isApproved ? '#86efac' : '#fca5a5'}`, borderRadius: 6, padding: '8px 12px', lineHeight: 1.6 }}>
+                              {approvalJustification}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
