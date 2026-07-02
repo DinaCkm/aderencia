@@ -389,7 +389,7 @@ export default function AdminExceptions() {
                 const catalogArea = (p as any).exceptionCatalogArea;
                 const approvalJustification = (p as any).exceptionApprovalJustification;
                 const items = (p as any).exceptionItems || [];
-                const itemName = items[0]?.itemName || p.exceptionJustification?.substring(0, 80) || '—';
+                const itemName = (p as any).exceptionItemName || items[0]?.itemName || p.exceptionJustification?.substring(0, 80) || '—';
                 const exType = items[0]?.type || 'outro';
                 const isExpanded = expandedResolvedId === p.id;
                 const hasFile = !!(p as any).exceptionFileBase64;
@@ -438,14 +438,14 @@ export default function AdminExceptions() {
                           O que o candidato solicitou
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                          <InfoRow label="Nome do projeto / iniciativa" value={items[0]?.itemName} />
-                          <InfoRow label="Área de interesse solicitada" value={items[0]?.targetArea || (p as any).exceptionTargetArea} />
-                          <InfoRow label="Papel no projeto" value={ROLE_LABELS[items[0]?.role || (p as any).exceptionRole] || items[0]?.role || (p as any).exceptionRole} />
-                          <InfoRow label="Período de participação" value={items[0]?.period || (p as any).exceptionPeriod} />
+                          <InfoRow label="Nome do projeto / iniciativa" value={(p as any).exceptionItemName || items[0]?.itemName} />
+                          <InfoRow label="Área de interesse solicitada" value={(p as any).exceptionTargetArea || items[0]?.targetArea} />
+                          <InfoRow label="Papel no projeto" value={ROLE_LABELS[(p as any).exceptionRole] || (p as any).exceptionRole || ROLE_LABELS[items[0]?.role] || items[0]?.role} />
+                          <InfoRow label="Período de participação" value={(p as any).exceptionPeriod || items[0]?.period} />
                         </div>
                         <InfoRow label="Objetivo do reconhecimento" value={items[0]?.objective} />
                         <InfoRow label="Entregas e resultados do projeto" value={(p as any).exceptionDelivery} />
-                        <InfoRow label="Justificativa completa do candidato" value={items[0]?.justification || p.exceptionJustification} />
+                        <InfoRow label="Justificativa completa do candidato" value={p.exceptionJustification || items[0]?.justification} />
                         <InfoRow label="Como pode comprovar" value={(p as any).exceptionProofType} />
 
                         {hasFile && (
