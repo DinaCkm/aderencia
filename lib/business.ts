@@ -97,30 +97,64 @@ function projectScore(selectedProjects: string[], area: string): number {
   return Math.min(20, total);
 }
 
+export interface RejectedItemRef {
+  itemKey: string;
+  note?: string;
+}
+
 function computeTechnicalAdherence(
   profile: ParticipantProfile,
-  area: string
+  area: string,
+  rejectedItems: RejectedItemRef[] = []
 ): {
   technicalAdherence: number;
   calculationSteps: { name: string; value: number | string; detail?: string }[];
   postMBADetail: { titleUsed: string | null; classification: string; score: number };
   projectsDetail: { label: string; points: number }[];
+  excludedItems: { label: string; type: 'postMBA' | 'projeto' | 'experiencia'; pointsRemoved: number; note?: string }[];
 } {
-  const postMBADet = bestPostMBADetail(profile.postMBAs ?? [], area);
-  const expScore = experienceScore(profile.managerialMonths ?? 0, profile.interimMonths ?? 0);
+  const rejectedKeys = new Set(rejectedItems.map((r) => r.itemKey));
+  const noteFor = (key: string) => rejectedItems.find((r) => r.itemKey === key)?.note;
+  const excludedItems: { label: string; type: 'postMBA' | 'projeto' | 'experiencia'; pointsRemoved: number; note?: string }[] = [];
+
+  // Pós/MBA — remove da lista os títulos rejeitados pela UGP antes de calcular o melhor
+  const allPostMBAs = profile.postMBAs ?? [];
+  const postMBAsConsidered = allPostMBAs.filter((_, i) => !rejectedKeys.has(`postmba-${i}`));
+  allPostMBAs.forEach((label, i) => {
+    if (rejectedKeys.has(`postmba-${i}`)) {
+      // Aproxima os pontos que esse título específico teria (para exibir ao candidato quanto foi retirado)
+      const wouldBeDetail = bestPostMBADetail([label], area);
+      excludedItems.push({ label, type: 'postMBA', pointsRemoved: wouldBeDetail.score, note: noteFor(`postmba-${i}`) });
+    }
+  });
+  const postMBADet = bestPostMBADetail(postMBAsConsidered, area);
+
+  // Experiência — se o item "experiencia" foi rejeitado pela UGP, zera a pontuação
+  const experienceRejected = rejectedKeys.has('experiencia');
+  const rawExpScore = experienceScore(profile.managerialMonths ?? 0, profile.interimMonths ?? 0);
+  const expScore = experienceRejected ? 0 : rawExpScore;
+  if (experienceRejected && rawExpScore > 0) {
+    excludedItems.push({ label: 'Experiência gerencial/interina', type: 'experiencia', pointsRemoved: rawExpScore, note: noteFor('experiencia') });
+  }
 
   // Projetos transversais — pontuam automaticamente em todas as áreas do candidato
   const TRANSVERSAL_PROJECTS = [
     'Programa de sucessão e desenvolvimento de lideranças',
   ];
 
+  // Projetos rejeitados pela UGP (por índice no array original selectedProjects) — excluídos de todas as áreas
+  const allSelectedProjects = profile.selectedProjects ?? [];
+  const rejectedProjectLabels = new Set(
+    allSelectedProjects.filter((_, i) => rejectedKeys.has(`projeto-${i}`))
+  );
+
   // Projetos com detalhes
   // Usa projectAreaMap como fonte de verdade: se o admin vinculou um projeto a esta área,
   // ele pontua aqui — buscando os pontos no catálogo pelo label (independente da área original do catálogo)
   // Projetos transversais pontuam em todas as áreas do candidato automaticamente
   const projectAreaMap: Record<string, string> = (profile as any).projectAreaMap ?? {};
-  const projItems = (profile.selectedProjects ?? [])
-    .filter((label) => projectAreaMap[label] === area || TRANSVERSAL_PROJECTS.includes(label))
+  const projItems = allSelectedProjects
+    .filter((label) => (projectAreaMap[label] === area || TRANSVERSAL_PROJECTS.includes(label)) && !rejectedProjectLabels.has(label))
     .map((label) => {
       // Projeto deve existir no catálogo para a área vinculada (ou para projetos transversais, para esta área)
       const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === label && i.area === area);
@@ -132,6 +166,15 @@ function computeTechnicalAdherence(
     .filter((item): item is { label: string; points: number; weight: string } => item !== null);
   const projScore = Math.min(20, projItems.reduce((acc, i) => acc + i.points, 0));
 
+  // Registra projetos rejeitados que teriam pontuado nesta área, para exibir ao candidato
+  allSelectedProjects.forEach((label, i) => {
+    if (!rejectedKeys.has(`projeto-${i}`)) return;
+    if (!(projectAreaMap[label] === area || TRANSVERSAL_PROJECTS.includes(label))) return;
+    const catalogItem = CATALOG_ITEMS.find((it) => it.group === 'project' && it.label === label && it.area === area);
+    const pts = catalogItem ? ((catalogItem as any).points ?? 15) : 0;
+    excludedItems.push({ label, type: 'projeto', pointsRemoved: pts, note: noteFor(`projeto-${i}`) });
+  });
+
   const total80 = postMBADet.score + expScore + projScore;
   const score10 = Math.round((total80 / 80) * 100) / 10;
 
@@ -142,6 +185,7 @@ function computeTechnicalAdherence(
     technicalAdherence: score10,
     postMBADetail: postMBADet,
     projectsDetail: projItems.map((i) => ({ label: i.label, points: i.points, weight: i.weight })),
+    excludedItems,
     calculationSteps: [
       {
         name: 'Pós/MBA (melhor título para a área)',
@@ -153,14 +197,16 @@ function computeTechnicalAdherence(
       {
         name: 'Experiência gerencial/interina',
         value: Math.round(expScore * 10) / 10,
-        detail: (() => {
-          const totalM = managerialMonths + interimMonths;
-          const years = Math.floor((totalM / 12) * 10) / 10;
-          const raw = years * 5;
-          const capped = expScore === 20 && raw > 20;
-          return `Gerencial: ${managerialMonths}m + Interino: ${interimMonths}m = ${totalM}m totais (${years} anos × 5 pts/ano = ${Math.round(raw * 10) / 10} pts)`
-            + (capped ? ` — cap atingido: máximo é 20 pts` : ` — ${expScore} de 20 pts possíveis`);
-        })(),
+        detail: experienceRejected
+          ? `Item rejeitado pela UGP na auditoria — pontuação zerada.${noteFor('experiencia') ? ` Motivo: ${noteFor('experiencia')}` : ''}`
+          : (() => {
+              const totalM = managerialMonths + interimMonths;
+              const years = Math.floor((totalM / 12) * 10) / 10;
+              const raw = years * 5;
+              const capped = expScore === 20 && raw > 20;
+              return `Gerencial: ${managerialMonths}m + Interino: ${interimMonths}m = ${totalM}m totais (${years} anos × 5 pts/ano = ${Math.round(raw * 10) / 10} pts)`
+                + (capped ? ` — cap atingido: máximo é 20 pts` : ` — ${expScore} de 20 pts possíveis`);
+            })(),
       },
       {
         name: 'Projetos estratégicos da área',
@@ -225,7 +271,8 @@ export function buildAreaAssessment(
   area: string,
   performanceRecords: PerformanceRecord[],
   discReports: DiscReport[],
-  _approvedExceptions: string[] = []
+  _approvedExceptions: string[] = [],
+  rejectedItems: RejectedItemRef[] = []
 ): AreaAssessment {
   const disc = getLatestDisc(discReports, profile.id, area);
   const perf = getLatestPerformance(performanceRecords, profile.id, area);
@@ -236,7 +283,7 @@ export function buildAreaAssessment(
       ? Math.round(((disc.score10 + perfConverted) / 2) * 10) / 10
       : undefined;
 
-  const technical = computeTechnicalAdherence(profile, area);
+  const technical = computeTechnicalAdherence(profile, area, rejectedItems);
 
   const quadrant =
     behavioral !== undefined
@@ -265,6 +312,7 @@ export function buildAreaAssessment(
     quadrant,
     postMBADetail: technical.postMBADetail,
     projectsDetail: technical.projectsDetail,
+    excludedItems: technical.excludedItems,
     calculationSteps: [
       ...technical.calculationSteps,
       {

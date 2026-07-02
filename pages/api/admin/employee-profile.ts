@@ -45,8 +45,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ? profile.postMBAs.concat(profile.selectedCourses, profile.selectedProjects)
       : [];
 
+  // Carregar validações de auditoria por item — itens rejeitados pela UGP não pontuam
+  const audits = await readJsonAsync<ProfileAudit[]>('profile_audits', []);
+  const audit = audits.find((a) => a.participantId === profile.id) || {
+    participantId: profile.id,
+    itemValidations: [],
+    overallStatus: profile.validationStatus || 'provisional',
+    overallNote: profile.validationNote,
+  };
+  const rejectedItems = (audit.itemValidations || [])
+    .filter((v) => v.status === 'rejected')
+    .map((v) => ({ itemKey: v.itemKey, note: v.note }));
+
   const areaAssessments = (profile.selectedAreas || []).map((area) => {
-    const assessment = buildAreaAssessment(profile, area, performance, discs, approvedExceptions);
+    const assessment = buildAreaAssessment(profile, area, performance, discs, approvedExceptions, rejectedItems);
     const discRecord = discRecords
       .filter((d) => d.participantId === profile.id && d.area === area)
       .sort((a, b) => b.importedAt.localeCompare(a.importedAt))[0];
@@ -55,15 +67,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       discRecord: discRecord || null,
     };
   });
-
-  // Carregar validações de auditoria por item
-  const audits = await readJsonAsync<ProfileAudit[]>('profile_audits', []);
-  const audit = audits.find((a) => a.participantId === profile.id) || {
-    participantId: profile.id,
-    itemValidations: [],
-    overallStatus: profile.validationStatus || 'provisional',
-    overallNote: profile.validationNote,
-  };
 
   return res.status(200).json({
     profile: profileWithFiles,

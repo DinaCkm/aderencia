@@ -3,6 +3,16 @@ import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import { buildAreaAssessment } from '../../../lib/business';
 import type { AuditReport, ParticipantProfile, AreaAssessment, DiscReport, PerformanceRecord, DISCRecord } from '../../../lib/types';
 
+interface ItemValidation {
+  itemKey: string;
+  status: 'pending' | 'approved' | 'rejected';
+  note?: string;
+}
+interface ProfileAudit {
+  participantId: string;
+  itemValidations: ItemValidation[];
+}
+
 // Estende AreaAssessment com campos de UI (nome, detalhes de cálculo e perfil completo para auditoria)
 type AreaAssessmentWithMeta = AreaAssessment & {
   participantName: string;
@@ -21,6 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const discs = await readJsonAsync<DiscReport[]>('discReports', []);
   const discRecords = await readJsonAsync<DISCRecord[]>('disc_records', []);
   const audits = await readJsonAsync<AuditReport[]>('audits', []);
+  const profileAudits = await readJsonAsync<ProfileAudit[]>('profile_audits', []);
 
   const report: Record<string, AreaAssessmentWithMeta[]> = {};
 
@@ -29,8 +40,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       participant.exceptionStatus === 'approved'
         ? participant.postMBAs.concat(participant.selectedCourses, participant.selectedProjects)
         : [];
+    // Itens marcados como Rejeitado pelo admin na Auditoria de Fichas — pontos retirados do cálculo
+    const profileAudit = profileAudits.find((a) => a.participantId === participant.id);
+    const rejectedItems = (profileAudit?.itemValidations || [])
+      .filter((v) => v.status === 'rejected')
+      .map((v) => ({ itemKey: v.itemKey, note: v.note }));
     const assessments = participant.selectedAreas.map((area) =>
-      buildAreaAssessment(participant, area, performance, discs, approvedExceptions)
+      buildAreaAssessment(participant, area, performance, discs, approvedExceptions, rejectedItems)
     );
     assessments.forEach((assessment) => {
       report[assessment.area] = report[assessment.area] || [];

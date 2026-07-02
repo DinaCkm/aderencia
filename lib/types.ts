@@ -150,6 +150,14 @@ export interface AreaAssessment {
   projectsDetail?: ProjectDetail[];    // projetos considerados com pontuação
   calculationSteps: AssessmentCalculation[];
   exceptions: string[];
+  excludedItems?: ExcludedItem[]; // itens rejeitados pela UGP na auditoria — pontos retirados do cálculo
+}
+
+export interface ExcludedItem {
+  label: string;
+  type: 'postMBA' | 'projeto' | 'experiencia';
+  pointsRemoved: number;
+  note?: string; // observação do admin explicando a rejeição
 }
 
 export type ExceptionItemType =

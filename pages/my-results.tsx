@@ -491,6 +491,19 @@ export default function MyResults() {
                       &nbsp;→&nbsp; <strong>{r.technicalScore?.toFixed(1)} / 10</strong>
                     </span>
                   </div>
+                  {r.excludedItems?.length > 0 && (
+                    <div style={{ marginTop: 12, background: '#fef2f2', borderRadius: 8, padding: '12px 14px', border: '1.5px solid #fca5a5' }}>
+                      <div style={{ color: '#991b1b', fontWeight: 700, fontSize: '0.82rem', marginBottom: 6 }}>
+                        ⚠️ Itens não considerados na pontuação — rejeitados pela UGP
+                      </div>
+                      {r.excludedItems.map((ex: any, idx: number) => (
+                        <div key={idx} style={{ fontSize: '0.78rem', color: '#7f1d1d', marginBottom: idx < r.excludedItems.length - 1 ? 8 : 0, lineHeight: 1.5 }}>
+                          <strong>"{ex.label}"</strong> — {ex.pointsRemoved} pts retirados
+                          {ex.note && <div style={{ marginTop: 2, color: '#991b1b' }}>Motivo: {ex.note}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
