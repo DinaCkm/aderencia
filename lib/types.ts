@@ -75,6 +75,11 @@ export interface ParticipantProfile {
   exceptionItems?: ExceptionItem[]; // novo — lista estruturada de questionamentos
   attachments: string[];
   exceptionStatus: 'pending' | 'approved' | 'rejected';
+  exceptionCatalogLabel?: string;   // item do catálogo vinculado na aprovação (por equivalência)
+  exceptionCatalogType?: string;    // 'projeto' | 'pos-mba'
+  exceptionCatalogArea?: string;    // área do item de catálogo vinculado
+  exceptionApprovalJustification?: string; // justificativa escrita pelo admin ao aprovar/rejeitar
+  exceptionResolvedAt?: string;     // data da decisão formal (aprovação/rejeição)
   validationStatus: 'provisional' | 'validated' | 'adjusted'; // provisório até RH/UGP confirmar documentos
   validationNote?: string;   // observação do admin ao validar
   validatedAt?: string;      // data da validação

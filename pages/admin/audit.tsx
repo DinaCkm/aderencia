@@ -1104,6 +1104,41 @@ export default function AdminAudit() {
                     </p>
                   </div>
 
+                  {/* Decisão formal da exceção (aprovação/rejeição pela UGP) — separada do checklist de validação por item abaixo */}
+                  {p.exceptionStatus && p.exceptionStatus !== 'pending' && (
+                    <div style={{
+                      marginBottom: 14, padding: '12px 14px', borderRadius: 8,
+                      background: p.exceptionStatus === 'approved' ? '#f0fdf4' : '#fef2f2',
+                      border: `1.5px solid ${p.exceptionStatus === 'approved' ? '#86efac' : '#fca5a5'}`,
+                    }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.85rem', color: p.exceptionStatus === 'approved' ? '#15803d' : '#b91c1c', marginBottom: 6 }}>
+                        {p.exceptionStatus === 'approved' ? '✅ Exceção APROVADA pela UGP' : '❌ Exceção REJEITADA pela UGP'}
+                        {p.exceptionResolvedAt && (
+                          <span style={{ fontWeight: 400, fontSize: '0.72rem', color: '#6b7280', marginLeft: 8 }}>
+                            em {new Date(p.exceptionResolvedAt).toLocaleString('pt-BR')}
+                          </span>
+                        )}
+                      </div>
+                      {p.exceptionCatalogLabel && (
+                        <div style={{ fontSize: '0.78rem', color: '#15803d', marginBottom: 6 }}>
+                          🔗 Vinculado a: <strong>{p.exceptionCatalogLabel}</strong>
+                          {p.exceptionCatalogType === 'projeto' ? ' (Projeto)' : p.exceptionCatalogType === 'pos-mba' ? ' (Pós/MBA)' : ''}
+                          {p.exceptionCatalogArea ? ` — ${p.exceptionCatalogArea}` : ''}
+                        </div>
+                      )}
+                      {p.exceptionApprovalJustification && (
+                        <div style={{ fontSize: '0.8rem', color: '#1e293b', lineHeight: 1.6, background: 'white', borderRadius: 6, padding: '8px 10px' }}>
+                          {p.exceptionApprovalJustification}
+                        </div>
+                      )}
+                      {!p.exceptionApprovalJustification && (
+                        <div style={{ fontSize: '0.75rem', color: '#92400e', fontStyle: 'italic' }}>
+                          Sem justificativa registrada para esta decisão.
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Exceções estruturadas (novo formato) */}
                   {(p.exceptionItems || []).map((item, i) => (
                     <div key={i} style={{ marginBottom: 14, padding: '12px 14px', background: '#fffbf5', border: '1.5px solid #fde68a', borderRadius: 8 }}>
