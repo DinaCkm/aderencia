@@ -75,10 +75,22 @@ function ValidationControls({
   const [showNote, setShowNote] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const save = () => {
-    onSave({ itemKey, status, note });
+  const flashSaved = () => {
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setTimeout(() => setSaved(false), 1500);
+  };
+
+  // Salva automaticamente assim que o admin clica em Pendente/Validado/Rejeitado — sem precisar de botão separado
+  const selectStatus = (s: ItemValidation['status']) => {
+    setStatus(s);
+    onSave({ itemKey, status: s, note });
+    flashSaved();
+  };
+
+  // Salva a observação automaticamente quando o admin sai do campo (sem precisar de botão)
+  const saveNote = () => {
+    onSave({ itemKey, status, note });
+    flashSaved();
   };
 
   return (
@@ -94,7 +106,7 @@ function ValidationControls({
             color: status === s ? STATUS_COLORS[s].text : '#64748b',
           }}>
             <input type="radio" name={`status-${itemKey}`} value={s} checked={status === s}
-              onChange={() => setStatus(s)} style={{ display: 'none' }} />
+              onChange={() => selectStatus(s)} style={{ display: 'none' }} />
             {STATUS_COLORS[s].label}
           </label>
         ))}
@@ -102,10 +114,11 @@ function ValidationControls({
           style={{ fontSize: '0.68rem', background: 'none', border: '1px solid #cbd5e1', borderRadius: 4, padding: '3px 8px', cursor: 'pointer', color: '#64748b' }}>
           {showNote ? '▲ Ocultar obs.' : '✏️ Adicionar obs.'}
         </button>
-        <button type="button" onClick={save}
-          style={{ fontSize: '0.72rem', background: saved ? '#16a34a' : 'var(--purple)', color: 'white', border: 'none', borderRadius: 5, padding: '4px 12px', cursor: 'pointer', fontWeight: 700, marginLeft: 'auto' }}>
-          {saved ? '✓ Salvo!' : 'Salvar'}
-        </button>
+        {saved && (
+          <span style={{ fontSize: '0.7rem', color: '#16a34a', fontWeight: 700, marginLeft: 'auto' }}>
+            ✓ Salvo automaticamente
+          </span>
+        )}
       </div>
       {showNote && (
         <textarea
@@ -113,6 +126,7 @@ function ValidationControls({
           placeholder="Observação para este item (ex: documento inválido, precisa reenviar...)"
           value={note}
           onChange={(e) => setNote(e.target.value)}
+          onBlur={saveNote}
           style={{ width: '100%', marginTop: 8, fontSize: '0.75rem', border: '1px solid #e2e8f0', borderRadius: 6, padding: '6px 8px', resize: 'vertical', fontFamily: 'inherit' }}
         />
       )}
