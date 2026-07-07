@@ -263,6 +263,36 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                           </div>
                         ))}
                       </div>
+                      {/* Cálculo da Aderência Comportamental (Performance/Engajamento + DISC) — antes filtrado e nunca exibido */}
+                      {a.behavioralAdherence !== undefined && (() => {
+                        const behavioralSteps = (a.calculationSteps || []).filter(
+                          (s: any) =>
+                            s.name.toLowerCase().includes('comportamental') ||
+                            s.name.toLowerCase().includes('disc') ||
+                            s.name.toLowerCase().includes('performance')
+                        );
+                        if (behavioralSteps.length === 0) return null;
+                        return (
+                          <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 6 }}>
+                            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#0e7490', marginBottom: 6 }}>
+                              📈 Como se chegou à Aderência Comportamental
+                            </div>
+                            {behavioralSteps.map((step: any, i: number) => (
+                              <div key={i} style={{ borderBottom: i < behavioralSteps.length - 1 ? '1px solid #ccfbf1' : 'none', paddingBottom: 5, marginBottom: 4 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#374151' }}>
+                                  <span>{step.name}</span>
+                                  <span style={{ fontWeight: 700, color: '#0e7490' }}>{typeof step.value === 'number' ? step.value.toFixed(1) : step.value}</span>
+                                </div>
+                                {step.detail && (
+                                  <div style={{ fontSize: '0.68rem', color: '#0e7490', paddingLeft: 8, lineHeight: 1.4 }}>
+                                    ↳ {step.detail}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
                       {/* DISC */}
                       {a.discRecord && (
                         <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 6 }}>
