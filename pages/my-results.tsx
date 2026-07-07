@@ -107,11 +107,16 @@ function ScoreRow({ label, value, max, color, detail, explain }: {
 
 // Barra comparativa DISC (pessoa vs cargo)
 function DISCBar({ label, personVal, jobVal }: { label: string; personVal: number; jobVal: number }) {
+  const base = Math.max(personVal, jobVal);
+  const proximity = base === 0 ? 100 : 100 - (Math.abs(personVal - jobVal) / base) * 100;
   return (
     <div style={{ marginBottom: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: 4, flexWrap: 'wrap', gap: 4 }}>
         <span style={{ fontWeight: 700, color: 'var(--text)' }}>{label}</span>
-        <span style={{ color: 'var(--text-muted)' }}>Você: <strong style={{ color: '#7c3aed' }}>{personVal}%</strong> | Cargo: <strong style={{ color: '#0e7490' }}>{jobVal}%</strong></span>
+        <span style={{ color: 'var(--text-muted)' }}>
+          Você: <strong style={{ color: '#7c3aed' }}>{personVal}%</strong> | Cargo: <strong style={{ color: '#0e7490' }}>{jobVal}%</strong>
+          {' '}| Proximidade: <strong style={{ color: proximity >= 70 ? '#15803d' : proximity >= 50 ? '#b45309' : '#dc2626' }}>{proximity.toFixed(0)}%</strong>
+        </span>
       </div>
       <div style={{ position: 'relative', height: 10, background: '#e5e7eb', borderRadius: 99, overflow: 'hidden' }}>
         {/* Barra do cargo (fundo) */}

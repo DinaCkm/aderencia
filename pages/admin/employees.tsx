@@ -306,13 +306,20 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                               { label: 'I', person: a.discRecord.personI, job: a.discRecord.jobI },
                               { label: 'S', person: a.discRecord.personS, job: a.discRecord.jobS },
                               { label: 'C', person: a.discRecord.personC, job: a.discRecord.jobC },
-                            ].map(({ label, person, job }) => (
+                            ].map(({ label, person, job }) => {
+                              const base = Math.max(person, job);
+                              const prox = base === 0 ? 100 : 100 - (Math.abs(person - job) / base) * 100;
+                              return (
                               <div key={label} style={{ textAlign: 'center', background: 'white', borderRadius: 6, padding: '4px 6px', border: '1px solid #e0f2fe' }}>
                                 <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#0369a1' }}>{label}</div>
                                 <div style={{ fontSize: '0.68rem', color: '#6366f1' }}>P: {person}</div>
                                 <div style={{ fontSize: '0.68rem', color: '#0e7490' }}>C: {job}</div>
+                                <div style={{ fontSize: '0.62rem', fontWeight: 700, color: prox >= 70 ? '#15803d' : prox >= 50 ? '#b45309' : '#b91c1c', marginTop: 2, borderTop: '1px solid #e0f2fe', paddingTop: 2 }}>
+                                  {prox.toFixed(0)}% prox.
+                                </div>
                               </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       )}
