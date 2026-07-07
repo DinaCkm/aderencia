@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ParticipantProfile } from '../../lib/types';
 import { CATALOG_ITEMS } from '../../lib/constants';
+import { bestPostMBADetail, experienceScore } from '../../lib/business';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 interface ItemValidation {
@@ -60,6 +61,49 @@ function Badge({ status }: { status: 'pending' | 'approved' | 'rejected' }) {
     <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: s.bg, border: `1px solid ${s.border}`, color: s.text }}>
       {s.label}
     </span>
+  );
+}
+
+// Mostra o impacto real na pontuação de um título de Pós/MBA — quanto ele contribui
+// hoje (por área) e o quanto seria perdido se ele fosse rejeitado.
+function PostMBAPointsBadge({ profile, index }: { profile: ParticipantProfile; index: number }) {
+  const allLabels = profile.postMBAs || [];
+  const withoutThis = allLabels.filter((_, i) => i !== index);
+  const impacts = (profile.selectedAreas || [])
+    .map((area) => {
+      const full = bestPostMBADetail(allLabels, area).score;
+      const without = bestPostMBADetail(withoutThis, area).score;
+      return { area, delta: full - without };
+    })
+    .filter((x) => x.delta > 0);
+  if (impacts.length === 0) {
+    return (
+      <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: 6 }}>
+        📊 Este título não é o mais pontuado em nenhuma área do candidato hoje — rejeitá-lo não altera a nota.
+      </div>
+    );
+  }
+  return (
+    <div style={{ fontSize: '0.7rem', color: '#7c2d12', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 5, padding: '4px 8px', marginBottom: 6, fontWeight: 600 }}>
+      📊 Pontuação atual: {impacts.map((x) => `${x.delta} pts em ${x.area}`).join(' | ')} — rejeitar remove esses pontos.
+    </div>
+  );
+}
+
+// Mostra o impacto real da experiência gerencial/interina — vale igual em todas as áreas.
+function ExperiencePointsBadge({ profile }: { profile: ParticipantProfile }) {
+  const score = experienceScore(profile.managerialMonths ?? 0, profile.interimMonths ?? 0);
+  if (score <= 0) {
+    return (
+      <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: 6 }}>
+        📊 Sem meses de experiência informados — não está pontuando hoje.
+      </div>
+    );
+  }
+  return (
+    <div style={{ fontSize: '0.7rem', color: '#7c2d12', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 5, padding: '4px 8px', marginBottom: 6, fontWeight: 600 }}>
+      📊 Pontuação atual: {Math.round(score * 10) / 10} pts em todas as áreas do candidato — rejeitar remove esses pontos.
+    </div>
   );
 }
 
@@ -877,6 +921,7 @@ export default function AdminAudit() {
                                 <a href={(p as any).proofLinks[mbaKey]} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.7rem', color: '#1d4ed8', wordBreak: 'break-all' }}>{(p as any).proofLinks[mbaKey]}</a>
                               </div>
                             )}
+                            <PostMBAPointsBadge profile={p} index={i} />
                             <ValidationControls itemKey={`postmba-${i}`} validation={getValidation(`postmba-${i}`)} onSave={saveItemValidation} />
                           </div>
                         );
@@ -989,6 +1034,7 @@ export default function AdminAudit() {
                     ))}
                   </div>
                 )}
+                <ExperiencePointsBadge profile={p} />
                 <ValidationControls itemKey="experiencia" validation={getValidation('experiencia')} onSave={saveItemValidation} />
               </SectionCard>
 
@@ -1158,6 +1204,15 @@ export default function AdminAudit() {
                           fileType={item.fileType}
                           label="Comprovante da exceção"
                         />
+                      )}
+                      {p.exceptionStatus === 'approved' && p.exceptionCatalogLabel ? (
+                        <div style={{ fontSize: '0.7rem', color: '#15803d', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 5, padding: '4px 8px', marginBottom: 6, fontWeight: 600 }}>
+                          📊 Pontuação atual: reconhecida como "{p.exceptionCatalogLabel}"{p.exceptionCatalogArea ? ` — ${p.exceptionCatalogArea}` : ''}. Está contando pontos hoje.
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: 6 }}>
+                          📊 Esta exceção não está vinculada ao catálogo — não está pontuando hoje.
+                        </div>
                       )}
                       <ValidationControls itemKey={`excecao-${i}`} validation={getValidation(`excecao-${i}`)} onSave={saveItemValidation} />
                     </div>

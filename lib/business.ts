@@ -42,7 +42,7 @@ export function getLatestPerformance(records: PerformanceRecord[], participantId
 // Graduação e cursos extracurriculares: registrados mas NÃO entram na nota.
 // ─────────────────────────────────────────────────────────────────────────────
 
-function bestPostMBADetail(postMBALabels: string[], area: string): {
+export function bestPostMBADetail(postMBALabels: string[], area: string): {
   score: number;
   titleUsed: string | null;
   classification: string;
@@ -79,7 +79,7 @@ function bestPostMBAScore(postMBALabels: string[], area: string): number {
   return bestPostMBADetail(postMBALabels, area).score;
 }
 
-function experienceScore(managerialMonths: number, interimMonths: number): number {
+export function experienceScore(managerialMonths: number, interimMonths: number): number {
   const totalMonths = (managerialMonths ?? 0) + (interimMonths ?? 0);
   const years = totalMonths / 12;
   // 5 pts por ano completo, máximo 20 pts
