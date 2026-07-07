@@ -296,7 +296,10 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                       {/* DISC */}
                       {a.discRecord && (
                         <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 6 }}>
-                          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#0369a1', marginBottom: 4 }}>🔷 DISC — Correlação: {a.discRecord.correlationPct}%</div>
+                          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#0369a1', marginBottom: 2 }}>🔷 DISC — Correlação: {a.discRecord.correlationPct}%</div>
+                          <div style={{ fontSize: '0.63rem', color: '#0369a1', marginBottom: 6, lineHeight: 1.4 }}>
+                            Média da proximidade entre o perfil do candidato (P) e o perfil ideal do cargo (C) nos 4 indicadores — quanto menor a distância em cada um, maior a proximidade.
+                          </div>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
                             {[
                               { label: 'D', person: a.discRecord.personD, job: a.discRecord.jobD },

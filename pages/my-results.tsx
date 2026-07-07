@@ -182,7 +182,8 @@ function DISCDetailSection({ discDetail, area, discScore }: {
               </div>
             </div>
             <div style={{ background: corrBg, borderRadius: 6, padding: '8px 12px', fontSize: '0.75rem', color: corrColor, lineHeight: 1.5 }}>
-              <strong>O que significa:</strong> O índice de correlação mede o quanto o seu perfil comportamental se alinha ao perfil ideal esperado para o cargo da {area}.
+              <strong>O que significa:</strong> O índice de correlação mede o quanto o seu perfil comportamental se aproxima do perfil ideal esperado para o cargo da {area}.
+              Ele é calculado comparando, indicador por indicador (Dominância, Influência, Estabilidade e Conformidade), o quanto o seu resultado em cada um se aproxima do ideal do cargo naquele mesmo indicador — quanto menor a distância entre os dois, maior a proximidade. O índice final é a média das 4 proximidades.
               Valores acima de 70% indicam alta aderência natural; entre 50–70% indicam aderência moderada com pontos de desenvolvimento;
               abaixo de 50% indicam que o cargo exige comportamentos que precisam ser desenvolvidos.
               {discScore !== undefined && <span> Esse índice gerou a nota DISC de <strong>{discScore.toFixed(1)} / 10</strong> no cálculo comportamental.</span>}
@@ -560,7 +561,7 @@ export default function MyResults() {
                           )}
                         </div>
                         <div style={{ marginTop: 6, background: '#f8f7fc', borderLeft: '3px solid #7c3aed', borderRadius: 4, padding: '8px 12px', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                          O perfil DISC avalia o alinhamento comportamental com o perfil esperado para a área {r.area}. Score fornecido na escala 0–10 pelo instrumento DISC aplicado pelo RH. Valores mais altos indicam maior alinhamento comportamental.
+                          O perfil DISC avalia o alinhamento comportamental com o perfil esperado para a área {r.area}. A nota (escala 0–10) é calculada comparando, indicador por indicador (D/I/S/C), o quanto o seu resultado se aproxima do ideal do cargo — a distância entre os dois é medida em relação ao maior dos dois valores, e a nota final é a média de proximidade dos 4 indicadores. Valores mais altos indicam maior alinhamento comportamental.
                         </div>
                       </div>
                       <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#7c3aed', marginLeft: 12, whiteSpace: 'nowrap' }}>
