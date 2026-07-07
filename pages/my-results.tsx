@@ -110,13 +110,14 @@ function DISCBar({ label, personVal, jobVal }: { label: string; personVal: numbe
   const base = Math.max(personVal, jobVal);
   const proximity = base === 0 ? 100 : 100 - (Math.abs(personVal - jobVal) / base) * 100;
   return (
-    <div style={{ marginBottom: 12 }}>
+    <div style={{ marginBottom: 14 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: 4, flexWrap: 'wrap', gap: 4 }}>
         <span style={{ fontWeight: 700, color: 'var(--text)' }}>{label}</span>
-        <span style={{ color: 'var(--text-muted)' }}>
-          Você: <strong style={{ color: '#7c3aed' }}>{personVal}%</strong> | Cargo: <strong style={{ color: '#0e7490' }}>{jobVal}%</strong>
-          {' '}| Proximidade: <strong style={{ color: proximity >= 70 ? '#15803d' : proximity >= 50 ? '#b45309' : '#dc2626' }}>{proximity.toFixed(0)}%</strong>
-        </span>
+      </div>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', fontSize: '0.74rem', color: 'var(--text-muted)', marginBottom: 4 }}>
+        <span>Perfil do Candidato: <strong style={{ color: '#7c3aed' }}>{personVal}%</strong></span>
+        <span>Perfil do Cargo: <strong style={{ color: '#0e7490' }}>{jobVal}%</strong></span>
+        <span>Proximidade: <strong style={{ color: proximity >= 70 ? '#15803d' : proximity >= 50 ? '#b45309' : '#dc2626' }}>{proximity.toFixed(0)}%</strong></span>
       </div>
       <div style={{ position: 'relative', height: 10, background: '#e5e7eb', borderRadius: 99, overflow: 'hidden' }}>
         {/* Barra do cargo (fundo) */}
@@ -199,7 +200,7 @@ function DISCDetailSection({ discDetail, area, discScore }: {
           {(discDetail.personD > 0 || discDetail.jobD > 0) && (
             <div style={{ marginBottom: 18 }}>
               <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>
-                Perfil comparativo: <span style={{ color: '#7c3aed' }}>■ Você</span> vs <span style={{ color: '#0e7490' }}>■ Cargo ideal</span>
+                Perfil comparativo: <span style={{ color: '#7c3aed' }}>■ Perfil do Candidato</span> vs <span style={{ color: '#0e7490' }}>■ Perfil do Cargo</span>
               </div>
               <DISCBar label="D — Dominância" personVal={discDetail.personD} jobVal={discDetail.jobD} />
               <DISCBar label="I — Influência" personVal={discDetail.personI} jobVal={discDetail.jobI} />

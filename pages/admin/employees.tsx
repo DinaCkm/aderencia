@@ -298,24 +298,24 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                         <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 6 }}>
                           <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#0369a1', marginBottom: 2 }}>🔷 DISC — Correlação: {a.discRecord.correlationPct}%</div>
                           <div style={{ fontSize: '0.63rem', color: '#0369a1', marginBottom: 6, lineHeight: 1.4 }}>
-                            Média da proximidade entre o perfil do candidato (P) e o perfil ideal do cargo (C) nos 4 indicadores — quanto menor a distância em cada um, maior a proximidade.
+                            Média da proximidade entre o Perfil do Candidato e o Perfil do Cargo nos 4 indicadores — quanto menor a distância em cada um, maior a proximidade.
                           </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
                             {[
-                              { label: 'D', person: a.discRecord.personD, job: a.discRecord.jobD },
-                              { label: 'I', person: a.discRecord.personI, job: a.discRecord.jobI },
-                              { label: 'S', person: a.discRecord.personS, job: a.discRecord.jobS },
-                              { label: 'C', person: a.discRecord.personC, job: a.discRecord.jobC },
+                              { label: 'D — Dominância', person: a.discRecord.personD, job: a.discRecord.jobD },
+                              { label: 'I — Influência', person: a.discRecord.personI, job: a.discRecord.jobI },
+                              { label: 'S — Estabilidade', person: a.discRecord.personS, job: a.discRecord.jobS },
+                              { label: 'C — Conformidade', person: a.discRecord.personC, job: a.discRecord.jobC },
                             ].map(({ label, person, job }) => {
                               const base = Math.max(person, job);
                               const prox = base === 0 ? 100 : 100 - (Math.abs(person - job) / base) * 100;
                               return (
-                              <div key={label} style={{ textAlign: 'center', background: 'white', borderRadius: 6, padding: '4px 6px', border: '1px solid #e0f2fe' }}>
-                                <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#0369a1' }}>{label}</div>
-                                <div style={{ fontSize: '0.68rem', color: '#6366f1' }}>P: {person}</div>
-                                <div style={{ fontSize: '0.68rem', color: '#0e7490' }}>C: {job}</div>
+                              <div key={label} style={{ textAlign: 'center', background: 'white', borderRadius: 6, padding: '5px 6px', border: '1px solid #e0f2fe' }}>
+                                <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#0369a1', marginBottom: 2 }}>{label}</div>
+                                <div style={{ fontSize: '0.63rem', color: '#6366f1' }}>Perfil do Candidato: {person}</div>
+                                <div style={{ fontSize: '0.63rem', color: '#0e7490' }}>Perfil do Cargo: {job}</div>
                                 <div style={{ fontSize: '0.62rem', fontWeight: 700, color: prox >= 70 ? '#15803d' : prox >= 50 ? '#b45309' : '#b91c1c', marginTop: 2, borderTop: '1px solid #e0f2fe', paddingTop: 2 }}>
-                                  {prox.toFixed(0)}% prox.
+                                  Proximidade: {prox.toFixed(0)}%
                                 </div>
                               </div>
                               );
