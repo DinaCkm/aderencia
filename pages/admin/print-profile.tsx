@@ -8,6 +8,9 @@ interface AreaAssessmentResult {
   area: string;
   technicalAdherence: number;
   behavioralAdherence?: number;
+  discScore?: number;
+  performanceScore?: number;
+  performanceConverted?: number;
   quadrant: string;
   calculationSteps: { name: string; value: number | string; detail?: string }[];
   projectsDetail?: { label: string; points: number }[];
@@ -329,37 +332,30 @@ export default function PrintProfile() {
                   </div>
                 )}
 
-                {/* Cálculo da Aderência Comportamental (Performance/Engajamento + DISC) — antes filtrado e nunca exibido */}
-                {a.behavioralAdherence !== undefined && (() => {
-                  const behavioralSteps = (a.calculationSteps || []).filter(
-                    (s) =>
-                      s.name.toLowerCase().includes('comportamental') ||
-                      s.name.toLowerCase().includes('disc') ||
-                      s.name.toLowerCase().includes('performance')
-                  );
-                  if (behavioralSteps.length === 0) return null;
+                {/* Card 1 — Engajamento */}
+                {a.performanceScore !== undefined && (() => {
+                  const perfStep = (a.calculationSteps || []).find((s) => s.name.startsWith('Performance mais recente'));
                   return (
-                    <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 6 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: '#0e7490', marginBottom: 6 }}>
-                        📈 Como se chegou à Aderência Comportamental
+                    <div style={{ marginTop: 10, padding: '8px 10px', background: '#fefce8', border: '1px solid #fde68a', borderRadius: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#92400e', marginBottom: 2 }}>
+                        🎓 Engajamento — {a.performanceScore.toFixed(1)} / 100
                       </div>
-                      {behavioralSteps.map((step, i) => (
-                        <div key={i} className="step-row">
-                          <div className="step-name">
-                            <span>{step.name}</span>
-                            <span style={{ fontWeight: 700, color: '#0e7490' }}>{typeof step.value === 'number' ? step.value.toFixed(1) : step.value}</span>
-                          </div>
-                          {step.detail && <div className="step-detail">↳ {step.detail}</div>}
-                        </div>
-                      ))}
+                      <div style={{ fontSize: 9, color: '#92400e', marginBottom: 4, lineHeight: 1.4 }}>
+                        Nota de fechamento do ciclo do Banco de Sucessores, composta por aulas, webinars, nota do mentor e participação no projeto{perfStep?.detail ? ` — apurada em ${perfStep.detail}` : ''}.
+                      </div>
+                      <div style={{ fontSize: 10, color: '#78350f', fontWeight: 600 }}>
+                        Convertida para escala 0–10: {a.performanceConverted?.toFixed(1)} / 10
+                      </div>
                     </div>
                   );
                 })()}
 
-                {/* DISC */}
+                {/* Card 2 — DISC */}
                 {a.discRecord && (
                   <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 6 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#0369a1', marginBottom: 2 }}>🔷 DISC — Correlação: {a.discRecord.correlationPct}%</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#0369a1', marginBottom: 2 }}>
+                      🔷 DISC — Correlação: {a.discRecord.correlationPct}% {a.discScore !== undefined && `(nota ${a.discScore.toFixed(1)} / 10)`}
+                    </div>
                     <div style={{ fontSize: 9, color: '#0369a1', marginBottom: 6, lineHeight: 1.4 }}>
                       Média da proximidade entre o Perfil do Candidato e o Perfil do Cargo nos 4 indicadores — quanto menor a distância em cada um, maior a proximidade.
                     </div>
@@ -383,6 +379,18 @@ export default function PrintProfile() {
                         </div>
                         );
                       })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Card 3 — União: Aderência Comportamental final */}
+                {a.behavioralAdherence !== undefined && a.discScore !== undefined && a.performanceConverted !== undefined && (
+                  <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0fdfa', border: '1.5px solid #5eead4', borderRadius: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#0e7490', marginBottom: 4 }}>
+                      📈 Aderência Comportamental — união DISC + Engajamento
+                    </div>
+                    <div style={{ fontSize: 10, color: '#134e4a', lineHeight: 1.6 }}>
+                      DISC ({a.discScore.toFixed(1)}) + Engajamento ({a.performanceConverted.toFixed(1)}) ÷ 2 = <strong style={{ fontSize: 12 }}>{a.behavioralAdherence.toFixed(1)} / 10</strong>
                     </div>
                   </div>
                 )}

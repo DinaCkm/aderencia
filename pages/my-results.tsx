@@ -542,9 +542,9 @@ export default function MyResults() {
                           )}
                         </div>
                         <div style={{ marginTop: 6, background: '#f8f7fc', borderLeft: '3px solid #0e7490', borderRadius: 4, padding: '8px 12px', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                          O indicador de performance vem do ranking de engajamento do SEBRAE TO (escala 0–100). Convertido para 0–10 pela fórmula: <strong>(score / 100) × 10</strong>.
+                          A nota de Engajamento é a nota de fechamento do ciclo do Banco de Sucessores, composta por aulas, webinars, nota do mentor e participação no projeto (escala 0–100). Convertida para 0–10 pela fórmula: <strong>(nota / 100) × 10</strong>.
                           {perfRaw !== undefined && perfRaw !== 'ausente' && (
-                            <span> Seu score: {perfRaw} / 100 = <strong>{((Number(perfRaw) / 100) * 10).toFixed(1)} pts</strong>.</span>
+                            <span> Sua nota: {perfRaw} / 100 = <strong>{((Number(perfRaw) / 100) * 10).toFixed(1)} pts</strong>.</span>
                           )}
                         </div>
                       </div>

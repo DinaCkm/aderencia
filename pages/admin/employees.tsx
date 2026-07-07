@@ -16,6 +16,9 @@ interface AreaAssessmentResult {
   area: string;
   technicalAdherence: number;
   behavioralAdherence?: number;
+  discScore?: number;
+  performanceScore?: number;
+  performanceConverted?: number;
   quadrant: string;
   quadrantX?: 'low' | 'mid' | 'high';
   quadrantY?: 'low' | 'mid' | 'high';
@@ -263,40 +266,29 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                           </div>
                         ))}
                       </div>
-                      {/* Cálculo da Aderência Comportamental (Performance/Engajamento + DISC) — antes filtrado e nunca exibido */}
-                      {a.behavioralAdherence !== undefined && (() => {
-                        const behavioralSteps = (a.calculationSteps || []).filter(
-                          (s: any) =>
-                            s.name.toLowerCase().includes('comportamental') ||
-                            s.name.toLowerCase().includes('disc') ||
-                            s.name.toLowerCase().includes('performance')
-                        );
-                        if (behavioralSteps.length === 0) return null;
+                      {/* Card 1 — Engajamento */}
+                      {a.performanceScore !== undefined && (() => {
+                        const perfStep = (a.calculationSteps || []).find((s: any) => s.name.startsWith('Performance mais recente'));
                         return (
-                          <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 6 }}>
-                            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#0e7490', marginBottom: 6 }}>
-                              📈 Como se chegou à Aderência Comportamental
+                          <div style={{ marginTop: 10, padding: '8px 10px', background: '#fefce8', border: '1px solid #fde68a', borderRadius: 6 }}>
+                            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#92400e', marginBottom: 2 }}>
+                              🎓 Engajamento — {a.performanceScore.toFixed(1)} / 100
                             </div>
-                            {behavioralSteps.map((step: any, i: number) => (
-                              <div key={i} style={{ borderBottom: i < behavioralSteps.length - 1 ? '1px solid #ccfbf1' : 'none', paddingBottom: 5, marginBottom: 4 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#374151' }}>
-                                  <span>{step.name}</span>
-                                  <span style={{ fontWeight: 700, color: '#0e7490' }}>{typeof step.value === 'number' ? step.value.toFixed(1) : step.value}</span>
-                                </div>
-                                {step.detail && (
-                                  <div style={{ fontSize: '0.68rem', color: '#0e7490', paddingLeft: 8, lineHeight: 1.4 }}>
-                                    ↳ {step.detail}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
+                            <div style={{ fontSize: '0.63rem', color: '#92400e', marginBottom: 4, lineHeight: 1.4 }}>
+                              Nota de fechamento do ciclo do Banco de Sucessores, composta por aulas, webinars, nota do mentor e participação no projeto{perfStep?.detail ? ` — apurada em ${perfStep.detail}` : ''}.
+                            </div>
+                            <div style={{ fontSize: '0.68rem', color: '#78350f', fontWeight: 700 }}>
+                              Convertida para escala 0–10: {a.performanceConverted?.toFixed(1)} / 10
+                            </div>
                           </div>
                         );
                       })()}
-                      {/* DISC */}
+                      {/* Card 2 — DISC */}
                       {a.discRecord && (
                         <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 6 }}>
-                          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#0369a1', marginBottom: 2 }}>🔷 DISC — Correlação: {a.discRecord.correlationPct}%</div>
+                          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#0369a1', marginBottom: 2 }}>
+                            🔷 DISC — Correlação: {a.discRecord.correlationPct}% {a.discScore !== undefined && `(nota ${a.discScore.toFixed(1)} / 10)`}
+                          </div>
                           <div style={{ fontSize: '0.63rem', color: '#0369a1', marginBottom: 6, lineHeight: 1.4 }}>
                             Média da proximidade entre o Perfil do Candidato e o Perfil do Cargo nos 4 indicadores — quanto menor a distância em cada um, maior a proximidade.
                           </div>
@@ -320,6 +312,17 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                               </div>
                               );
                             })}
+                          </div>
+                        </div>
+                      )}
+                      {/* Card 3 — União: Aderência Comportamental final */}
+                      {a.behavioralAdherence !== undefined && a.discScore !== undefined && a.performanceConverted !== undefined && (
+                        <div style={{ marginTop: 10, padding: '8px 10px', background: '#f0fdfa', border: '1.5px solid #5eead4', borderRadius: 6 }}>
+                          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#0e7490', marginBottom: 4 }}>
+                            📈 Aderência Comportamental — união DISC + Engajamento
+                          </div>
+                          <div style={{ fontSize: '0.7rem', color: '#134e4a', lineHeight: 1.6 }}>
+                            DISC ({a.discScore.toFixed(1)}) + Engajamento ({a.performanceConverted.toFixed(1)}) ÷ 2 = <strong style={{ fontSize: '0.85rem' }}>{a.behavioralAdherence.toFixed(1)} / 10</strong>
                           </div>
                         </div>
                       )}
