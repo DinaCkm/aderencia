@@ -3,6 +3,7 @@ import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import * as XLSX from 'xlsx';
 import type { AreaCode, DISCRecord, DiscReport } from '../../../lib/types';
 import { randomUUID } from 'crypto';
+import { calcDiscCorrelation } from '../../../lib/disc';
 
 export const config = { api: { bodyParser: false } };
 
@@ -80,10 +81,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const iPos = findCol('positiv') >= 0 ? findCol('positiv') : findCol('destac');
   const iDev = findCol('desenvolv') >= 0 ? findCol('desenvolv') : findCol('nao se destac');
 
-  // Precisa de pelo menos: (email OU nome) + area + correlação
-  if ((iEmail < 0 && iNome < 0) || iArea < 0 || iCorr < 0) {
+  // Precisa de pelo menos: (email OU nome) + area + os 4 indicadores da pessoa e do cargo
+  // (a correlação não é mais lida pronta da planilha — é calculada por nós a partir desses valores)
+  if ((iEmail < 0 && iNome < 0) || iArea < 0 || iDP < 0 || iIP < 0 || iSP < 0 || iCP < 0 || iDC < 0 || iIC < 0 || iSC < 0 || iCC < 0) {
     return res.status(400).json({
-      error: `Colunas obrigatórias não encontradas. email:${iEmail}, nome:${iNome}, area:${iArea}, correlação:${iCorr}. Cabeçalho lido: ${headers.slice(0, 8).join(' | ')}`,
+      error: `Colunas obrigatórias não encontradas. Precisamos de: (email ou nome) + área + os 4 indicadores (D/I/S/C) da pessoa e do cargo. email:${iEmail}, nome:${iNome}, area:${iArea}, D-pessoa:${iDP}, I-pessoa:${iIP}, S-pessoa:${iSP}, C-pessoa:${iCP}, D-cargo:${iDC}, I-cargo:${iIC}, S-cargo:${iSC}, C-cargo:${iCC}. Cabeçalho lido: ${headers.slice(0, 8).join(' | ')}`,
     });
   }
 
@@ -125,7 +127,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const emailRaw = iEmail >= 0 ? String(row[iEmail] ?? '').toLowerCase().trim() : '';
     const nome     = iNome  >= 0 ? String(row[iNome]  ?? '').trim() : '';
     const areaRaw  = String(row[iArea] ?? '').trim().toUpperCase().replace(/\s+/g, '');
-    const corrRaw  = row[iCorr];
 
     // Pular linhas completamente vazias
     if (!emailRaw && !nome && !areaRaw) continue;
@@ -139,12 +140,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const area = areaNorm as AreaCode;
     if (!VALID_AREAS.includes(area)) {
       errors.push(`Linha ${i + 1}: área inválida "${areaRaw}" para ${emailRaw || nome}`);
-      continue;
-    }
-
-    const corr = Number(String(corrRaw).replace('%', '').trim());
-    if (isNaN(corr) || corr < 0 || corr > 100) {
-      errors.push(`Linha ${i + 1}: correlação inválida "${corrRaw}" para ${emailRaw || nome}`);
       continue;
     }
 
@@ -176,6 +171,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const jI = iIC >= 0 ? (Number(row[iIC]) || 0) : 0;
     const jS = iSC >= 0 ? (Number(row[iSC]) || 0) : 0;
     const jC = iCC >= 0 ? (Number(row[iCC]) || 0) : 0;
+
+    // Correlação (%) calculada por nós — média da proximidade dos 4 indicadores
+    // entre o perfil do candidato e o perfil ideal do cargo/área (não vem mais pronta da planilha)
+    const corr = calcDiscCorrelation(pD, pI, pS, pC, jD, jI, jS, jC);
 
     const posRaw = iPos >= 0 ? String(row[iPos] ?? '').trim() : '';
     const devRaw = iDev >= 0 ? String(row[iDev] ?? '').trim() : '';
