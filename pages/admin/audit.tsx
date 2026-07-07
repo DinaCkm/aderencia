@@ -72,7 +72,7 @@ function ValidationControls({
 }) {
   const [status, setStatus] = useState<ItemValidation['status']>(validation?.status || 'pending');
   const [note, setNote] = useState(validation?.note || '');
-  const [showNote, setShowNote] = useState(false);
+  const [showNote, setShowNote] = useState(!!validation?.note);
   const [saved, setSaved] = useState(false);
 
   const flashSaved = () => {
