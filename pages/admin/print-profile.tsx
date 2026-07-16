@@ -12,6 +12,8 @@ interface AreaAssessmentResult {
   performanceScore?: number;
   performanceConverted?: number;
   quadrant: string;
+  rank?: number | null;
+  totalInArea?: number;
   calculationSteps: { name: string; value: number | string; detail?: string }[];
   projectsDetail?: { label: string; points: number }[];
   discRecord?: {
@@ -82,6 +84,28 @@ export default function PrintProfile() {
   const itemValidations = audit?.itemValidations || [];
   const getAuditV = (key: string) => itemValidations.find((v) => v.itemKey === key);
 
+  // Rótulo legível para cada item auditado (usado no Resumo da Auditoria)
+  const auditItemLabel = (key: string): string => {
+    const m = key.match(/^(postmba|curso-free|curso-cat|projeto|excecao)-(\d+)$/);
+    if (m) {
+      const idx = Number(m[2]);
+      if (m[1] === 'postmba') return `Pós/MBA: ${(p.postMBAs || [])[idx] || `#${idx + 1}`}`;
+      if (m[1] === 'projeto') return `Projeto: ${(p.selectedProjects || [])[idx] || `#${idx + 1}`}`;
+      if (m[1] === 'curso-cat') return `Curso: ${(p.selectedCourses || [])[idx] || `#${idx + 1}`}`;
+      if (m[1] === 'curso-free') { const fc = ((p as any).freeCourses || [])[idx]; return `Curso livre: ${fc?.name || `#${idx + 1}`}`; }
+      if (m[1] === 'excecao') return `Exceção #${idx + 1}`;
+    }
+    const map: Record<string, string> = {
+      'dados-basicos': 'Dados Básicos',
+      'areas-interesse': 'Áreas de Interesse',
+      'graduacao': 'Graduação',
+      'experiencia': 'Experiência gerencial/interina',
+      'experiencia-gerencial': 'Experiência gerencial/interina',
+      'excecao-legado': 'Exceção (legado)',
+    };
+    return map[key] || key;
+  };
+
   function ValidationBadge({ itemKey }: { itemKey: string }) {
     const v = getAuditV(itemKey);
     if (!v) return (
@@ -120,7 +144,7 @@ export default function PrintProfile() {
   }
   const totalMonths = (p.managerialMonths ?? 0) + (p.interimMonths ?? 0);
   const expPts = Math.min(20, Math.floor((totalMonths / 12) * 5 * 10) / 10);
-  const expAuditV = getAuditV('experiencia-gerencial');
+  const expAuditV = getAuditV('experiencia');
   const expRejected = expAuditV?.status === 'rejected';
 
   const mbaAnalysis = allMBAs.map((title, idx) => {
@@ -249,6 +273,49 @@ export default function PrintProfile() {
           </div>
         </div>
 
+        {/* ── Resumo da Auditoria (todos os itens: status + observações) ── */}
+        {(itemValidations.length > 0 || audit?.overallNote) && (
+          <div style={{ background: '#faf5ff', border: '2px solid #c4b5fd', borderRadius: 8, padding: '12px 16px', marginBottom: 20 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#5B2D8E', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>🔎 Resumo da Auditoria</div>
+            <div style={{ fontSize: 11, marginBottom: 8 }}>
+              <strong>Status geral da ficha:</strong>{' '}
+              <span style={{ color: statusColor, fontWeight: 700 }}>{statusLabel}</span>
+            </div>
+            {audit?.overallNote && (
+              <div style={{ fontSize: 11, marginBottom: 10, color: '#374151', background: '#fff', border: '1px solid #e9d5ff', borderRadius: 6, padding: '6px 10px' }}>
+                <strong>Observação geral:</strong> {audit.overallNote}
+              </div>
+            )}
+            {itemValidations.length > 0 && (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '4px 6px', borderBottom: '1px solid #e5e7eb', color: '#6b7280' }}>Item</th>
+                    <th style={{ textAlign: 'left', padding: '4px 6px', borderBottom: '1px solid #e5e7eb', color: '#6b7280', whiteSpace: 'nowrap' }}>Situação</th>
+                    <th style={{ textAlign: 'left', padding: '4px 6px', borderBottom: '1px solid #e5e7eb', color: '#6b7280' }}>Observação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {itemValidations.map((v, i) => {
+                    const st = v.status === 'approved'
+                      ? { t: '✅ Validado', c: '#15803d' }
+                      : v.status === 'rejected'
+                      ? { t: '❌ Rejeitado', c: '#dc2626' }
+                      : { t: '⏳ Pendente', c: '#92400e' };
+                    return (
+                      <tr key={i}>
+                        <td style={{ padding: '4px 6px', borderBottom: '1px solid #f3f4f6', fontWeight: 600 }}>{auditItemLabel(v.itemKey)}</td>
+                        <td style={{ padding: '4px 6px', borderBottom: '1px solid #f3f4f6', color: st.c, fontWeight: 700, whiteSpace: 'nowrap' }}>{st.t}</td>
+                        <td style={{ padding: '4px 6px', borderBottom: '1px solid #f3f4f6', color: '#374151' }}>{v.note || '—'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+
         {/* ── Cabeçalho do candidato ── */}
         <div style={{ marginBottom: 20, borderBottom: '2px solid #e5e7eb', paddingBottom: 16 }}>
           <div style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Ficha Completa do Candidato</div>
@@ -279,6 +346,12 @@ export default function PrintProfile() {
                         background: a.technicalAdherence >= 7.5 && (a.behavioralAdherence ?? 0) >= 7.5 ? '#dcfce7' : a.technicalAdherence >= 5 && (a.behavioralAdherence ?? 0) >= 5 ? '#fef3c7' : '#fee2e2',
                         color: a.technicalAdherence >= 7.5 && (a.behavioralAdherence ?? 0) >= 7.5 ? '#15803d' : a.technicalAdherence >= 5 && (a.behavioralAdherence ?? 0) >= 5 ? '#92400e' : '#b91c1c',
                       }}>◉ {a.quadrant}</span>
+                    )}
+                    {typeof a.rank === 'number' && a.rank > 0 && (
+                      <span style={{
+                        display: 'inline-block', marginTop: 4, marginLeft: 6, padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700,
+                        background: '#eef2ff', color: '#4338ca', border: '1px solid #c7d2fe',
+                      }}>🏅 Classificação: {a.rank}º{a.totalInArea ? ` de ${a.totalInArea}` : ''}</span>
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
@@ -479,7 +552,7 @@ export default function PrintProfile() {
                 <div className="reason" style={{ color: expRejected ? '#b91c1c' : '#64748b' }}>
                   {expRejected ? `Experiência rejeitada pelo auditor` : totalMonths > 0 ? `${(totalMonths / 12).toFixed(1)} anos × 5 pts/ano = ${expPts} pts (máx. 20 pts)` : 'Nenhuma experiência informada — 0 pts'}
                 </div>
-                <div style={{ marginTop: 4 }}><ValidationBadge itemKey="experiencia-gerencial" /></div>
+                <div style={{ marginTop: 4 }}><ValidationBadge itemKey="experiencia" /></div>
               </div>
               <span className="pts" style={{ color: expRejected ? '#b91c1c' : expPts > 0 ? '#15803d' : '#94a3b8' }}>{expPts} pts</span>
             </div>
