@@ -19,6 +19,15 @@ const GRID_CELLS: { x: string; y: string; label: string; color: string; bg: stri
 
 function getCell(quadrantLabel: string): { x: string; y: string } | null {
   const map: Record<string, { x: string; y: string }> = {
+    // Rótulos REAIS gerados por business.ts (getQuadrant) — estes são os que chegam da API
+    'Tecnicamente Alta — Comportamental Alta':                { x: 'high', y: 'high' },
+    'Tecnicamente Média — Comportamental Alta':               { x: 'mid',  y: 'high' },
+    'Tecnicamente Baixa — Comportamental Alta':               { x: 'low',  y: 'high' },
+    'Tecnicamente Alta — Comportamental Média':               { x: 'high', y: 'mid'  },
+    'Tecnicamente Média — Comportamental Média':              { x: 'mid',  y: 'mid'  },
+    'Tecnicamente Baixa — Comportamental Média':              { x: 'low',  y: 'mid'  },
+    'Tecnicamente Alta — Comportamental Baixa':               { x: 'high', y: 'low'  },
+    'Tecnicamente Baixa — Comportamental Baixa':              { x: 'low',  y: 'low'  },
     // Labels exatos do business.ts
     'Alta Prontidão':                                         { x: 'high', y: 'high' },
     'Pronto em Desenvolvimento':                              { x: 'mid',  y: 'high' },
@@ -233,11 +242,9 @@ export default function NineBoxPublic() {
                 X_LABELS.map((x, xi) => {
                   const cellDef = GRID_CELLS.find((c) => c.x === x && c.y === y)!;
                   const people = cellParticipants(x, y);
-                  const isMyCell = people.some((p) => {
-                    // Destaca o próprio participante
-                    const me = report[selectedArea]?.find((pp) => pp.name === participantName);
-                    return me && me.quadrant === cellDef.label;
-                  });
+                  const myQuad = report[selectedArea]?.find((pp) => pp.name === participantName)?.quadrant;
+                  const myCell = myQuad ? getCell(myQuad) : null;
+                  const isMyCell = !!myCell && myCell.x === x && myCell.y === y;
 
                   return (
                     <div key={`${x}-${y}`} style={{

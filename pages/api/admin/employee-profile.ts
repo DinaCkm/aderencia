@@ -57,14 +57,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .filter((v) => v.status === 'rejected')
     .map((v) => ({ itemKey: v.itemKey, note: v.note }));
 
+  // ── Classificação (ranking) por área — mesmo critério do Nine Box do admin:
+  //    ordena por (Aderência Técnica + Comportamental) desc entre TODOS que selecionaram a área.
+  const rankInArea = (area: string): { rank: number | null; total: number } => {
+    const scored = participants
+      .filter((pp) => (pp.selectedAreas || []).includes(area))
+      .map((pp) => {
+        const ppExc =
+          pp.exceptionStatus === 'approved'
+            ? pp.postMBAs.concat(pp.selectedCourses, pp.selectedProjects)
+            : [];
+        const ppAudit = audits.find((a) => a.participantId === pp.id);
+        const ppRejected = (ppAudit?.itemValidations || [])
+          .filter((v) => v.status === 'rejected')
+          .map((v) => ({ itemKey: v.itemKey, note: v.note }));
+        const a = buildAreaAssessment(pp, area, performance, discs, ppExc, ppRejected);
+        return { id: pp.id, score: (a.technicalAdherence || 0) + (a.behavioralAdherence || 0) };
+      })
+      .sort((x, y) => y.score - x.score);
+    const idx = scored.findIndex((s) => s.id === profile.id);
+    return { rank: idx >= 0 ? idx + 1 : null, total: scored.length };
+  };
+
   const areaAssessments = (profile.selectedAreas || []).map((area) => {
     const assessment = buildAreaAssessment(profile, area, performance, discs, approvedExceptions, rejectedItems);
     const discRecord = discRecords
       .filter((d) => d.participantId === profile.id && d.area === area)
       .sort((a, b) => b.importedAt.localeCompare(a.importedAt))[0];
+    const { rank, total } = rankInArea(area);
     return {
       ...assessment,
       discRecord: discRecord || null,
+      rank,
+      totalInArea: total,
     };
   });
 
