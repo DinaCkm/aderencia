@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync, loadProofFiles } from '../../../lib/db';
 import { buildAreaAssessment } from '../../../lib/business';
 import type {
+  AreaCode,
   ParticipantProfile,
   PerformanceRecord,
   DiscReport,
@@ -59,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // ── Classificação (ranking) por área — mesmo critério do Nine Box do admin:
   //    ordena por (Aderência Técnica + Comportamental) desc entre TODOS que selecionaram a área.
-  const rankInArea = (area: string): { rank: number | null; total: number } => {
+  const rankInArea = (area: AreaCode): { rank: number | null; total: number } => {
     const scored = participants
       .filter((pp) => (pp.selectedAreas || []).includes(area))
       .map((pp) => {
