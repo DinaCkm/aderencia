@@ -669,10 +669,13 @@ export default function AdminNineBox() {
   const areaData = report[selectedArea] || [];
 
   const cellParticipants = (x: string, y: string) =>
-    areaData.filter((a) => {
-      const cell = getCell(a.quadrant);
-      return cell && cell.x === x && cell.y === y;
-    });
+    areaData
+      .filter((a) => {
+        const cell = getCell(a.quadrant);
+        return cell && cell.x === x && cell.y === y;
+      })
+      // Ordena por soma (Técnica + Comportamental) desc — mesmo critério do Nine Box do empregado e da classificação do PDF
+      .sort((a, b) => (b.technicalScore + (b.behavioralScore ?? 0)) - (a.technicalScore + (a.behavioralScore ?? 0)));
 
   return (
     <>

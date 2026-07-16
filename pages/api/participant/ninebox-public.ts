@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Monta o Nine Box apenas para as áreas de interesse do participante logado
-  const report: Record<string, { name: string; quadrant: string }[]> = {};
+  const report: Record<string, { name: string; quadrant: string; score: number }[]> = {};
 
   for (const participant of participants) {
     if (!participant.selectedAreas || participant.selectedAreas.length === 0) continue;
@@ -42,14 +42,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       report[area].push({
         name: participant.name || participant.id,
         quadrant: assessment.quadrant || 'Dados incompletos para definição do quadrante',
+        score: (assessment.technicalAdherence || 0) + (assessment.behavioralAdherence || 0),
       });
     });
   }
 
-  // Ordena nomes alfabeticamente dentro de cada quadrante/área
+  // Ordena por soma (Aderência Técnica + Comportamental) desc — mesmo critério do Nine Box do admin.
+  // Desempate alfabético. O 'score' é usado só para ordenar e NÃO é enviado ao cliente (notas continuam ocultas).
+  const publicReport: Record<string, { name: string; quadrant: string }[]> = {};
   for (const area of Object.keys(report)) {
-    report[area].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+    publicReport[area] = report[area]
+      .sort((a, b) => (b.score - a.score) || a.name.localeCompare(b.name, 'pt-BR'))
+      .map(({ name, quadrant }) => ({ name, quadrant }));
   }
 
-  return res.status(200).json({ report, allowedAreas });
+  return res.status(200).json({ report: publicReport, allowedAreas });
 }
