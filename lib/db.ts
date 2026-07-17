@@ -255,6 +255,112 @@ export async function loadProofFiles(email: string): Promise<Record<string, stri
   }
 }
 
+// ─── Tabela admin_proof_extra (comprovantes adicionais anexados pelo admin) ──
+// Cada item pode ter 1 comprovante "principal" (proof_files, já existente,
+// enviado pelo candidato ou pelo admin) + até 2 comprovantes extras anexados
+// pelo admin (slot 1 e 2) — total máximo de 3 documentos por item.
+
+const MAX_EXTRA_SLOTS = 2; // slots 1 e 2 (slot 0 é o comprovante principal em proof_files)
+
+export interface ExtraProofFile {
+  slot: number;         // 1 ou 2
+  fileName: string;
+  fileData: string;     // base64 (data URL)
+  updatedAt: string;
+}
+
+async function ensureProofExtraTable(): Promise<void> {
+  const pool = getPool();
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_proof_extra (
+      id          INT AUTO_INCREMENT PRIMARY KEY,
+      email       VARCHAR(255) NOT NULL,
+      item_key    VARCHAR(500) NOT NULL,
+      slot        TINYINT NOT NULL,
+      file_name   VARCHAR(500) DEFAULT '',
+      file_data   LONGTEXT NOT NULL,
+      updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      UNIQUE KEY uq_email_item_slot (email(200), item_key(250), slot)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+}
+
+/**
+ * Lista os comprovantes extras (slots 1 e 2) de um item específico.
+ */
+export async function loadExtraProofFiles(email: string, itemKey: string): Promise<ExtraProofFile[]> {
+  if (!USE_MYSQL) return [];
+  try {
+    await ensureProofExtraTable();
+    const pool = getPool();
+    const cleanKey = itemKey.trim();
+    const [rows]: any[] = await pool.query(
+      'SELECT slot, file_name, file_data, updated_at FROM admin_proof_extra WHERE email = ? AND item_key = ? ORDER BY slot ASC',
+      [email, cleanKey]
+    );
+    return rows.map((r: any) => ({
+      slot: r.slot,
+      fileName: r.file_name || '',
+      fileData: r.file_data,
+      updatedAt: r.updated_at,
+    }));
+  } catch (err) {
+    console.error(`[db] Erro ao carregar admin_proof_extra de ${email}/${itemKey}:`, err);
+    return [];
+  }
+}
+
+/**
+ * Salva um comprovante extra (slot 1 ou 2) anexado pelo admin.
+ * Limita a no máximo MAX_EXTRA_SLOTS (2) — junto com o comprovante principal
+ * (slot 0, tabela proof_files), totaliza no máximo 3 documentos por item.
+ */
+export async function saveExtraProofFile(
+  email: string,
+  itemKey: string,
+  slot: number,
+  fileData: string,
+  fileName: string
+): Promise<void> {
+  if (!USE_MYSQL) throw new Error('Upload de documentos extras requer banco MySQL configurado.');
+  if (slot < 1 || slot > MAX_EXTRA_SLOTS) {
+    throw new Error(`Slot inválido (${slot}). Máximo de ${MAX_EXTRA_SLOTS} documentos extras.`);
+  }
+  const cleanKey = itemKey.trim();
+  try {
+    await ensureProofExtraTable();
+    const pool = getPool();
+    await pool.query(
+      `INSERT INTO admin_proof_extra (email, item_key, slot, file_name, file_data, updated_at)
+       VALUES (?, ?, ?, ?, ?, NOW())
+       ON DUPLICATE KEY UPDATE file_name = VALUES(file_name), file_data = VALUES(file_data), updated_at = NOW()`,
+      [email, cleanKey, slot, fileName, fileData]
+    );
+  } catch (err) {
+    console.error(`[db] Erro ao salvar admin_proof_extra ${email}/${itemKey}/slot${slot}:`, err);
+    throw err;
+  }
+}
+
+/**
+ * Remove um comprovante extra específico (slot 1 ou 2).
+ */
+export async function deleteExtraProofFile(email: string, itemKey: string, slot: number): Promise<void> {
+  if (!USE_MYSQL) return;
+  const cleanKey = itemKey.trim();
+  try {
+    await ensureProofExtraTable();
+    const pool = getPool();
+    await pool.query(
+      'DELETE FROM admin_proof_extra WHERE email = ? AND item_key = ? AND slot = ?',
+      [email, cleanKey, slot]
+    );
+  } catch (err) {
+    console.error(`[db] Erro ao remover admin_proof_extra ${email}/${itemKey}/slot${slot}:`, err);
+    throw err;
+  }
+}
+
 /**
  * Inicializa o banco com dados base (seed).
  * Só insere se a chave ainda não existir — preserva dados existentes.
