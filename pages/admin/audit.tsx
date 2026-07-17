@@ -330,10 +330,148 @@ function ProofFileViewer({ email, itemKey, inlineValue, fileName, label, onUploa
   }, [email, itemKey]);
 
   if (loading) return <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 6 }}>⏳ Carregando comprovante...</div>;
-  // Arquivo não encontrado em lugar nenhum — mostrar uploader para o admin annexar
-  if (notFound) return <AdminProofUploader email={email} itemKey={itemKey} onUploaded={(b) => { setBase64(b); setNotFound(false); onUploaded?.(b); }} />;
-  if (!base64) return null;
-  return <FileViewer base64={base64} fileName={fileName} label={label} />;
+  return (
+    <div>
+      {notFound ? (
+        // Nenhum comprovante principal ainda — mostrar uploader para o admin anexar (slot 0)
+        <AdminProofUploader email={email} itemKey={itemKey} onUploaded={(b) => { setBase64(b); setNotFound(false); onUploaded?.(b); }} />
+      ) : base64 ? (
+        <FileViewer base64={base64} fileName={fileName} label={label} />
+      ) : null}
+      {/* Documentos extras — até 2, totalizando no máximo 3 por item junto com o principal acima */}
+      {!notFound && base64 && <ExtraProofFiles email={email} itemKey={itemKey} baseFileName={fileName} />}
+    </div>
+  );
+}
+
+// ─── Documentos extras (até 2, além do comprovante principal) ──────────────
+function ExtraProofFiles({ email, itemKey, baseFileName }: { email: string; itemKey: string; baseFileName: string }) {
+  const [files, setFiles] = React.useState<{ slot: number; fileName: string; fileData: string }[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
+
+  const load = React.useCallback(() => {
+    setLoading(true);
+    fetch(`/api/admin/proof-extra?email=${encodeURIComponent(email)}&itemKey=${encodeURIComponent(itemKey)}`)
+      .then((r) => r.json())
+      .then((d) => setFiles(d.files || []))
+      .catch(() => setError('Erro ao carregar documentos extras.'))
+      .finally(() => setLoading(false));
+  }, [email, itemKey]);
+
+  React.useEffect(() => { load(); }, [load]);
+
+  const remove = async (slot: number) => {
+    if (!confirm('Remover este documento?')) return;
+    try {
+      await fetch('/api/admin/proof-extra', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, itemKey, slot }),
+      });
+      load();
+    } catch {
+      setError('Erro ao remover documento.');
+    }
+  };
+
+  if (loading) return null;
+  const totalDocs = 1 + files.length; // 1 = comprovante principal (slot 0)
+  const canAddMore = totalDocs < 3;
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      {files.map((f) => (
+        <div key={f.slot} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+          <div style={{ flex: 1 }}>
+            <FileViewer base64={f.fileData} fileName={f.fileName || `${baseFileName}-extra${f.slot}`} label={`Documento adicional ${f.slot + 1}`} />
+          </div>
+          <button
+            type="button"
+            onClick={() => remove(f.slot)}
+            style={{ fontSize: '0.68rem', fontWeight: 700, padding: '4px 10px', background: '#fee2e2', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: 6, cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            🗑 Remover
+          </button>
+        </div>
+      ))}
+      {error && <div style={{ fontSize: '0.72rem', color: '#dc2626', marginTop: 4 }}>⚠ {error}</div>}
+      {canAddMore ? (
+        <AdminExtraProofUploader
+          email={email}
+          itemKey={itemKey}
+          nextSlot={files.length === 0 ? 1 : Math.max(...files.map((f) => f.slot)) + 1}
+          onUploaded={load}
+        />
+      ) : (
+        <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 6 }}>Limite de 3 documentos por item atingido.</div>
+      )}
+    </div>
+  );
+}
+
+// ─── Upload de documento extra (slot 1 ou 2) ────────────────────────────────
+function AdminExtraProofUploader({ email, itemKey, nextSlot, onUploaded }: {
+  email: string;
+  itemKey: string;
+  nextSlot: number;
+  onUploaded: () => void;
+}) {
+  const [uploading, setUploading] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const inputId = `admin-extra-upload-${itemKey.replace(/[^a-z0-9]/gi, '_')}-${nextSlot}`;
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024) {
+      setError('Arquivo muito grande (limite: 20 MB)');
+      return;
+    }
+    setError('');
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result as string;
+      try {
+        const res = await fetch('/api/admin/proof-extra', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, itemKey, slot: nextSlot, fileData: base64, fileName: file.name }),
+        });
+        if (res.ok) {
+          onUploaded();
+        } else {
+          const d = await res.json().catch(() => ({}));
+          setError(d.error || 'Erro ao salvar. Tente novamente.');
+        }
+      } catch {
+        setError('Erro de conexão.');
+      }
+      setUploading(false);
+      e.target.value = '';
+    };
+    reader.onerror = () => { setError('Erro ao ler o arquivo.'); setUploading(false); };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div style={{ marginTop: 8, padding: '8px 12px', background: '#eff6ff', border: '1.5px dashed #3b82f6', borderRadius: 8 }}>
+      <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#1d4ed8', marginBottom: 6 }}>📤 Adicionar documento {nextSlot + 1} de 3</div>
+      <input id={inputId} type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onChange={handleFile} style={{ display: 'none' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => document.getElementById(inputId)?.click()}
+          disabled={uploading}
+          style={{ fontSize: '0.72rem', fontWeight: 700, padding: '5px 14px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', opacity: uploading ? 0.6 : 1 }}
+        >
+          {uploading ? '⏳ Salvando...' : '📎 Selecionar arquivo extra'}
+        </button>
+        {error && <span style={{ fontSize: '0.72rem', color: '#dc2626', fontWeight: 600 }}>⚠ {error}</span>}
+      </div>
+    </div>
+  );
 }
 
 // ─── Upload de comprovante pelo administrador ────────────────────────────────
