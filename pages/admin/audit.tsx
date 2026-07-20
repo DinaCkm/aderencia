@@ -1714,9 +1714,21 @@ export default function AdminAudit() {
                         </div>
                       )}
                       {p.exceptionApprovalJustification && (
-                        <div style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.6, background: 'white', borderRadius: 6, padding: '8px 10px' }}>
+                        <div style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.6, background: 'white', borderRadius: 6, padding: '8px 10px', marginBottom: 8 }}>
                           {p.exceptionApprovalJustification}
                         </div>
+                      )}
+                      {(p.exceptionItems || []).length === 0 && !p.exceptionJustification && (
+                        <>
+                          <ExceptionAssignmentPicker
+                            candidateAreas={p.selectedAreas || []}
+                            assignment={((selected?.audit as any)?.exceptionAssignments || {})['excecao-legado']}
+                            onSave={(area, label, type) => saveExceptionAssignment('excecao-legado', area, label, type)}
+                            onClear={() => saveExceptionAssignment('excecao-legado', null, null, null)}
+                            saving={saving}
+                          />
+                          <ValidationControls itemKey="excecao-legado" validation={getValidation('excecao-legado')} onSave={saveItemValidation} />
+                        </>
                       )}
                     </div>
                   )}
