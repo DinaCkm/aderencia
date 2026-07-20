@@ -154,46 +154,60 @@ export default function PrintProfile() {
     const mbaKey = `mba_${idx}:${mbaBlock?.name?.trim() || title}`;
     const proof = proofStatus(mbaKey);
     if (auditV?.status === 'rejected') {
-      return { title, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, proof };
+      return { title, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, proof, auditNote: auditV.note };
     }
     const matches = CATALOG_ITEMS.filter((i) => i.group === 'postMBA' && i.label === title);
     if (matches.length === 0) {
-      return { title, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo oficial — recebe pontuação mínima de 20 pts por possuir pós-graduação', pts: 20, proof };
+      return { title, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo oficial — recebe pontuação mínima de 20 pts por possuir pós-graduação', pts: 20, proof, auditNote: auditV?.note };
     }
     const best = matches.reduce((a, b) => (b.points > a.points ? b : a));
     const cls = (best as any).classification === 'transversal'
       ? 'Título transversal — válido para qualquer área de interesse — pontuação máxima de 40 pts'
       : `Título específico para ${(best as any).area || 'área(s) específica(s)'} — 20 pts`;
-    return { title, status: 'pontua' as const, reason: cls, pts: best.points, proof };
-  });
+    return { title, status: 'pontua' as const, reason: cls, pts: best.points, proof, auditNote: auditV?.note };
+  }).map((m) => (
+    m.status !== 'rejeitado' && m.auditNote
+      ? { ...m, reason: `${m.reason} · Obs. da auditoria: "${m.auditNote}"` }
+      : m
+  ));
 
   const projAnalysis = allProjects.map((proj, idx) => {
     const auditV = getAuditV(`projeto-${idx}`);
     const projKey = `proj:${proj}`;
     const proof = proofStatus(projKey);
     if (auditV?.status === 'rejected') {
-      return { proj, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, area: '', proof };
+      return { proj, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, area: '', proof, auditNote: auditV.note };
     }
     const assignedArea = (p.projectAreaMap || {})[proj];
     if (!assignedArea) {
       // Verifica se existe no catálogo para alguma das áreas do candidato
       const catalogMatch = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj && (p.selectedAreas || []).includes((i.area || '') as any));
       if (catalogMatch) {
-        return { proj, status: 'nao-pontua' as const, reason: `Projeto reconhecido no catálogo para a área ${catalogMatch.area}, mas ainda não vinculado pelo administrador durante a auditoria`, pts: 0, area: '', proof };
+        return { proj, status: 'nao-pontua' as const, reason: `Projeto reconhecido no catálogo para a área ${catalogMatch.area}, mas ainda não vinculado pelo administrador durante a auditoria`, pts: 0, area: '', proof, auditNote: auditV?.note };
       }
       const catalogAny = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj);
       if (catalogAny) {
-        return { proj, status: 'nao-pontua' as const, reason: `Projeto reconhecido no catálogo para a área ${catalogAny.area}, que não está entre as áreas de interesse do candidato — não pontua`, pts: 0, area: catalogAny.area || '', proof };
+        return { proj, status: 'nao-pontua' as const, reason: `Projeto reconhecido no catálogo para a área ${catalogAny.area}, que não está entre as áreas de interesse do candidato — não pontua`, pts: 0, area: catalogAny.area || '', proof, auditNote: auditV?.note };
       }
-      return { proj, status: 'nao-pontua' as const, reason: 'Projeto não encontrado no catálogo oficial de projetos estratégicos — não pontua', pts: 0, area: '', proof };
+      return { proj, status: 'nao-pontua' as const, reason: 'Projeto não encontrado no catálogo oficial de projetos estratégicos — não pontua', pts: 0, area: '', proof, auditNote: auditV?.note };
     }
     const match = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj && i.area === assignedArea);
     if (!match) {
-      return { proj, status: 'nao-pontua' as const, reason: `Projeto não reconhecido no catálogo oficial para a área ${assignedArea} — não pontua`, pts: 0, area: assignedArea, proof };
+      const altAreaMatch = CATALOG_ITEMS.find(
+        (i) => i.group === 'project' && i.label === proj && i.area !== assignedArea && (p.selectedAreas || []).includes((i.area || '') as any)
+      );
+      const altSuggestion = altAreaMatch
+        ? ` Este projeto está catalogado para a área ${altAreaMatch.area} (${altAreaMatch.points} pts), que também é uma área de interesse do candidato — considere vincular o projeto a essa área em vez de ${assignedArea}.`
+        : '';
+      return { proj, status: 'nao-pontua' as const, reason: `Projeto não reconhecido no catálogo oficial para a área ${assignedArea} — não pontua.${altSuggestion}`, pts: 0, area: assignedArea, proof, auditNote: auditV?.note };
     }
     const tipo = (match as any).classification === 'area-specific' && match.points >= 20 ? 'Estratégico Central' : 'Complementar';
-    return { proj, status: 'pontua' as const, reason: `Área ${assignedArea} — ${tipo} — ${match.points} pts conforme catálogo oficial`, pts: match.points, area: assignedArea, proof };
-  });
+    return { proj, status: 'pontua' as const, reason: `Área ${assignedArea} — ${tipo} — ${match.points} pts conforme catálogo oficial`, pts: match.points, area: assignedArea, proof, auditNote: auditV?.note };
+  }).map((m) => (
+    m.status !== 'rejeitado' && m.auditNote
+      ? { ...m, reason: `${m.reason} · Obs. da auditoria: "${m.auditNote}"` }
+      : m
+  ));
 
   const hasRejections = mbaAnalysis.some((m) => m.status === 'rejeitado') || projAnalysis.some((m) => m.status === 'rejeitado') || expRejected;
   const hasAudit = itemValidations.length > 0;
