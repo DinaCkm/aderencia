@@ -45,8 +45,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const rejectedItems = (profileAudit?.itemValidations || [])
       .filter((v) => v.status === 'rejected')
       .map((v) => ({ itemKey: v.itemKey, note: v.note }));
+    // Observações de itens não rejeitados (pendente/validado) — para exibir na ficha mesmo sem exclusão de pontos
+    const allItemNotes: Record<string, string> = {};
+    (profileAudit?.itemValidations || []).forEach((v) => { if (v.note) allItemNotes[v.itemKey] = v.note; });
     const assessments = participant.selectedAreas.map((area) =>
-      buildAreaAssessment(participant, area, performance, discs, approvedExceptions, rejectedItems)
+      buildAreaAssessment(participant, area, performance, discs, approvedExceptions, rejectedItems, allItemNotes)
     );
     assessments.forEach((assessment) => {
       report[assessment.area] = report[assessment.area] || [];
