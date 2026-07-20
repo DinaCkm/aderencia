@@ -34,6 +34,7 @@ interface ProfileAuditData {
   itemValidations: ItemValidation[];
   overallStatus: 'provisional' | 'validated' | 'adjusted';
   overallNote?: string;
+  auditedAt?: string;
 }
 
 interface ProfileData {
@@ -273,19 +274,37 @@ export default function PrintProfile() {
       </div>
       <div className="page" id="print-content">
 
-        {/* ── Banner ANÁLISE PROVISÓRIA ── */}
-        <div style={{ background: '#fff7ed', border: '2px solid #f97316', borderRadius: 8, padding: '10px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 18 }}>⚠️</span>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 13, color: '#c2410c' }}>ANÁLISE PROVISÓRIA</div>
-            <div style={{ fontSize: 11, color: '#9a3412', marginTop: 2 }}>Sujeita a revisão após auditoria dos comprovantes pelo administrador.</div>
+        {/* ── Banner de status da auditoria: Provisória (aguardando conclusão) x Concluída (Validada/Ajustada) ── */}
+        {overallStatus === 'provisional' ? (
+          <div style={{ background: '#fff7ed', border: '2px solid #f97316', borderRadius: 8, padding: '10px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 18 }}>⚠️</span>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 13, color: '#c2410c' }}>ANÁLISE PROVISÓRIA</div>
+              <div style={{ fontSize: 11, color: '#9a3412', marginTop: 2 }}>Sujeita a revisão após auditoria dos comprovantes pelo administrador.</div>
+            </div>
+            <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+              <span style={{ background: statusBg, color: statusColor, border: `1px solid ${statusColor}`, borderRadius: 20, padding: '3px 12px', fontSize: 11, fontWeight: 700 }}>
+                {statusLabel}
+              </span>
+            </div>
           </div>
-          <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-            <span style={{ background: statusBg, color: statusColor, border: `1px solid ${statusColor}`, borderRadius: 20, padding: '3px 12px', fontSize: 11, fontWeight: 700 }}>
-              {statusLabel}
-            </span>
+        ) : (
+          <div style={{ background: '#f0fdf4', border: '2px solid #22c55e', borderRadius: 8, padding: '10px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 18 }}>✅</span>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 13, color: '#15803d' }}>ANÁLISE DEFINITIVA</div>
+              <div style={{ fontSize: 11, color: '#166534', marginTop: 2 }}>
+                Auditoria concluída pelo administrador
+                {audit?.auditedAt ? ` em ${new Date(audit.auditedAt).toLocaleDateString('pt-BR')}` : ''}.
+              </div>
+            </div>
+            <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+              <span style={{ background: statusBg, color: statusColor, border: `1px solid ${statusColor}`, borderRadius: 20, padding: '3px 12px', fontSize: 11, fontWeight: 700 }}>
+                {statusLabel}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ── Resumo da Auditoria (todos os itens: status + observações) ── */}
         {(itemValidations.length > 0 || audit?.overallNote) && (
