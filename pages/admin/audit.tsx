@@ -1573,24 +1573,30 @@ export default function AdminAudit() {
                       capReached = effectivePts <= 0;
                     }
                     const projScore = capReached
-                      ? { pts: 0, type: `Reconhecido no catálogo, mas o teto de 20 pts da área já foi atingido por outro(s) projeto(s) — não adiciona pontos`, pontua: false, capOnly: true }
+                      ? { pts: 0, type: `Reconhecido no catálogo, mas o teto de 20 pts da área já foi atingido por outro(s) projeto(s) — não adiciona pontos`, pontua: false, capOnly: true, rejected: false }
                       : catalogMatch2
-                      ? { pts: effectivePts, type: (catalogMatch2 as any).points >= 20 ? 'Estratégico Central' : 'Complementar', pontua: true, capOnly: false }
+                      ? { pts: effectivePts, type: (catalogMatch2 as any).points >= 20 ? 'Estratégico Central' : 'Complementar', pontua: true, capOnly: false, rejected: false }
                       : assignedArea2
-                      ? { pts: 0, type: 'Não reconhecido no catálogo para esta área', pontua: false, capOnly: false }
-                      : { pts: null, type: 'Área não vinculada', pontua: false, capOnly: false };
+                      ? { pts: 0, type: 'Não reconhecido no catálogo para esta área', pontua: false, capOnly: false, rejected: false }
+                      : { pts: null, type: 'Área não vinculada', pontua: false, capOnly: false, rejected: false };
+                    // Se o comprovante foi rejeitado pelo auditor, o item não pontua de jeito nenhum,
+                    // independente do que o catálogo reconheça — isso precisa ficar visível no badge.
+                    const projRejected = getValidation(projItemKey)?.status === 'rejected';
+                    const finalBadge = projRejected
+                      ? { pts: 0, type: 'Comprovante rejeitado — pontuação excluída do cálculo', pontua: false, capOnly: false, rejected: true }
+                      : projScore;
                     return (
-                      <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: `1px solid ${!assignedArea2 ? '#fcd34d' : projScore.capOnly ? '#fcd34d' : projScore.pontua ? '#86efac' : '#fca5a5'}`, borderRadius: 8 }}>
+                      <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: `1px solid ${finalBadge.rejected ? '#fca5a5' : !assignedArea2 ? '#fcd34d' : finalBadge.capOnly ? '#fcd34d' : finalBadge.pontua ? '#86efac' : '#fca5a5'}`, borderRadius: 8 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
                           <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>{proj}</div>
                           <div style={{ flexShrink: 0, marginLeft: 8, fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 5,
-                            background: !assignedArea2 ? '#fef3c7' : projScore.capOnly ? '#fffbeb' : projScore.pontua ? '#f0fdf4' : '#fef2f2',
-                            color: !assignedArea2 ? '#92400e' : projScore.capOnly ? '#b45309' : projScore.pontua ? '#15803d' : '#dc2626',
-                            border: `1px solid ${!assignedArea2 ? '#fcd34d' : projScore.capOnly ? '#fcd34d' : projScore.pontua ? '#86efac' : '#fca5a5'}` }}>
-                            {!assignedArea2 ? '⚠️ Sem área' : projScore.capOnly ? `⚠️ Reconhecido — teto de 20 pts atingido` : projScore.pontua ? `✅ ${projScore.pts} pts — ${projScore.type}` : `❌ 0 pts — ${projScore.type}`}
+                            background: finalBadge.rejected ? '#fef2f2' : !assignedArea2 ? '#fef3c7' : finalBadge.capOnly ? '#fffbeb' : finalBadge.pontua ? '#f0fdf4' : '#fef2f2',
+                            color: finalBadge.rejected ? '#dc2626' : !assignedArea2 ? '#92400e' : finalBadge.capOnly ? '#b45309' : finalBadge.pontua ? '#15803d' : '#dc2626',
+                            border: `1px solid ${finalBadge.rejected ? '#fca5a5' : !assignedArea2 ? '#fcd34d' : finalBadge.capOnly ? '#fcd34d' : finalBadge.pontua ? '#86efac' : '#fca5a5'}` }}>
+                            {finalBadge.rejected ? `❌ 0 pts — ${finalBadge.type}` : !assignedArea2 ? '⚠️ Sem área' : finalBadge.capOnly ? `⚠️ Reconhecido — teto de 20 pts atingido` : finalBadge.pontua ? `✅ ${finalBadge.pts} pts — ${finalBadge.type}` : `❌ 0 pts — ${finalBadge.type}`}
                           </div>
                         </div>
-                        {projScore.capOnly && (
+                        {finalBadge.capOnly && (
                           <div style={{ fontSize: '0.7rem', color: '#92400e', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, padding: '5px 8px', marginBottom: 6 }}>
                             ℹ️ Este projeto é reconhecido corretamente no catálogo para a área vinculada, mas <strong>não soma pontos</strong> porque a área já atingiu o limite de 20 pts com outro(s) projeto(s). Validar é adequado (o comprovante é legítimo), mas não altera a nota final desta área.
                           </div>
