@@ -91,8 +91,10 @@ function PostMBAPointsBadge({ profile, index }: { profile: ParticipantProfile; i
 }
 
 // Mostra o impacto real da experiência gerencial/interina — vale igual em todas as áreas.
-function ExperiencePointsBadge({ profile }: { profile: ParticipantProfile }) {
-  const score = experienceScore(profile.managerialMonths ?? 0, profile.interimMonths ?? 0);
+function ExperiencePointsBadge({ profile, override }: { profile: ParticipantProfile; override?: { managerialMonths?: number; interimMonths?: number } }) {
+  const managerial = override?.managerialMonths ?? profile.managerialMonths ?? 0;
+  const interim = override?.interimMonths ?? profile.interimMonths ?? 0;
+  const score = experienceScore(managerial, interim);
   if (score <= 0) {
     return (
       <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: 6 }}>
@@ -103,6 +105,86 @@ function ExperiencePointsBadge({ profile }: { profile: ParticipantProfile }) {
   return (
     <div style={{ fontSize: '0.7rem', color: '#7c2d12', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 5, padding: '4px 8px', marginBottom: 6, fontWeight: 600 }}>
       📊 Pontuação atual: {Math.round(score * 10) / 10} pts em todas as áreas do candidato — rejeitar remove esses pontos.
+    </div>
+  );
+}
+
+// ─── Ajuste manual de experiência gerencial/interina pelo administrador ────────
+// Sobrepõe o valor autodeclarado pelo candidato no cálculo de pontuação (todas as áreas).
+function ExperienceOverrideEditor({
+  profile,
+  override,
+  onSave,
+  onClear,
+  saving,
+}: {
+  profile: ParticipantProfile;
+  override?: { managerialMonths?: number; interimMonths?: number; note?: string; adjustedAt?: string };
+  onSave: (managerialMonths: number, interimMonths: number, note: string) => void;
+  onClear: () => void;
+  saving: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [managerial, setManagerial] = useState<number>(override?.managerialMonths ?? profile.managerialMonths ?? 0);
+  const [interim, setInterim] = useState<number>(override?.interimMonths ?? profile.interimMonths ?? 0);
+  const [note, setNote] = useState(override?.note ?? '');
+
+  const hasOverride = override && (override.managerialMonths !== undefined || override.interimMonths !== undefined);
+
+  if (!editing) {
+    return (
+      <div style={{ marginBottom: 10 }}>
+        {hasOverride && (
+          <div style={{ fontSize: '0.72rem', color: '#7c2d12', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 6, padding: '6px 10px', marginBottom: 6 }}>
+            ✏️ <strong>Ajustado pelo administrador:</strong> {override!.managerialMonths ?? profile.managerialMonths ?? 0}m gerencial + {override!.interimMonths ?? profile.interimMonths ?? 0}m interino
+            {override?.note ? ` — ${override.note}` : ''}
+            <span style={{ display: 'block', color: '#92400e', marginTop: 2 }}>Valor declarado originalmente pelo candidato: {profile.managerialMonths ?? 0}m + {profile.interimMonths ?? 0}m.</span>
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" onClick={() => setEditing(true)}
+            style={{ fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #93c5fd', borderRadius: 6, cursor: 'pointer' }}>
+            ✏️ {hasOverride ? 'Editar ajuste' : 'Ajustar tempo de experiência'}
+          </button>
+          {hasOverride && (
+            <button type="button" onClick={onClear} disabled={saving}
+              style={{ fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: 6, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
+              ↩️ Restaurar valor do candidato
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: 10, padding: '10px 12px', background: '#eff6ff', border: '1.5px solid #93c5fd', borderRadius: 8 }}>
+      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1d4ed8', marginBottom: 8 }}>✏️ Ajustar tempo de experiência (sobrepõe o valor declarado pelo candidato em todas as áreas)</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+        <label style={{ fontSize: '0.7rem', color: '#475569' }}>
+          Meses gerencial efetivo
+          <input type="number" min={0} value={managerial} onChange={(e) => setManagerial(Number(e.target.value) || 0)}
+            style={{ display: 'block', width: '100%', marginTop: 3, fontSize: '0.8rem', padding: '5px 8px', borderRadius: 6, border: '1px solid #cbd5e1' }} />
+        </label>
+        <label style={{ fontSize: '0.7rem', color: '#475569' }}>
+          Meses interino
+          <input type="number" min={0} value={interim} onChange={(e) => setInterim(Number(e.target.value) || 0)}
+            style={{ display: 'block', width: '100%', marginTop: 3, fontSize: '0.8rem', padding: '5px 8px', borderRadius: 6, border: '1px solid #cbd5e1' }} />
+        </label>
+      </div>
+      <textarea rows={2} placeholder="Motivo do ajuste (ex: candidato declarou período incorreto, confirmado com RH...)"
+        value={note} onChange={(e) => setNote(e.target.value)}
+        style={{ width: '100%', fontSize: '0.75rem', border: '1px solid #cbd5e1', borderRadius: 6, padding: '6px 8px', resize: 'vertical', fontFamily: 'inherit', marginBottom: 8 }} />
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button type="button" disabled={saving} onClick={() => { onSave(managerial, interim, note); setEditing(false); }}
+          style={{ fontSize: '0.75rem', fontWeight: 700, padding: '5px 14px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
+          {saving ? '⏳ Salvando...' : '💾 Salvar ajuste'}
+        </button>
+        <button type="button" onClick={() => setEditing(false)}
+          style={{ fontSize: '0.75rem', fontWeight: 600, padding: '5px 14px', background: 'white', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: 6, cursor: 'pointer' }}>
+          Cancelar
+        </button>
+      </div>
     </div>
   );
 }
@@ -681,6 +763,44 @@ export default function AdminAudit() {
   const getValidation = (key: string) =>
     selected?.audit.itemValidations.find((v) => v.itemKey === key);
 
+  // Salva o ajuste manual de experiência gerencial/interina feito pelo administrador
+  const saveExperienceOverride = async (managerialMonths: number, interimMonths: number, note: string) => {
+    if (!selected) return;
+    setSaving(true);
+    await fetch('/api/admin/audit-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        participantId: selected.profile.id,
+        experienceOverride: { managerialMonths, interimMonths, note },
+      }),
+    });
+    setSelected((prev) => prev ? {
+      ...prev,
+      audit: { ...prev.audit, experienceOverride: { managerialMonths, interimMonths, note, adjustedAt: new Date().toISOString() } } as any,
+    } : prev);
+    setSaving(false);
+    showToast('Experiência ajustada!');
+  };
+
+  // Remove o ajuste manual, voltando ao valor autodeclarado pelo candidato
+  const clearExperienceOverride = async () => {
+    if (!selected) return;
+    setSaving(true);
+    await fetch('/api/admin/audit-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ participantId: selected.profile.id, clearExperienceOverride: true }),
+    });
+    setSelected((prev) => {
+      if (!prev) return prev;
+      const { experienceOverride, ...rest } = prev.audit as any;
+      return { ...prev, audit: rest };
+    });
+    setSaving(false);
+    showToast('Ajuste removido — voltou ao valor declarado pelo candidato.');
+  };
+
   // Salva a área vinculada a um projeto (quando o admin corrige manualmente)
   const saveProjectArea = async (proj: string, area: string) => {
     if (!selected) return;
@@ -1215,7 +1335,15 @@ export default function AdminAudit() {
                     ))}
                   </div>
                 )}
-                <ExperiencePointsBadge profile={p} />
+                <ExperienceOverrideEditor
+                  profile={p}
+                  override={(selected?.audit as any)?.experienceOverride}
+                  onSave={saveExperienceOverride}
+                  onClear={clearExperienceOverride}
+                  saving={saving}
+                  key={p.id}
+                />
+                <ExperiencePointsBadge profile={p} override={(selected?.audit as any)?.experienceOverride} />
                 <ValidationControls itemKey="experiencia" validation={getValidation('experiencia')} onSave={saveItemValidation} />
               </SectionCard>
 
