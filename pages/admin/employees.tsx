@@ -527,7 +527,7 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                           <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 10px', borderRadius: 8, marginBottom: 4, background: bg, border: `1px solid ${border}` }}>
                             <span style={{ fontSize: '0.85rem', flexShrink: 0, marginTop: 1 }}>{icon}</span>
                             <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>{m.title}</div>
+                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>{((p as any).mbaBlocks || [])[i]?.name?.trim() || m.title}</div>
                               <div style={{ fontSize: '0.7rem', color: textColor, marginTop: 2 }}>{m.reason}</div>
                             </div>
                             <span style={{ fontWeight: 800, fontSize: '0.82rem', color: textColor, flexShrink: 0 }}>{m.pts} pts</span>
