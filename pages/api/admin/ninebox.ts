@@ -49,8 +49,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const allItemNotes: Record<string, string> = {};
     (profileAudit?.itemValidations || []).forEach((v) => { if (v.note) allItemNotes[v.itemKey] = v.note; });
     const experienceOverride = (profileAudit as any)?.experienceOverride;
+    const projectRelabels = (profileAudit as any)?.projectRelabels || {};
     const assessments = participant.selectedAreas.map((area) =>
-      buildAreaAssessment(participant, area, performance, discs, approvedExceptions, rejectedItems, allItemNotes, experienceOverride)
+      buildAreaAssessment(participant, area, performance, discs, approvedExceptions, rejectedItems, allItemNotes, experienceOverride, projectRelabels)
     );
     assessments.forEach((assessment) => {
       report[assessment.area] = report[assessment.area] || [];
