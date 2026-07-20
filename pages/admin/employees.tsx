@@ -390,14 +390,22 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                 }
                 const vinculadaArea = p.projectAreaMap?.[proj] || null;
                 const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj && i.area === vinculadaArea);
+                // Verifica se este projeto está catalogado para alguma OUTRA área de interesse
+                // do candidato — para sugerir a realocação em vez de simplesmente zerar.
+                const altAreaMatch = CATALOG_ITEMS.find(
+                  (i) => i.group === 'project' && i.label === proj && i.area !== vinculadaArea && selectedAreas.includes(i.area as any)
+                );
+                const altSuggestion = altAreaMatch
+                  ? ` Este projeto está catalogado para a área ${altAreaMatch.area} (${altAreaMatch.points} pts), que também é uma das áreas de interesse do candidato — considere vincular o projeto a essa área em vez de ${vinculadaArea || 'nenhuma'}.`
+                  : '';
                 if (!vinculadaArea) {
-                  return { proj, status: 'nao-pontua' as const, reason: 'Projeto sem área vinculada — não entra no cálculo', pts: 0, area: null, auditNote };
+                  return { proj, status: 'nao-pontua' as const, reason: 'Projeto sem área vinculada — não entra no cálculo' + altSuggestion, pts: 0, area: null, auditNote };
                 }
                 if (!selectedAreas.includes(vinculadaArea as any)) {
-                  return { proj, status: 'nao-pontua' as const, reason: `Área vinculada (${vinculadaArea}) não está entre as áreas de interesse selecionadas`, pts: 0, area: vinculadaArea, auditNote };
+                  return { proj, status: 'nao-pontua' as const, reason: `Área vinculada (${vinculadaArea}) não está entre as áreas de interesse selecionadas` + altSuggestion, pts: 0, area: vinculadaArea, auditNote };
                 }
                 if (!catalogItem) {
-                  return { proj, status: 'nao-pontua' as const, reason: `O tema deste projeto não é aderente à área ${vinculadaArea} conforme o catálogo oficial de projetos estratégicos`, pts: 0, area: vinculadaArea, auditNote };
+                  return { proj, status: 'nao-pontua' as const, reason: `O tema deste projeto não é aderente à área ${vinculadaArea} conforme o catálogo oficial de projetos estratégicos.` + altSuggestion, pts: 0, area: vinculadaArea, auditNote };
                 }
                 const projsInSameArea = allProjects.filter((pp) => p.projectAreaMap?.[pp] === vinculadaArea);
                 const itemsInArea = CATALOG_ITEMS.filter((i) => i.group === 'project' && projsInSameArea.includes(i.label) && i.area === vinculadaArea);
