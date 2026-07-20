@@ -381,19 +381,21 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
               ));
 
               // Projetos: verifica se cada projeto está vinculado a uma área de interesse e se foi rejeitado
+              const projectRelabels: Record<string, string> = (data?.audit as any)?.projectRelabels || {};
               const projAnalysis = allProjects.map((proj, idx) => {
                 const auditV = getAuditV(`projeto-${idx}`);
                 const auditRejected = auditV?.status === 'rejected';
                 const auditNote = auditV?.note;
+                const effProj = projectRelabels[`projeto-${idx}`] || proj;
                 if (auditRejected) {
                   return { proj, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditNote ? ` — ${auditNote}` : ''}`, pts: 0, area: p.projectAreaMap?.[proj] || null, auditNote };
                 }
                 const vinculadaArea = p.projectAreaMap?.[proj] || null;
-                const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj && i.area === vinculadaArea);
+                const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === effProj && i.area === vinculadaArea);
                 // Verifica se este projeto está catalogado para alguma OUTRA área de interesse
                 // do candidato — para sugerir a realocação em vez de simplesmente zerar.
                 const altAreaMatch = CATALOG_ITEMS.find(
-                  (i) => i.group === 'project' && i.label === proj && i.area !== vinculadaArea && selectedAreas.includes(i.area as any)
+                  (i) => i.group === 'project' && i.label === effProj && i.area !== vinculadaArea && selectedAreas.includes(i.area as any)
                 );
                 const altSuggestion = altAreaMatch
                   ? ` Este projeto está catalogado para a área ${altAreaMatch.area} (${altAreaMatch.points} pts), que também é uma das áreas de interesse do candidato — considere vincular o projeto a essa área em vez de ${vinculadaArea || 'nenhuma'}.`
@@ -414,10 +416,11 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                   .reduce((acc, i) => acc + i.points, 0);
                 const pts = catalogItem.points;
                 const effective = Math.max(0, Math.min(pts, 20 - totalBefore));
+                const relabelNote = effProj !== proj ? ` · Reclassificado pelo administrador de "${proj}" para "${effProj}"` : '';
                 if (effective <= 0) {
                   return { proj, status: 'nao-pontua' as const, reason: `Cap de 20 pts já atingido para a área ${vinculadaArea} — este projeto não adiciona pontos`, pts: 0, area: vinculadaArea, auditNote };
                 }
-                return { proj, status: 'pontua' as const, reason: `Área ${vinculadaArea} — ${pts} pts no catálogo${effective < pts ? ` (limitado a ${effective} pts pelo cap de 20 pts da área)` : ''}`, pts: effective, area: vinculadaArea, auditNote };
+                return { proj, status: 'pontua' as const, reason: `Área ${vinculadaArea} — ${pts} pts no catálogo${effective < pts ? ` (limitado a ${effective} pts pelo cap de 20 pts da área)` : ''}${relabelNote}`, pts: effective, area: vinculadaArea, auditNote };
               }).map((m) => (
                 // Une a observação da auditoria ao texto exibido, mesmo quando o projeto já foi
                 // classificado por outro motivo (ex: não aderente ao catálogo, cap atingido, etc.)
