@@ -105,7 +105,8 @@ export interface RejectedItemRef {
 function computeTechnicalAdherence(
   profile: ParticipantProfile,
   area: string,
-  rejectedItems: RejectedItemRef[] = []
+  rejectedItems: RejectedItemRef[] = [],
+  allItemNotes: Record<string, string> = {}
 ): {
   technicalAdherence: number;
   calculationSteps: { name: string; value: number | string; detail?: string }[];
@@ -166,6 +167,20 @@ function computeTechnicalAdherence(
     .filter((item): item is { label: string; points: number; weight: string } => item !== null);
   const projScore = Math.min(20, projItems.reduce((acc, i) => acc + i.points, 0));
 
+  // Observações do auditor em projetos desta área que NÃO foram rejeitados (ex: pendente,
+  // validado) — sem isso, a nota digitada na auditoria some da ficha e do Nine Box.
+  const areaProjectNotes: string[] = allSelectedProjects
+    .map((label, i) => {
+      const key = `projeto-${i}`;
+      if (rejectedKeys.has(key)) return null; // rejeitados já aparecem em excludedItems
+      const note = allItemNotes[key];
+      if (!note) return null;
+      const belongsToArea = projectAreaMap[label] === area || TRANSVERSAL_PROJECTS.includes(label);
+      if (!belongsToArea) return null;
+      return `"${label}": "${note}"`;
+    })
+    .filter((x): x is string => !!x);
+
   // Registra projetos rejeitados que teriam pontuado nesta área, para exibir ao candidato
   allSelectedProjects.forEach((label, i) => {
     if (!rejectedKeys.has(`projeto-${i}`)) return;
@@ -212,8 +227,11 @@ function computeTechnicalAdherence(
         name: 'Projetos estratégicos da área',
         value: projScore,
         detail: (() => {
+          const notesSuffix = areaProjectNotes.length > 0
+            ? ` · Obs. da auditoria — ${areaProjectNotes.join(' ; ')}`
+            : '';
           if (projItems.length === 0) {
-            return `Nenhum projeto vinculado a esta área — 0 de 20 pts possíveis. Os projetos são vinculados pelo administrador durante a auditoria com base nos comprovantes enviados.`;
+            return `Nenhum projeto vinculado a esta área — 0 de 20 pts possíveis. Os projetos são vinculados pelo administrador durante a auditoria com base nos comprovantes enviados.${notesSuffix}`;
           }
           const rawTotal = projItems.reduce((a, i) => a + i.points, 0);
           const capped = rawTotal > 20;
@@ -227,7 +245,7 @@ function computeTechnicalAdherence(
           const capMsg = capped
             ? ` — ATENÇÃO: a soma dos projetos seria ${rawTotal} pts, mas o limite máximo por área é 20 pts. Projetos adicionais não acrescentam mais pontos.`
             : ` — total apurado: ${projScore} pts (máximo possível por área: 20 pts).`;
-          return itemsDesc + capMsg;
+          return itemsDesc + capMsg + notesSuffix;
         })(),
       },
       {
@@ -272,7 +290,8 @@ export function buildAreaAssessment(
   performanceRecords: PerformanceRecord[],
   discReports: DiscReport[],
   _approvedExceptions: string[] = [],
-  rejectedItems: RejectedItemRef[] = []
+  rejectedItems: RejectedItemRef[] = [],
+  allItemNotes: Record<string, string> = {}
 ): AreaAssessment {
   const disc = getLatestDisc(discReports, profile.id, area);
   const perf = getLatestPerformance(performanceRecords, profile.id, area);
@@ -283,7 +302,7 @@ export function buildAreaAssessment(
       ? Math.round(((disc.score10 + perfConverted) / 2) * 10) / 10
       : undefined;
 
-  const technical = computeTechnicalAdherence(profile, area, rejectedItems);
+  const technical = computeTechnicalAdherence(profile, area, rejectedItems, allItemNotes);
 
   const quadrant =
     behavioral !== undefined
