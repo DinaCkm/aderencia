@@ -361,18 +361,24 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                 }
                 const matches = CATALOG_ITEMS.filter((i) => i.group === 'postMBA' && i.label === title);
                 if (matches.length === 0) {
-                  return { title, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo — pontuação mínima de 20 pts aplicada como "não relacionado"', pts: 20, areas: [] as string[], auditNote: undefined };
+                  return { title, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo — pontuação mínima de 20 pts aplicada como "não relacionado"', pts: 20, areas: [] as string[], auditNote };
                 }
                 const transversal = matches.find((m) => m.classification === 'transversal');
                 if (transversal) {
-                  return { title, status: 'pontua' as const, reason: 'Título transversal — vale 40 pts em todas as áreas', pts: 40, areas: selectedAreas, auditNote: undefined };
+                  return { title, status: 'pontua' as const, reason: 'Título transversal — vale 40 pts em todas as áreas', pts: 40, areas: selectedAreas, auditNote };
                 }
                 const areaMatches = matches.filter((m) => m.area && selectedAreas.includes(m.area as any));
                 if (areaMatches.length > 0) {
-                  return { title, status: 'pontua' as const, reason: `Específico para ${areaMatches.map((m) => m.area).join(', ')} — vale 20 pts`, pts: 20, areas: areaMatches.map((m) => m.area as string), auditNote: undefined };
+                  return { title, status: 'pontua' as const, reason: `Específico para ${areaMatches.map((m) => m.area).join(', ')} — vale 20 pts`, pts: 20, areas: areaMatches.map((m) => m.area as string), auditNote };
                 }
-                return { title, status: 'nao-pontua' as const, reason: 'Título não relacionado às áreas de interesse selecionadas — pontuação mínima de 20 pts', pts: 20, areas: [] as string[], auditNote: undefined };
-              });
+                return { title, status: 'nao-pontua' as const, reason: 'Título não relacionado às áreas de interesse selecionadas — pontuação mínima de 20 pts', pts: 20, areas: [] as string[], auditNote };
+              }).map((m) => (
+                // Une a observação da auditoria ao texto exibido, mesmo quando o item já foi
+                // classificado por outro motivo (ex: pendente/validado com nota do auditor)
+                m.status !== 'rejeitado' && m.auditNote
+                  ? { ...m, reason: `${m.reason} · Obs. da auditoria: "${m.auditNote}"` }
+                  : m
+              ));
 
               // Projetos: verifica se cada projeto está vinculado a uma área de interesse e se foi rejeitado
               const projAnalysis = allProjects.map((proj, idx) => {
@@ -385,13 +391,13 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                 const vinculadaArea = p.projectAreaMap?.[proj] || null;
                 const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj && i.area === vinculadaArea);
                 if (!vinculadaArea) {
-                  return { proj, status: 'nao-pontua' as const, reason: 'Projeto sem área vinculada — não entra no cálculo', pts: 0, area: null, auditNote: undefined };
+                  return { proj, status: 'nao-pontua' as const, reason: 'Projeto sem área vinculada — não entra no cálculo', pts: 0, area: null, auditNote };
                 }
                 if (!selectedAreas.includes(vinculadaArea as any)) {
-                  return { proj, status: 'nao-pontua' as const, reason: `Área vinculada (${vinculadaArea}) não está entre as áreas de interesse selecionadas`, pts: 0, area: vinculadaArea, auditNote: undefined };
+                  return { proj, status: 'nao-pontua' as const, reason: `Área vinculada (${vinculadaArea}) não está entre as áreas de interesse selecionadas`, pts: 0, area: vinculadaArea, auditNote };
                 }
                 if (!catalogItem) {
-                  return { proj, status: 'nao-pontua' as const, reason: `O tema deste projeto não é aderente à área ${vinculadaArea} conforme o catálogo oficial de projetos estratégicos`, pts: 0, area: vinculadaArea, auditNote: undefined };
+                  return { proj, status: 'nao-pontua' as const, reason: `O tema deste projeto não é aderente à área ${vinculadaArea} conforme o catálogo oficial de projetos estratégicos`, pts: 0, area: vinculadaArea, auditNote };
                 }
                 const projsInSameArea = allProjects.filter((pp) => p.projectAreaMap?.[pp] === vinculadaArea);
                 const itemsInArea = CATALOG_ITEMS.filter((i) => i.group === 'project' && projsInSameArea.includes(i.label) && i.area === vinculadaArea);
@@ -401,10 +407,16 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                 const pts = catalogItem.points;
                 const effective = Math.max(0, Math.min(pts, 20 - totalBefore));
                 if (effective <= 0) {
-                  return { proj, status: 'nao-pontua' as const, reason: `Cap de 20 pts já atingido para a área ${vinculadaArea} — este projeto não adiciona pontos`, pts: 0, area: vinculadaArea, auditNote: undefined };
+                  return { proj, status: 'nao-pontua' as const, reason: `Cap de 20 pts já atingido para a área ${vinculadaArea} — este projeto não adiciona pontos`, pts: 0, area: vinculadaArea, auditNote };
                 }
-                return { proj, status: 'pontua' as const, reason: `Área ${vinculadaArea} — ${pts} pts no catálogo${effective < pts ? ` (limitado a ${effective} pts pelo cap de 20 pts da área)` : ''}`, pts: effective, area: vinculadaArea, auditNote: undefined };
-              });
+                return { proj, status: 'pontua' as const, reason: `Área ${vinculadaArea} — ${pts} pts no catálogo${effective < pts ? ` (limitado a ${effective} pts pelo cap de 20 pts da área)` : ''}`, pts: effective, area: vinculadaArea, auditNote };
+              }).map((m) => (
+                // Une a observação da auditoria ao texto exibido, mesmo quando o projeto já foi
+                // classificado por outro motivo (ex: não aderente ao catálogo, cap atingido, etc.)
+                m.status !== 'rejeitado' && m.auditNote
+                  ? { ...m, reason: `${m.reason} · Obs. da auditoria: "${m.auditNote}"` }
+                  : m
+              ));
 
               // Experiência: verificar se foi rejeitada na auditoria
               const expAuditV = getAuditV('experiencia');
