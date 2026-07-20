@@ -120,7 +120,7 @@ function ExperienceOverrideEditor({
 }: {
   profile: ParticipantProfile;
   override?: { managerialMonths?: number; interimMonths?: number; note?: string; adjustedAt?: string };
-  onSave: (managerialMonths: number, interimMonths: number, note: string) => void;
+  onSave: (managerialMonths: number, interimMonths: number, note: string) => Promise<boolean | void>;
   onClear: () => void;
   saving: boolean;
 }) {
@@ -176,7 +176,7 @@ function ExperienceOverrideEditor({
         value={note} onChange={(e) => setNote(e.target.value)}
         style={{ width: '100%', fontSize: '0.75rem', border: '1px solid #cbd5e1', borderRadius: 6, padding: '6px 8px', resize: 'vertical', fontFamily: 'inherit', marginBottom: 8 }} />
       <div style={{ display: 'flex', gap: 8 }}>
-        <button type="button" disabled={saving} onClick={() => { onSave(managerial, interim, note); setEditing(false); }}
+        <button type="button" disabled={saving} onClick={async () => { const ok = await onSave(managerial, interim, note); if (ok !== false) setEditing(false); }}
           style={{ fontSize: '0.75rem', fontWeight: 700, padding: '5px 14px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', opacity: saving ? 0.6 : 1 }}>
           {saving ? '⏳ Salvando...' : '💾 Salvar ajuste'}
         </button>
@@ -767,38 +767,57 @@ export default function AdminAudit() {
   const saveExperienceOverride = async (managerialMonths: number, interimMonths: number, note: string) => {
     if (!selected) return;
     setSaving(true);
-    await fetch('/api/admin/audit-profile', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        participantId: selected.profile.id,
-        experienceOverride: { managerialMonths, interimMonths, note },
-      }),
-    });
-    setSelected((prev) => prev ? {
-      ...prev,
-      audit: { ...prev.audit, experienceOverride: { managerialMonths, interimMonths, note, adjustedAt: new Date().toISOString() } } as any,
-    } : prev);
-    setSaving(false);
-    showToast('Experiência ajustada!');
+    try {
+      const res = await fetch('/api/admin/audit-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          participantId: selected.profile.id,
+          experienceOverride: { managerialMonths, interimMonths, note },
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(`❌ Erro ao salvar ajuste: ${errData.error || res.statusText}`);
+        setSaving(false);
+        return false;
+      }
+      // Recarrega os dados direto do servidor (em vez de só atualizar o estado local),
+      // garantindo que a tela sempre mostre o que realmente foi persistido no banco.
+      if (selected.profile.email) await loadProfile(selected.profile.email);
+      setSaving(false);
+      showToast('Experiência ajustada!');
+      return true;
+    } catch (err) {
+      showToast('❌ Erro de conexão ao salvar ajuste. Tente novamente.');
+      setSaving(false);
+      return false;
+    }
   };
 
   // Remove o ajuste manual, voltando ao valor autodeclarado pelo candidato
   const clearExperienceOverride = async () => {
     if (!selected) return;
     setSaving(true);
-    await fetch('/api/admin/audit-profile', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ participantId: selected.profile.id, clearExperienceOverride: true }),
-    });
-    setSelected((prev) => {
-      if (!prev) return prev;
-      const { experienceOverride, ...rest } = prev.audit as any;
-      return { ...prev, audit: rest };
-    });
-    setSaving(false);
-    showToast('Ajuste removido — voltou ao valor declarado pelo candidato.');
+    try {
+      const res = await fetch('/api/admin/audit-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ participantId: selected.profile.id, clearExperienceOverride: true }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(`❌ Erro ao remover ajuste: ${errData.error || res.statusText}`);
+        setSaving(false);
+        return;
+      }
+      if (selected.profile.email) await loadProfile(selected.profile.email);
+      setSaving(false);
+      showToast('Ajuste removido — voltou ao valor declarado pelo candidato.');
+    } catch (err) {
+      showToast('❌ Erro de conexão ao remover ajuste. Tente novamente.');
+      setSaving(false);
+    }
   };
 
   // Salva a área vinculada a um projeto (quando o admin corrige manualmente)
