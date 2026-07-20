@@ -60,6 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Observações de itens não rejeitados (pendente/validado) — para exibir na ficha mesmo sem exclusão de pontos
   const allItemNotes: Record<string, string> = {};
   (audit.itemValidations || []).forEach((v) => { if (v.note) allItemNotes[v.itemKey] = v.note; });
+  const experienceOverride = (audit as any).experienceOverride;
 
   // ── Classificação (ranking) por área — mesmo critério do Nine Box do admin:
   //    ordena por (Aderência Técnica + Comportamental) desc entre TODOS que selecionaram a área.
@@ -84,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
 
   const areaAssessments = (profile.selectedAreas || []).map((area) => {
-    const assessment = buildAreaAssessment(profile, area, performance, discs, approvedExceptions, rejectedItems, allItemNotes);
+    const assessment = buildAreaAssessment(profile, area, performance, discs, approvedExceptions, rejectedItems, allItemNotes, experienceOverride);
     const discRecord = discRecords
       .filter((d) => d.participantId === profile.id && d.area === area)
       .sort((a, b) => b.importedAt.localeCompare(a.importedAt))[0];
