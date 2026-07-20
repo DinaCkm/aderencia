@@ -107,7 +107,8 @@ function computeTechnicalAdherence(
   area: string,
   rejectedItems: RejectedItemRef[] = [],
   allItemNotes: Record<string, string> = {},
-  experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string }
+  experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string },
+  projectRelabels: Record<string, string> = {}
 ): {
   technicalAdherence: number;
   calculationSteps: { name: string; value: number | string; detail?: string }[];
@@ -160,15 +161,21 @@ function computeTechnicalAdherence(
   // ele pontua aqui — buscando os pontos no catálogo pelo label (independente da área original do catálogo)
   // Projetos transversais pontuam em todas as áreas do candidato automaticamente
   const projectAreaMap: Record<string, string> = (profile as any).projectAreaMap ?? {};
+  // Reclassificação manual do admin: troca o título usado para buscar no catálogo (ex: candidato
+  // selecionou "Programa de desenvolvimento territorial", mas o admin reclassificou para
+  // "Desenvolvimento regional e interiorização", que é o item correto do catálogo para esta área).
+  const effectiveLabelFor = (label: string, idx: number): string => projectRelabels[`projeto-${idx}`] || label;
   const projItems = allSelectedProjects
-    .filter((label) => (projectAreaMap[label] === area || TRANSVERSAL_PROJECTS.includes(label)) && !rejectedProjectLabels.has(label))
-    .map((label) => {
+    .map((label, idx) => ({ label, idx }))
+    .filter(({ label }) => (projectAreaMap[label] === area || TRANSVERSAL_PROJECTS.includes(label)) && !rejectedProjectLabels.has(label))
+    .map(({ label, idx }) => {
+      const effLabel = effectiveLabelFor(label, idx);
       // Projeto deve existir no catálogo para a área vinculada (ou para projetos transversais, para esta área)
-      const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === label && i.area === area);
+      const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === effLabel && i.area === area);
       if (!catalogItem) return null;
       const pts = (catalogItem as any).points ?? 15;
       const weight = pts >= 20 ? 'projeto estratégico central' : 'projeto de suporte/complementar';
-      return { label, points: pts, weight };
+      return { label: effLabel, points: pts, weight };
     })
     .filter((item): item is { label: string; points: number; weight: string } => item !== null);
   const projScore = Math.min(20, projItems.reduce((acc, i) => acc + i.points, 0));
@@ -299,7 +306,8 @@ export function buildAreaAssessment(
   _approvedExceptions: string[] = [],
   rejectedItems: RejectedItemRef[] = [],
   allItemNotes: Record<string, string> = {},
-  experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string }
+  experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string },
+  projectRelabels: Record<string, string> = {}
 ): AreaAssessment {
   const disc = getLatestDisc(discReports, profile.id, area);
   const perf = getLatestPerformance(performanceRecords, profile.id, area);
@@ -310,7 +318,7 @@ export function buildAreaAssessment(
       ? Math.round(((disc.score10 + perfConverted) / 2) * 10) / 10
       : undefined;
 
-  const technical = computeTechnicalAdherence(profile, area, rejectedItems, allItemNotes, experienceOverride);
+  const technical = computeTechnicalAdherence(profile, area, rejectedItems, allItemNotes, experienceOverride, projectRelabels);
 
   const quadrant =
     behavioral !== undefined
