@@ -188,26 +188,30 @@ export default function PrintProfile() {
     const auditV = getAuditV(`projeto-${idx}`);
     const projKey = `proj:${proj}`;
     const proof = proofStatus(projKey);
+    // Reclassificação manual do admin: usa o título correto do catálogo em vez do
+    // originalmente selecionado pelo candidato, quando o admin identificou uma correção.
+    const relabels: Record<string, string> = (audit as any)?.projectRelabels || {};
+    const effProj = relabels[`projeto-${idx}`] || proj;
     if (auditV?.status === 'rejected') {
       return { proj, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, area: '', proof, auditNote: auditV.note };
     }
     const assignedArea = (p.projectAreaMap || {})[proj];
     if (!assignedArea) {
       // Verifica se existe no catálogo para alguma das áreas do candidato
-      const catalogMatch = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj && (p.selectedAreas || []).includes((i.area || '') as any));
+      const catalogMatch = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === effProj && (p.selectedAreas || []).includes((i.area || '') as any));
       if (catalogMatch) {
         return { proj, status: 'nao-pontua' as const, reason: `Projeto reconhecido no catálogo para a área ${catalogMatch.area}, mas ainda não vinculado pelo administrador durante a auditoria`, pts: 0, area: '', proof, auditNote: auditV?.note };
       }
-      const catalogAny = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj);
+      const catalogAny = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === effProj);
       if (catalogAny) {
         return { proj, status: 'nao-pontua' as const, reason: `Projeto reconhecido no catálogo para a área ${catalogAny.area}, que não está entre as áreas de interesse do candidato — não pontua`, pts: 0, area: catalogAny.area || '', proof, auditNote: auditV?.note };
       }
       return { proj, status: 'nao-pontua' as const, reason: 'Projeto não encontrado no catálogo oficial de projetos estratégicos — não pontua', pts: 0, area: '', proof, auditNote: auditV?.note };
     }
-    const match = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === proj && i.area === assignedArea);
+    const match = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === effProj && i.area === assignedArea);
     if (!match) {
       const altAreaMatch = CATALOG_ITEMS.find(
-        (i) => i.group === 'project' && i.label === proj && i.area !== assignedArea && (p.selectedAreas || []).includes((i.area || '') as any)
+        (i) => i.group === 'project' && i.label === effProj && i.area !== assignedArea && (p.selectedAreas || []).includes((i.area || '') as any)
       );
       const altSuggestion = altAreaMatch
         ? ` Este projeto está catalogado para a área ${altAreaMatch.area} (${altAreaMatch.points} pts), que também é uma área de interesse do candidato — considere vincular o projeto a essa área em vez de ${assignedArea}.`
@@ -215,7 +219,8 @@ export default function PrintProfile() {
       return { proj, status: 'nao-pontua' as const, reason: `Projeto não reconhecido no catálogo oficial para a área ${assignedArea} — não pontua.${altSuggestion}`, pts: 0, area: assignedArea, proof, auditNote: auditV?.note };
     }
     const tipo = (match as any).classification === 'area-specific' && match.points >= 20 ? 'Estratégico Central' : 'Complementar';
-    return { proj, status: 'pontua' as const, reason: `Área ${assignedArea} — ${tipo} — ${match.points} pts conforme catálogo oficial`, pts: match.points, area: assignedArea, proof, auditNote: auditV?.note };
+    const relabelNote = effProj !== proj ? ` · Reclassificado pelo administrador de "${proj}" para "${effProj}"` : '';
+    return { proj, status: 'pontua' as const, reason: `Área ${assignedArea} — ${tipo} — ${match.points} pts conforme catálogo oficial${relabelNote}`, pts: match.points, area: assignedArea, proof, auditNote: auditV?.note };
   }).map((m) => (
     m.status !== 'rejeitado' && m.auditNote
       ? { ...m, reason: `${m.reason} · Obs. da auditoria: "${m.auditNote}"` }
