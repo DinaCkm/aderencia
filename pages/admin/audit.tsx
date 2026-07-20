@@ -549,6 +549,49 @@ function InfoField({ label, value }: { label: string; value?: string | number | 
   );
 }
 
+// ─── Análise automática de aderência do projeto a TODAS as áreas do candidato ──
+// Gerada pelo sistema para o auditor revisar o motivo antes de decidir/validar.
+function ProjectAreaAdherenceAnalysis({ proj, candidateAreas, assignedArea }: {
+  proj: string;
+  candidateAreas: string[];
+  assignedArea?: string | null;
+}) {
+  if (!candidateAreas || candidateAreas.length === 0) return null;
+
+  const rows = candidateAreas.map((area) => {
+    const catalogItem = CATALOG_ITEMS.find((ci) => ci.group === 'project' && ci.label === proj && (ci as any).area === area);
+    const aderente = !!catalogItem;
+    return {
+      area,
+      aderente,
+      pts: catalogItem ? (catalogItem as any).points ?? 15 : 0,
+      tipo: catalogItem ? ((catalogItem as any).points >= 20 ? 'Estratégico Central' : 'Complementar') : null,
+      motivo: aderente
+        ? `Projeto consta no catálogo oficial para a área ${AREA_LABELS[area] || area}.`
+        : `Projeto não consta no catálogo oficial de projetos estratégicos para a área ${AREA_LABELS[area] || area}.`,
+    };
+  });
+
+  return (
+    <div style={{ marginTop: 6, marginBottom: 8, padding: '8px 10px', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 6 }}>
+      <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#5b21b6', marginBottom: 6 }}>
+        🔎 Análise de aderência a todas as áreas do candidato (gerada pelo sistema)
+      </div>
+      {rows.map((r) => (
+        <div key={r.area} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: '0.72rem', padding: '3px 0', borderBottom: '1px solid #ede9fe' }}>
+          <span style={{ flexShrink: 0, fontWeight: 700, color: r.aderente ? '#15803d' : '#94a3b8' }}>
+            {r.aderente ? '✅' : '·'} {AREA_LABELS[r.area] || r.area}
+            {r.area === assignedArea ? ' (vinculada)' : ''}
+          </span>
+          <span style={{ color: '#475569' }}>
+            {r.aderente ? `${r.pts} pts — ${r.tipo}. ` : ''}{r.motivo}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Componente principal ──────────────────────────────────────────────────────
 export default function AdminAudit() {
   const router = useRouter();
@@ -1247,6 +1290,7 @@ export default function AdminAudit() {
                             </div>
                           </div>
                         )}
+                        <ProjectAreaAdherenceAnalysis proj={proj} candidateAreas={p.selectedAreas || []} assignedArea={assignedArea2} />
                         {!mode ? (
                           <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
                             ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar
