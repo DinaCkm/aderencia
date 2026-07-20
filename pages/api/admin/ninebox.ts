@@ -36,10 +36,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const report: Record<string, AreaAssessmentWithMeta[]> = {};
 
   for (const participant of participants) {
-    const approvedExceptions =
-      participant.exceptionStatus === 'approved'
-        ? participant.postMBAs.concat(participant.selectedCourses, participant.selectedProjects)
-        : [];
     // Itens marcados como Rejeitado pelo admin na Auditoria de Fichas — pontos retirados do cálculo
     const profileAudit = profileAudits.find((a) => a.participantId === participant.id);
     const rejectedItems = (profileAudit?.itemValidations || [])
@@ -50,8 +46,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     (profileAudit?.itemValidations || []).forEach((v) => { if (v.note) allItemNotes[v.itemKey] = v.note; });
     const experienceOverride = (profileAudit as any)?.experienceOverride;
     const projectRelabels = (profileAudit as any)?.projectRelabels || {};
+    const exceptionAssignments = (profileAudit as any)?.exceptionAssignments || {};
     const assessments = participant.selectedAreas.map((area) =>
-      buildAreaAssessment(participant, area, performance, discs, approvedExceptions, rejectedItems, allItemNotes, experienceOverride, projectRelabels)
+      buildAreaAssessment(participant, area, performance, discs, exceptionAssignments, rejectedItems, allItemNotes, experienceOverride, projectRelabels)
     );
     assessments.forEach((assessment) => {
       report[assessment.area] = report[assessment.area] || [];
