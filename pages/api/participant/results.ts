@@ -32,9 +32,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const rejectedItems = (profileAudit?.itemValidations || [])
     .filter((v) => v.status === 'rejected')
     .map((v) => ({ itemKey: v.itemKey, note: v.note }));
+  const experienceOverride = (profileAudit as any)?.experienceOverride;
+  const projectRelabels = (profileAudit as any)?.projectRelabels || {};
+  const exceptionAssignments = (profileAudit as any)?.exceptionAssignments || {};
 
   const results = (participant.selectedAreas || []).map((area) => {
-    const assessment = buildAreaAssessment(participant, area, performances, discReports, [], rejectedItems);
+    const assessment = buildAreaAssessment(participant, area, performances, discReports, exceptionAssignments, rejectedItems, {}, experienceOverride, projectRelabels);
     const steps = assessment.calculationSteps || [];
     const getStep = (name: string) => {
       const s = steps.find((st) => st.name.toLowerCase().includes(name.toLowerCase()));
