@@ -25,6 +25,11 @@ export interface ProfileAudit {
     note?: string;
     adjustedAt?: string;
   };
+  // Reclassificação manual de projetos: quando o admin identifica que o título escolhido pelo
+  // candidato não é o item correto do catálogo para a área (ex: "Programa de desenvolvimento
+  // territorial" reclassificado para "Desenvolvimento regional e interiorização"), o novo título
+  // é salvo aqui, chaveado por itemKey (ex: "projeto-2"), e passa a valer para o cálculo de pontos.
+  projectRelabels?: Record<string, string>;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -66,13 +71,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // POST — salvar validação de um ou mais itens
   if (req.method === 'POST') {
-    const { participantId, itemValidation, overallStatus, overallNote, experienceOverride, clearExperienceOverride } = req.body as {
+    const { participantId, itemValidation, overallStatus, overallNote, experienceOverride, clearExperienceOverride, projectRelabel } = req.body as {
       participantId: string;
       itemValidation?: ItemValidation;
       overallStatus?: string;
       overallNote?: string;
       experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string };
       clearExperienceOverride?: boolean;
+      projectRelabel?: { itemKey: string; newLabel: string | null }; // newLabel null/vazio remove a reclassificação
     };
 
     if (!participantId) {
@@ -121,6 +127,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         note: experienceOverride.note,
         adjustedAt: new Date().toISOString(),
       };
+    }
+
+    // Atualizar reclassificação manual de projeto (troca do título usado para o cálculo)
+    if (projectRelabel) {
+      const relabels = { ...(audit.projectRelabels || {}) };
+      if (projectRelabel.newLabel && projectRelabel.newLabel.trim()) {
+        relabels[projectRelabel.itemKey] = projectRelabel.newLabel.trim();
+      } else {
+        delete relabels[projectRelabel.itemKey];
+      }
+      audit.projectRelabels = relabels;
     }
 
     if (idx >= 0) {
