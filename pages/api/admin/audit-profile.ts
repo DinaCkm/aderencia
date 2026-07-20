@@ -30,6 +30,10 @@ export interface ProfileAudit {
   // territorial" reclassificado para "Desenvolvimento regional e interiorização"), o novo título
   // é salvo aqui, chaveado por itemKey (ex: "projeto-2"), e passa a valer para o cálculo de pontos.
   projectRelabels?: Record<string, string>;
+  // Atribuição de área/catálogo por exceção (chaveado por itemKey, ex: "excecao-0") — cada exceção
+  // recebe exatamente o mesmo tratamento de um projeto: área de aplicação + item do catálogo ao
+  // qual foi equiparada. O status (Pendente/Validado/Rejeitado) continua em itemValidations.
+  exceptionAssignments?: Record<string, { area: string; label: string; type: 'projeto' | 'pos-mba' }>;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -71,7 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // POST — salvar validação de um ou mais itens
   if (req.method === 'POST') {
-    const { participantId, itemValidation, overallStatus, overallNote, experienceOverride, clearExperienceOverride, projectRelabel } = req.body as {
+    const { participantId, itemValidation, overallStatus, overallNote, experienceOverride, clearExperienceOverride, projectRelabel, exceptionAssignment } = req.body as {
       participantId: string;
       itemValidation?: ItemValidation;
       overallStatus?: string;
@@ -79,6 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string };
       clearExperienceOverride?: boolean;
       projectRelabel?: { itemKey: string; newLabel: string | null }; // newLabel null/vazio remove a reclassificação
+      exceptionAssignment?: { itemKey: string; area: string | null; label: string | null; type: 'projeto' | 'pos-mba' | null }; // area/label/type null remove a atribuição
     };
 
     if (!participantId) {
@@ -138,6 +143,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         delete relabels[projectRelabel.itemKey];
       }
       audit.projectRelabels = relabels;
+    }
+
+    // Atualizar atribuição de área/catálogo de uma exceção (mesmo tratamento de um projeto)
+    if (exceptionAssignment) {
+      const assignments = { ...(audit.exceptionAssignments || {}) };
+      if (exceptionAssignment.area && exceptionAssignment.label && exceptionAssignment.type) {
+        assignments[exceptionAssignment.itemKey] = {
+          area: exceptionAssignment.area,
+          label: exceptionAssignment.label,
+          type: exceptionAssignment.type,
+        };
+      } else {
+        delete assignments[exceptionAssignment.itemKey];
+      }
+      audit.exceptionAssignments = assignments;
     }
 
     if (idx >= 0) {
