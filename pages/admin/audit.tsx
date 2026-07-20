@@ -296,6 +296,86 @@ function ProjectRelabelPicker({ area, onPick, saving }: {
   );
 }
 
+function ExceptionAssignmentPicker({
+  candidateAreas, assignment, onSave, onClear, saving,
+}: {
+  candidateAreas: string[];
+  assignment?: { area: string; label: string; type: 'projeto' | 'pos-mba' };
+  onSave: (area: string, label: string, type: 'projeto' | 'pos-mba') => void;
+  onClear: () => void;
+  saving: boolean;
+}) {
+  const [editing, setEditing] = useState(!assignment);
+  const [area, setArea] = useState(assignment?.area || '');
+  const [type, setType] = useState<'projeto' | 'pos-mba'>(assignment?.type || 'projeto');
+  const [label, setLabel] = useState(assignment?.label || '');
+
+  const options = area
+    ? CATALOG_ITEMS.filter((ci) => ci.group === (type === 'projeto' ? 'project' : 'postMBA') && (ci as any).area === area)
+    : [];
+
+  if (!editing && assignment) {
+    const catalogItem = CATALOG_ITEMS.find((ci) => ci.label === assignment.label && (ci as any).area === assignment.area && ci.group === (assignment.type === 'projeto' ? 'project' : 'postMBA'));
+    const pts = (catalogItem as any)?.points;
+    return (
+      <div style={{ marginBottom: 8, padding: '8px 10px', background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 6 }}>
+        <div style={{ fontSize: '0.72rem', color: '#15803d', fontWeight: 700 }}>
+          ✅ Vinculado ao catálogo: "{assignment.label}" — {AREA_LABELS[assignment.area] || assignment.area} — {assignment.type === 'projeto' ? 'Projeto' : 'Pós/MBA'}{pts !== undefined ? ` — ${pts} pts` : ''}
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+          <button type="button" onClick={() => setEditing(true)} disabled={saving}
+            style={{ fontSize: '0.68rem', color: '#1d4ed8', background: 'white', border: '1px solid #93c5fd', borderRadius: 4, padding: '2px 8px', cursor: 'pointer' }}>
+            ✏️ Alterar
+          </button>
+          <button type="button" onClick={onClear} disabled={saving}
+            style={{ fontSize: '0.68rem', color: '#b91c1c', background: 'white', border: '1px solid #fecaca', borderRadius: 4, padding: '2px 8px', cursor: 'pointer' }}>
+            🗑 Remover vínculo
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: 8, padding: '8px 10px', background: '#eff6ff', border: '1.5px solid #93c5fd', borderRadius: 6 }}>
+      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1d4ed8', marginBottom: 6 }}>
+        🎯 Vincular esta exceção a um item do catálogo (área + tipo + item correspondente)
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+        <select value={area} onChange={(e) => { setArea(e.target.value); setLabel(''); }}
+          style={{ fontSize: '0.75rem', padding: '4px 8px', borderRadius: 6, border: '1.5px solid #93c5fd', background: 'white' }}>
+          <option value="">Área...</option>
+          {candidateAreas.map((a) => <option key={a} value={a}>{AREA_LABELS[a] || a}</option>)}
+        </select>
+        <select value={type} onChange={(e) => { setType(e.target.value as 'projeto' | 'pos-mba'); setLabel(''); }}
+          style={{ fontSize: '0.75rem', padding: '4px 8px', borderRadius: 6, border: '1.5px solid #93c5fd', background: 'white' }}>
+          <option value="projeto">Projeto</option>
+          <option value="pos-mba">Pós/MBA</option>
+        </select>
+      </div>
+      <select value={label} onChange={(e) => setLabel(e.target.value)} disabled={!area}
+        style={{ width: '100%', fontSize: '0.75rem', padding: '4px 8px', borderRadius: 6, border: '1.5px solid #93c5fd', background: 'white', marginBottom: 8 }}>
+        <option value="">{area ? 'Selecione o item do catálogo...' : 'Escolha a área primeiro'}</option>
+        {options.map((o) => (
+          <option key={o.id} value={o.label}>{o.label} — {(o as any).points} pts</option>
+        ))}
+      </select>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button type="button" disabled={saving || !area || !label} onClick={() => { onSave(area, label, type); setEditing(false); }}
+          style={{ fontSize: '0.72rem', fontWeight: 700, padding: '4px 12px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', opacity: saving || !area || !label ? 0.6 : 1 }}>
+          {saving ? '⏳ Salvando...' : '💾 Salvar vínculo'}
+        </button>
+        {assignment && (
+          <button type="button" onClick={() => setEditing(false)}
+            style={{ fontSize: '0.72rem', color: '#64748b', background: 'white', border: '1px solid #cbd5e1', borderRadius: 6, padding: '4px 12px', cursor: 'pointer' }}>
+            Cancelar
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SectionCard({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
   return (
     <div style={{ border: '1.5px solid #e2e8f0', borderRadius: 10, marginBottom: 18, overflow: 'hidden' }}>
@@ -897,6 +977,35 @@ export default function AdminAudit() {
       return true;
     } catch (err) {
       showToast('❌ Erro de conexão ao reclassificar. Tente novamente.');
+      setSaving(false);
+      return false;
+    }
+  };
+
+  // Salva a atribuição de área + item do catálogo de uma exceção — exatamente o mesmo tratamento
+  // dado a um projeto (área de aplicação + reclassificação), só que para itens fora do catálogo
+  // que a UGP reconheceu por equivalência.
+  const saveExceptionAssignment = async (itemKey: string, area: string | null, label: string | null, type: 'projeto' | 'pos-mba' | null) => {
+    if (!selected) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/admin/audit-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ participantId: selected.profile.id, exceptionAssignment: { itemKey, area, label, type } }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(`❌ Erro ao salvar atribuição: ${errData.error || res.statusText}`);
+        setSaving(false);
+        return false;
+      }
+      if (selected.profile.email) await loadProfile(selected.profile.email);
+      setSaving(false);
+      showToast(area && label ? 'Exceção vinculada ao catálogo!' : 'Vínculo removido.');
+      return true;
+    } catch (err) {
+      showToast('❌ Erro de conexão ao salvar atribuição. Tente novamente.');
       setSaving(false);
       return false;
     }
@@ -1576,50 +1685,72 @@ export default function AdminAudit() {
                     </p>
                   </div>
 
-                  {/* Decisão formal da exceção (aprovação/rejeição pela UGP) — separada do checklist de validação por item abaixo */}
+                  {/* Decisão histórica/legada da exceção (formato antigo, um único registro por candidato) —
+                      NÃO é mais o que determina a pontuação. Hoje cada exceção abaixo tem seu próprio
+                      vínculo de catálogo (ver "🎯 Vincular esta exceção..." em cada card). Mantido aqui
+                      apenas como registro histórico da decisão anterior. */}
                   {p.exceptionStatus && p.exceptionStatus !== 'pending' && (
                     <div style={{
                       marginBottom: 14, padding: '12px 14px', borderRadius: 8,
-                      background: p.exceptionStatus === 'approved' ? '#f0fdf4' : '#fef2f2',
-                      border: `1.5px solid ${p.exceptionStatus === 'approved' ? '#86efac' : '#fca5a5'}`,
+                      background: '#f8fafc',
+                      border: '1.5px dashed #cbd5e1',
                     }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.85rem', color: p.exceptionStatus === 'approved' ? '#15803d' : '#b91c1c', marginBottom: 6 }}>
-                        {p.exceptionStatus === 'approved' ? '✅ Exceção APROVADA pela UGP' : '❌ Exceção REJEITADA pela UGP'}
+                      <div style={{ fontWeight: 700, fontSize: '0.78rem', color: '#64748b', marginBottom: 6 }}>
+                        📜 Registro histórico: {p.exceptionStatus === 'approved' ? 'exceção aprovada pela UGP (formato antigo)' : 'exceção rejeitada pela UGP (formato antigo)'}
                         {p.exceptionResolvedAt && (
-                          <span style={{ fontWeight: 400, fontSize: '0.72rem', color: '#6b7280', marginLeft: 8 }}>
+                          <span style={{ fontWeight: 400, fontSize: '0.7rem', color: '#94a3b8', marginLeft: 8 }}>
                             em {new Date(p.exceptionResolvedAt).toLocaleString('pt-BR')}
                           </span>
                         )}
                       </div>
+                      <div style={{ fontSize: '0.7rem', color: '#b45309', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 5, padding: '4px 8px', marginBottom: 6 }}>
+                        ⚠️ Este registro é só histórico e <strong>não determina mais a pontuação</strong>. Use o vínculo de catálogo em cada exceção individual abaixo.
+                      </div>
                       {p.exceptionCatalogLabel && (
-                        <div style={{ fontSize: '0.78rem', color: '#15803d', marginBottom: 6 }}>
-                          🔗 Vinculado a: <strong>{p.exceptionCatalogLabel}</strong>
+                        <div style={{ fontSize: '0.76rem', color: '#64748b', marginBottom: 6 }}>
+                          🔗 Estava vinculado a: <strong>{p.exceptionCatalogLabel}</strong>
                           {p.exceptionCatalogType === 'projeto' ? ' (Projeto)' : p.exceptionCatalogType === 'pos-mba' ? ' (Pós/MBA)' : ''}
                           {p.exceptionCatalogArea ? ` — ${p.exceptionCatalogArea}` : ''}
                         </div>
                       )}
                       {p.exceptionApprovalJustification && (
-                        <div style={{ fontSize: '0.8rem', color: '#1e293b', lineHeight: 1.6, background: 'white', borderRadius: 6, padding: '8px 10px' }}>
+                        <div style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.6, background: 'white', borderRadius: 6, padding: '8px 10px' }}>
                           {p.exceptionApprovalJustification}
-                        </div>
-                      )}
-                      {!p.exceptionApprovalJustification && (
-                        <div style={{ fontSize: '0.75rem', color: '#92400e', fontStyle: 'italic' }}>
-                          Sem justificativa registrada para esta decisão.
                         </div>
                       )}
                     </div>
                   )}
 
-                  {/* Exceções estruturadas (novo formato) */}
-                  {(p.exceptionItems || []).map((item, i) => (
-                    <div key={i} style={{ marginBottom: 14, padding: '12px 14px', background: '#fffbf5', border: '1.5px solid #fde68a', borderRadius: 8 }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#92400e', marginBottom: 8 }}>
-                        ⚠️ Exceção {i + 1}: {item.itemName}
+                  {/* Exceções estruturadas (novo formato) — mesmo tratamento de um card de projeto */}
+                  {(p.exceptionItems || []).map((item, i) => {
+                    const itemKey = `excecao-${i}`;
+                    const assignments: Record<string, { area: string; label: string; type: 'projeto' | 'pos-mba' }> = (selected?.audit as any)?.exceptionAssignments || {};
+                    const assignment = assignments[itemKey];
+                    const catalogItem = assignment
+                      ? CATALOG_ITEMS.find((ci) => ci.label === assignment.label && (ci as any).area === assignment.area && ci.group === (assignment.type === 'projeto' ? 'project' : 'postMBA'))
+                      : null;
+                    const pts = (catalogItem as any)?.points ?? 0;
+                    const badgeLabel = !assignment
+                      ? '⚠️ Sem vínculo com o catálogo'
+                      : !catalogItem
+                      ? '❌ Item do catálogo não encontrado'
+                      : `✅ ${pts} pts — ${assignment.type === 'projeto' ? 'Projeto' : 'Pós/MBA'} (${AREA_LABELS[assignment.area] || assignment.area})`;
+                    return (
+                    <div key={i} style={{ marginBottom: 14, padding: '12px 14px', background: '#fffbf5', border: `1.5px solid ${assignment && catalogItem ? '#86efac' : '#fde68a'}`, borderRadius: 8 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                        <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#92400e' }}>
+                          ⚠️ Exceção {i + 1}: {item.itemName}
+                        </div>
+                        <div style={{ flexShrink: 0, marginLeft: 8, fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: 5,
+                          background: assignment && catalogItem ? '#f0fdf4' : '#fef3c7',
+                          color: assignment && catalogItem ? '#15803d' : '#92400e',
+                          border: `1px solid ${assignment && catalogItem ? '#86efac' : '#fcd34d'}` }}>
+                          {badgeLabel}
+                        </div>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
-                        <InfoField label="Área solicitada" value={item.targetArea} />
-                        <InfoField label="Tipo" value={item.type} />
+                        <InfoField label="Área solicitada pelo candidato" value={item.targetArea} />
+                        <InfoField label="Tipo declarado" value={item.type} />
                         <InfoField label="Objetivo" value={item.objective} />
                       </div>
                       <InfoField label="Justificativa" value={item.justification} />
@@ -1631,18 +1762,17 @@ export default function AdminAudit() {
                           label="Comprovante da exceção"
                         />
                       )}
-                      {p.exceptionStatus === 'approved' && p.exceptionCatalogLabel ? (
-                        <div style={{ fontSize: '0.7rem', color: '#15803d', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 5, padding: '4px 8px', marginBottom: 6, fontWeight: 600 }}>
-                          📊 Pontuação atual: reconhecida como "{p.exceptionCatalogLabel}"{p.exceptionCatalogArea ? ` — ${p.exceptionCatalogArea}` : ''}. Está contando pontos hoje.
-                        </div>
-                      ) : (
-                        <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: 6 }}>
-                          📊 Esta exceção não está vinculada ao catálogo — não está pontuando hoje.
-                        </div>
-                      )}
-                      <ValidationControls itemKey={`excecao-${i}`} validation={getValidation(`excecao-${i}`)} onSave={saveItemValidation} />
+                      <ExceptionAssignmentPicker
+                        candidateAreas={p.selectedAreas || []}
+                        assignment={assignment}
+                        onSave={(area, label, type) => saveExceptionAssignment(itemKey, area, label, type)}
+                        onClear={() => saveExceptionAssignment(itemKey, null, null, null)}
+                        saving={saving}
+                      />
+                      <ValidationControls itemKey={itemKey} validation={getValidation(itemKey)} onSave={saveItemValidation} />
                     </div>
-                  ))}
+                    );
+                  })}
 
                   {/* Exceção legado (campo livre) */}
                   {p.exceptionJustification && (p.exceptionItems || []).length === 0 && (
