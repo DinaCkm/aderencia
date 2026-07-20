@@ -48,8 +48,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Observações de itens não rejeitados (pendente/validado) — para exibir na ficha mesmo sem exclusão de pontos
     const allItemNotes: Record<string, string> = {};
     (profileAudit?.itemValidations || []).forEach((v) => { if (v.note) allItemNotes[v.itemKey] = v.note; });
+    const experienceOverride = (profileAudit as any)?.experienceOverride;
     const assessments = participant.selectedAreas.map((area) =>
-      buildAreaAssessment(participant, area, performance, discs, approvedExceptions, rejectedItems, allItemNotes)
+      buildAreaAssessment(participant, area, performance, discs, approvedExceptions, rejectedItems, allItemNotes, experienceOverride)
     );
     assessments.forEach((assessment) => {
       report[assessment.area] = report[assessment.area] || [];
