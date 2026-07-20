@@ -41,11 +41,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const discs = await readJsonAsync<DiscReport[]>('discReports', []);
   const discRecords = await readJsonAsync<DISCRecord[]>('disc_records', []);
 
-  const approvedExceptions =
-    profile.exceptionStatus === 'approved'
-      ? profile.postMBAs.concat(profile.selectedCourses, profile.selectedProjects)
-      : [];
-
   // Carregar validações de auditoria por item — itens rejeitados pela UGP não pontuam
   const audits = await readJsonAsync<ProfileAudit[]>('profile_audits', []);
   const audit = audits.find((a) => a.participantId === profile.id) || {
@@ -62,6 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   (audit.itemValidations || []).forEach((v) => { if (v.note) allItemNotes[v.itemKey] = v.note; });
   const experienceOverride = (audit as any).experienceOverride;
   const projectRelabels = (audit as any).projectRelabels || {};
+  const exceptionAssignments = (audit as any).exceptionAssignments || {};
 
   // ── Classificação (ranking) por área — mesmo critério do Nine Box do admin:
   //    ordena por (Aderência Técnica + Comportamental) desc entre TODOS que selecionaram a área.
@@ -69,15 +65,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const scored = participants
       .filter((pp) => (pp.selectedAreas || []).includes(area))
       .map((pp) => {
-        const ppExc =
-          pp.exceptionStatus === 'approved'
-            ? pp.postMBAs.concat(pp.selectedCourses, pp.selectedProjects)
-            : [];
         const ppAudit = audits.find((a) => a.participantId === pp.id);
         const ppRejected = (ppAudit?.itemValidations || [])
           .filter((v) => v.status === 'rejected')
           .map((v) => ({ itemKey: v.itemKey, note: v.note }));
-        const a = buildAreaAssessment(pp, area, performance, discs, ppExc, ppRejected);
+        const ppExceptionAssignments = (ppAudit as any)?.exceptionAssignments || {};
+        const a = buildAreaAssessment(pp, area, performance, discs, ppExceptionAssignments, ppRejected);
         return { id: pp.id, score: (a.technicalAdherence || 0) + (a.behavioralAdherence || 0) };
       })
       .sort((x, y) => y.score - x.score);
@@ -86,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
 
   const areaAssessments = (profile.selectedAreas || []).map((area) => {
-    const assessment = buildAreaAssessment(profile, area, performance, discs, approvedExceptions, rejectedItems, allItemNotes, experienceOverride, projectRelabels);
+    const assessment = buildAreaAssessment(profile, area, performance, discs, exceptionAssignments, rejectedItems, allItemNotes, experienceOverride, projectRelabels);
     const discRecord = discRecords
       .filter((d) => d.participantId === profile.id && d.area === area)
       .sort((a, b) => b.importedAt.localeCompare(a.importedAt))[0];
