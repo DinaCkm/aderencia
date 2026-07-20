@@ -265,6 +265,37 @@ function ValidationControls({
   );
 }
 
+// ─── Seletor de reclassificação de projeto ─────────────────────────────────
+// Mostrado quando o título escolhido pelo candidato não bate com o catálogo da área
+// vinculada — permite ao admin escolher o item correto do catálogo para essa área,
+// sem alterar o texto original informado pelo candidato.
+function ProjectRelabelPicker({ area, onPick, saving }: {
+  area: string;
+  onPick: (newLabel: string) => void;
+  saving: boolean;
+}) {
+  const options = CATALOG_ITEMS.filter((ci) => ci.group === 'project' && (ci as any).area === area);
+  if (options.length === 0) return null;
+  return (
+    <div style={{ marginBottom: 8, padding: '8px 10px', background: '#eff6ff', border: '1.5px solid #93c5fd', borderRadius: 6 }}>
+      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1d4ed8', marginBottom: 6 }}>
+        🔄 Título não reconhecido para esta área — se o comprovante corresponder a outro item do catálogo, reclassifique aqui:
+      </div>
+      <select
+        defaultValue=""
+        disabled={saving}
+        onChange={(e) => { if (e.target.value) onPick(e.target.value); }}
+        style={{ fontSize: '0.75rem', padding: '4px 8px', borderRadius: 6, border: '1.5px solid #93c5fd', background: 'white', color: '#1e293b', cursor: 'pointer', width: '100%' }}
+      >
+        <option value="">Selecione o item correto do catálogo...</option>
+        {options.map((o) => (
+          <option key={o.id} value={o.label}>{o.label} — {(o as any).points} pts</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 function SectionCard({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
   return (
     <div style={{ border: '1.5px solid #e2e8f0', borderRadius: 10, marginBottom: 18, overflow: 'hidden' }}>
@@ -842,6 +873,35 @@ export default function AdminAudit() {
     showToast(`Área vinculada ao projeto salva!`);
   };
 
+  // Reclassifica o título de um projeto (troca o item do catálogo usado no cálculo de pontos),
+  // sem alterar o texto original informado pelo candidato — usado quando o título escolhido no
+  // cadastro não é o item correto do catálogo para a área, mas o comprovante comprova outro tema.
+  const saveProjectRelabel = async (itemKey: string, newLabel: string | null) => {
+    if (!selected) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/admin/audit-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ participantId: selected.profile.id, projectRelabel: { itemKey, newLabel } }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(`❌ Erro ao reclassificar: ${errData.error || res.statusText}`);
+        setSaving(false);
+        return false;
+      }
+      if (selected.profile.email) await loadProfile(selected.profile.email);
+      setSaving(false);
+      showToast(newLabel ? 'Projeto reclassificado!' : 'Reclassificação removida — voltou ao título original.');
+      return true;
+    } catch (err) {
+      showToast('❌ Erro de conexão ao reclassificar. Tente novamente.');
+      setSaving(false);
+      return false;
+    }
+  };
+
   // Atualiza o estado local após upload de comprovante pelo admin
   const updateProofFile = (itemKey: string, base64: string) => {
     setSelected((prev) => {
@@ -1382,25 +1442,62 @@ export default function AdminAudit() {
                     // Busca em proofLinks com ambas as variações
                     const projProofLink = (p as any).proofLinks?.[rawProjKey] || (p as any).proofLinks?.[projKey];
                     const assignedArea2 = p.projectAreaMap?.[proj];
+                    const projItemKey = `projeto-${i}`;
+                    const relabels: Record<string, string> = (selected?.audit as any)?.projectRelabels || {};
+                    const relabeledTitle = relabels[projItemKey];
+                    const effectiveTitle = relabeledTitle || proj;
                     const catalogMatch2 = assignedArea2
-                      ? CATALOG_ITEMS.find((ci) => ci.group === 'project' && ci.label === proj && (ci as any).area === assignedArea2)
+                      ? CATALOG_ITEMS.find((ci) => ci.group === 'project' && ci.label === effectiveTitle && (ci as any).area === assignedArea2)
                       : null;
-                    const projScore = catalogMatch2
-                      ? { pts: (catalogMatch2 as any).points ?? 15, type: (catalogMatch2 as any).points >= 20 ? 'Estratégico Central' : 'Complementar', pontua: true }
+                    // Verifica se a área já atingiu o teto de 20 pts com OUTROS projetos vinculados antes deste,
+                    // mesmo que este projeto esteja corretamente reconhecido no catálogo.
+                    let capReached = false;
+                    let effectivePts = (catalogMatch2 as any)?.points ?? 0;
+                    if (catalogMatch2 && assignedArea2) {
+                      const allProjectsList = p.selectedProjects || [];
+                      const projsInSameArea = allProjectsList.filter((pp) => p.projectAreaMap?.[pp] === assignedArea2);
+                      const itemsInArea = CATALOG_ITEMS.filter((ci) => ci.group === 'project' && projsInSameArea.includes(ci.label) && (ci as any).area === assignedArea2);
+                      const totalBefore = itemsInArea
+                        .filter((ci) => projsInSameArea.indexOf(ci.label) < projsInSameArea.indexOf(proj))
+                        .reduce((acc, ci) => acc + ((ci as any).points ?? 0), 0);
+                      effectivePts = Math.max(0, Math.min((catalogMatch2 as any).points ?? 0, 20 - totalBefore));
+                      capReached = effectivePts <= 0;
+                    }
+                    const projScore = capReached
+                      ? { pts: 0, type: `Reconhecido no catálogo, mas o teto de 20 pts da área já foi atingido por outro(s) projeto(s) — não adiciona pontos`, pontua: false, capOnly: true }
+                      : catalogMatch2
+                      ? { pts: effectivePts, type: (catalogMatch2 as any).points >= 20 ? 'Estratégico Central' : 'Complementar', pontua: true, capOnly: false }
                       : assignedArea2
-                      ? { pts: 0, type: 'Não reconhecido no catálogo para esta área', pontua: false }
-                      : { pts: null, type: 'Área não vinculada', pontua: false };
+                      ? { pts: 0, type: 'Não reconhecido no catálogo para esta área', pontua: false, capOnly: false }
+                      : { pts: null, type: 'Área não vinculada', pontua: false, capOnly: false };
                     return (
-                      <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: `1px solid ${!assignedArea2 ? '#fcd34d' : projScore.pontua ? '#86efac' : '#fca5a5'}`, borderRadius: 8 }}>
+                      <div key={i} style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', border: `1px solid ${!assignedArea2 ? '#fcd34d' : projScore.capOnly ? '#fcd34d' : projScore.pontua ? '#86efac' : '#fca5a5'}`, borderRadius: 8 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
                           <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>{proj}</div>
                           <div style={{ flexShrink: 0, marginLeft: 8, fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 5,
-                            background: !assignedArea2 ? '#fef3c7' : projScore.pontua ? '#f0fdf4' : '#fef2f2',
-                            color: !assignedArea2 ? '#92400e' : projScore.pontua ? '#15803d' : '#dc2626',
-                            border: `1px solid ${!assignedArea2 ? '#fcd34d' : projScore.pontua ? '#86efac' : '#fca5a5'}` }}>
-                            {!assignedArea2 ? '⚠️ Sem área' : projScore.pontua ? `✅ ${projScore.pts} pts — ${projScore.type}` : `❌ 0 pts — ${projScore.type}`}
+                            background: !assignedArea2 ? '#fef3c7' : projScore.capOnly ? '#fffbeb' : projScore.pontua ? '#f0fdf4' : '#fef2f2',
+                            color: !assignedArea2 ? '#92400e' : projScore.capOnly ? '#b45309' : projScore.pontua ? '#15803d' : '#dc2626',
+                            border: `1px solid ${!assignedArea2 ? '#fcd34d' : projScore.capOnly ? '#fcd34d' : projScore.pontua ? '#86efac' : '#fca5a5'}` }}>
+                            {!assignedArea2 ? '⚠️ Sem área' : projScore.capOnly ? `⚠️ Reconhecido — teto de 20 pts atingido` : projScore.pontua ? `✅ ${projScore.pts} pts — ${projScore.type}` : `❌ 0 pts — ${projScore.type}`}
                           </div>
                         </div>
+                        {projScore.capOnly && (
+                          <div style={{ fontSize: '0.7rem', color: '#92400e', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, padding: '5px 8px', marginBottom: 6 }}>
+                            ℹ️ Este projeto é reconhecido corretamente no catálogo para a área vinculada, mas <strong>não soma pontos</strong> porque a área já atingiu o limite de 20 pts com outro(s) projeto(s). Validar é adequado (o comprovante é legítimo), mas não altera a nota final desta área.
+                          </div>
+                        )}
+                        {relabeledTitle && (
+                          <div style={{ fontSize: '0.72rem', color: '#5b21b6', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 6, padding: '5px 8px', marginBottom: 6 }}>
+                            🔄 <strong>Reclassificado pelo administrador para:</strong> "{relabeledTitle}" (título original do candidato: "{proj}")
+                            <button type="button" onClick={() => saveProjectRelabel(projItemKey, null)} disabled={saving}
+                              style={{ marginLeft: 8, fontSize: '0.65rem', color: '#7c3aed', background: 'none', border: '1px solid #ddd6fe', borderRadius: 4, padding: '1px 6px', cursor: 'pointer' }}>
+                              ↩️ Desfazer
+                            </button>
+                          </div>
+                        )}
+                        {!relabeledTitle && !catalogMatch2 && assignedArea2 && (
+                          <ProjectRelabelPicker area={assignedArea2} onPick={(newLabel) => saveProjectRelabel(projItemKey, newLabel)} saving={saving} />
+                        )}
                         {p.projectAreaMap?.[proj] ? (
                           <div style={{ fontSize: '0.72rem', color: '#5b21b6', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                             🎯 Área de aplicação: {AREA_LABELS[p.projectAreaMap[proj]] || p.projectAreaMap[proj]}
