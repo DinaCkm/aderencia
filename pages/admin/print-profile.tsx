@@ -143,7 +143,11 @@ export default function PrintProfile() {
     if (mode === 'upload') return '📎 Comprovante enviado pelo candidato';
     return '⚠️ Sem comprovante informado';
   }
-  const totalMonths = (p.managerialMonths ?? 0) + (p.interimMonths ?? 0);
+  const experienceOverride = (audit as any)?.experienceOverride as { managerialMonths?: number; interimMonths?: number; note?: string } | undefined;
+  const hasExpOverride = experienceOverride && (experienceOverride.managerialMonths !== undefined || experienceOverride.interimMonths !== undefined);
+  const effManagerialMonths = hasExpOverride && experienceOverride!.managerialMonths !== undefined ? experienceOverride!.managerialMonths! : (p.managerialMonths ?? 0);
+  const effInterimMonths = hasExpOverride && experienceOverride!.interimMonths !== undefined ? experienceOverride!.interimMonths! : (p.interimMonths ?? 0);
+  const totalMonths = effManagerialMonths + effInterimMonths;
   const expPts = Math.min(20, Math.floor((totalMonths / 12) * 5 * 10) / 10);
   const expAuditV = getAuditV('experiencia');
   const expRejected = expAuditV?.status === 'rejected';
@@ -581,9 +585,10 @@ export default function PrintProfile() {
             <div className="row-item" style={{ background: expRejected ? '#fef2f2' : expPts > 0 ? '#f0fdf4' : '#f8fafc', border: `1px solid ${expRejected ? '#fca5a5' : expPts > 0 ? '#86efac' : '#e2e8f0'}` }}>
               <span style={{ fontSize: 14, flexShrink: 0 }}>{expRejected ? '❌' : expPts > 0 ? '✅' : '❌'}</span>
               <div style={{ flex: 1 }}>
-                <div className="label">Gerencial: {p.managerialMonths ?? 0}m + Interino: {p.interimMonths ?? 0}m = {totalMonths}m totais</div>
+                <div className="label">Gerencial: {effManagerialMonths}m + Interino: {effInterimMonths}m = {totalMonths}m totais</div>
                 <div className="reason" style={{ color: expRejected ? '#b91c1c' : '#64748b' }}>
                   {expRejected ? `Experiência rejeitada pelo auditor` : totalMonths > 0 ? `${(totalMonths / 12).toFixed(1)} anos × 5 pts/ano = ${expPts} pts (máx. 20 pts)` : 'Nenhuma experiência informada — 0 pts'}
+                  {hasExpOverride ? ` · Ajustado pelo administrador (declarado pelo candidato: ${p.managerialMonths ?? 0}m + ${p.interimMonths ?? 0}m)${experienceOverride?.note ? ` — ${experienceOverride.note}` : ''}` : ''}
                 </div>
                 <div style={{ marginTop: 4 }}><ValidationBadge itemKey="experiencia" /></div>
               </div>
