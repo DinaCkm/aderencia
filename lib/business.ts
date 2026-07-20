@@ -106,7 +106,8 @@ function computeTechnicalAdherence(
   profile: ParticipantProfile,
   area: string,
   rejectedItems: RejectedItemRef[] = [],
-  allItemNotes: Record<string, string> = {}
+  allItemNotes: Record<string, string> = {},
+  experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string }
 ): {
   technicalAdherence: number;
   calculationSteps: { name: string; value: number | string; detail?: string }[];
@@ -130,13 +131,18 @@ function computeTechnicalAdherence(
   });
   const postMBADet = bestPostMBADetail(postMBAsConsidered, area);
 
-  // Experiência — se o item "experiencia" foi rejeitado pela UGP, zera a pontuação
+  // Experiência — usa o ajuste do administrador quando existir; senão, o valor autodeclarado.
+  // Se o item "experiencia" foi rejeitado pela UGP, zera a pontuação.
+  const hasOverride = experienceOverride && (experienceOverride.managerialMonths !== undefined || experienceOverride.interimMonths !== undefined);
+  const managerialMonths = hasOverride && experienceOverride!.managerialMonths !== undefined ? experienceOverride!.managerialMonths! : (profile.managerialMonths ?? 0);
+  const interimMonths = hasOverride && experienceOverride!.interimMonths !== undefined ? experienceOverride!.interimMonths! : (profile.interimMonths ?? 0);
   const experienceRejected = rejectedKeys.has('experiencia');
-  const rawExpScore = experienceScore(profile.managerialMonths ?? 0, profile.interimMonths ?? 0);
+  const rawExpScore = experienceScore(managerialMonths, interimMonths);
   const expScore = experienceRejected ? 0 : rawExpScore;
   if (experienceRejected && rawExpScore > 0) {
     excludedItems.push({ label: 'Experiência gerencial/interina', type: 'experiencia', pointsRemoved: rawExpScore, note: noteFor('experiencia') });
   }
+
 
   // Projetos transversais — pontuam automaticamente em todas as áreas do candidato
   const TRANSVERSAL_PROJECTS = [
@@ -193,9 +199,6 @@ function computeTechnicalAdherence(
   const total80 = postMBADet.score + expScore + projScore;
   const score10 = Math.round((total80 / 80) * 100) / 10;
 
-  const managerialMonths = profile.managerialMonths ?? 0;
-  const interimMonths = profile.interimMonths ?? 0;
-
   return {
     technicalAdherence: score10,
     postMBADetail: postMBADet,
@@ -219,8 +222,12 @@ function computeTechnicalAdherence(
               const years = Math.floor((totalM / 12) * 10) / 10;
               const raw = years * 5;
               const capped = expScore === 20 && raw > 20;
+              const adjustedSuffix = hasOverride
+                ? ` · Ajustado pelo administrador (declarado pelo candidato: ${profile.managerialMonths ?? 0}m gerencial + ${profile.interimMonths ?? 0}m interino)${experienceOverride?.note ? ` — ${experienceOverride.note}` : ''}`
+                : '';
               return `Gerencial: ${managerialMonths}m + Interino: ${interimMonths}m = ${totalM}m totais (${years} anos × 5 pts/ano = ${Math.round(raw * 10) / 10} pts)`
-                + (capped ? ` — cap atingido: máximo é 20 pts` : ` — ${expScore} de 20 pts possíveis`);
+                + (capped ? ` — cap atingido: máximo é 20 pts` : ` — ${expScore} de 20 pts possíveis`)
+                + adjustedSuffix;
             })(),
       },
       {
@@ -291,7 +298,8 @@ export function buildAreaAssessment(
   discReports: DiscReport[],
   _approvedExceptions: string[] = [],
   rejectedItems: RejectedItemRef[] = [],
-  allItemNotes: Record<string, string> = {}
+  allItemNotes: Record<string, string> = {},
+  experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string }
 ): AreaAssessment {
   const disc = getLatestDisc(discReports, profile.id, area);
   const perf = getLatestPerformance(performanceRecords, profile.id, area);
@@ -302,7 +310,7 @@ export function buildAreaAssessment(
       ? Math.round(((disc.score10 + perfConverted) / 2) * 10) / 10
       : undefined;
 
-  const technical = computeTechnicalAdherence(profile, area, rejectedItems, allItemNotes);
+  const technical = computeTechnicalAdherence(profile, area, rejectedItems, allItemNotes, experienceOverride);
 
   const quadrant =
     behavioral !== undefined
