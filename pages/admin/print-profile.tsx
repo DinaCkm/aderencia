@@ -90,7 +90,15 @@ export default function PrintProfile() {
     const m = key.match(/^(postmba|curso-free|curso-cat|projeto|excecao)-(\d+)$/);
     if (m) {
       const idx = Number(m[2]);
-      if (m[1] === 'postmba') return `Pós/MBA: ${(p.postMBAs || [])[idx] || `#${idx + 1}`}`;
+      if (m[1] === 'postmba') {
+        // Prioriza o nome real do certificado (informado pelo candidato) em vez da
+        // opção genérica de área escolhida no catálogo — evita mostrar dois títulos
+        // diferentes (ex: certificados de instituições distintas) com o mesmo nome.
+        const mbaBlock = ((p as any).mbaBlocks || [])[idx];
+        const realName = mbaBlock?.name?.trim();
+        const catalogArea = (p.postMBAs || [])[idx];
+        return `Pós/MBA: ${realName || catalogArea || `#${idx + 1}`}`;
+      }
       if (m[1] === 'projeto') return `Projeto: ${(p.selectedProjects || [])[idx] || `#${idx + 1}`}`;
       if (m[1] === 'curso-cat') return `Curso: ${(p.selectedCourses || [])[idx] || `#${idx + 1}`}`;
       if (m[1] === 'curso-free') { const fc = ((p as any).freeCourses || [])[idx]; return `Curso livre: ${fc?.name || `#${idx + 1}`}`; }
@@ -568,7 +576,7 @@ export default function PrintProfile() {
                 <div key={i} className="row-item" style={{ background: isRej ? '#fef2f2' : isPon ? '#f0fdf4' : '#fff7ed', border: `1px solid ${isRej ? '#fca5a5' : isPon ? '#86efac' : '#fed7aa'}` }}>
                   <span style={{ fontSize: 14, flexShrink: 0 }}>{isRej ? '❌' : isPon ? '✅' : '⚠️'}</span>
                   <div style={{ flex: 1 }}>
-                    <div className="label">{m.title}</div>
+                    <div className="label">{((p as any).mbaBlocks || [])[i]?.name?.trim() || m.title}</div>
                     <div className="reason" style={{ color: isRej ? '#b91c1c' : isPon ? '#15803d' : '#92400e' }}>{m.reason}</div>
                     {(m as any).proof && <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{(m as any).proof}</div>}
                     <div style={{ marginTop: 4 }}><ValidationBadge itemKey={`postmba-${i}`} /></div>
