@@ -61,6 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const allItemNotes: Record<string, string> = {};
   (audit.itemValidations || []).forEach((v) => { if (v.note) allItemNotes[v.itemKey] = v.note; });
   const experienceOverride = (audit as any).experienceOverride;
+  const projectRelabels = (audit as any).projectRelabels || {};
 
   // ── Classificação (ranking) por área — mesmo critério do Nine Box do admin:
   //    ordena por (Aderência Técnica + Comportamental) desc entre TODOS que selecionaram a área.
@@ -85,7 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
 
   const areaAssessments = (profile.selectedAreas || []).map((area) => {
-    const assessment = buildAreaAssessment(profile, area, performance, discs, approvedExceptions, rejectedItems, allItemNotes, experienceOverride);
+    const assessment = buildAreaAssessment(profile, area, performance, discs, approvedExceptions, rejectedItems, allItemNotes, experienceOverride, projectRelabels);
     const discRecord = discRecords
       .filter((d) => d.participantId === profile.id && d.area === area)
       .sort((a, b) => b.importedAt.localeCompare(a.importedAt))[0];
