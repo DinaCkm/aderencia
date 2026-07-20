@@ -108,7 +108,8 @@ function computeTechnicalAdherence(
   rejectedItems: RejectedItemRef[] = [],
   allItemNotes: Record<string, string> = {},
   experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string },
-  projectRelabels: Record<string, string> = {}
+  projectRelabels: Record<string, string> = {},
+  exceptionAssignments: Record<string, { area: string; label: string; type: 'projeto' | 'pos-mba' }> = {}
 ): {
   technicalAdherence: number;
   calculationSteps: { name: string; value: number | string; detail?: string }[];
@@ -130,6 +131,19 @@ function computeTechnicalAdherence(
       excludedItems.push({ label, type: 'postMBA', pointsRemoved: wouldBeDetail.score, note: noteFor(`postmba-${i}`) });
     }
   });
+  // Exceções aprovadas: cada exceção (chaveada por itemKey, ex: "excecao-0") tem sua própria
+  // área e item de catálogo atribuídos pelo admin — exatamente como um projeto. Só entra no
+  // cálculo se: (1) está atribuída a ESTA área, e (2) não foi rejeitada (mesma regra dos projetos:
+  // conta a menos que explicitamente rejeitada — pendente/validado contam).
+  const exceptionEntriesForArea = Object.entries(exceptionAssignments).filter(
+    ([itemKey, assignment]) => assignment.area === area && !rejectedKeys.has(itemKey)
+  );
+  const exceptionPostMBALabels = exceptionEntriesForArea
+    .filter(([, a]) => a.type === 'pos-mba')
+    .map(([, a]) => a.label);
+  if (exceptionPostMBALabels.length > 0) {
+    postMBAsConsidered.push(...exceptionPostMBALabels);
+  }
   const postMBADet = bestPostMBADetail(postMBAsConsidered, area);
 
   // Experiência — usa o ajuste do administrador quando existir; senão, o valor autodeclarado.
@@ -178,6 +192,20 @@ function computeTechnicalAdherence(
       return { label: effLabel, points: pts, weight };
     })
     .filter((item): item is { label: string; points: number; weight: string } => item !== null);
+  // Exceções de projeto aprovadas pela UGP para esta área: somam como se fossem o item do
+  // catálogo ao qual cada uma foi equiparada (mesma pontuação/classificação), sujeitas ao
+  // mesmo teto de 20 pts da área.
+  const exceptionProjectAssignments = exceptionEntriesForArea.filter(([, a]) => a.type === 'projeto');
+  for (const [, assignment] of exceptionProjectAssignments) {
+    const exceptionCatalogItem = CATALOG_ITEMS.find(
+      (i) => i.group === 'project' && i.label === assignment.label && i.area === area
+    );
+    if (exceptionCatalogItem) {
+      const pts = (exceptionCatalogItem as any).points ?? 15;
+      const weight = pts >= 20 ? 'projeto estratégico central' : 'projeto de suporte/complementar';
+      projItems.push({ label: `${exceptionCatalogItem.label} (reconhecido por exceção aprovada pela UGP)`, points: pts, weight });
+    }
+  }
   const projScore = Math.min(20, projItems.reduce((acc, i) => acc + i.points, 0));
 
   // Observações do auditor em projetos desta área que NÃO foram rejeitados (ex: pendente,
@@ -216,7 +244,7 @@ function computeTechnicalAdherence(
         name: 'Pós/MBA (melhor título para a área)',
         value: postMBADet.score,
         detail: postMBADet.titleUsed
-          ? `Título considerado: "${postMBADet.titleUsed}" — ${postMBADet.classification}`
+          ? `Título considerado: "${postMBADet.titleUsed}" — ${postMBADet.classification}${exceptionPostMBALabels.includes(postMBADet.titleUsed || '') ? ' · Reconhecido por exceção aprovada pela UGP (equivalência ao catálogo)' : ''}`
           : 'Nenhum título de Pós/MBA informado — 0 de 40 pts possíveis.',
       },
       {
@@ -303,7 +331,7 @@ export function buildAreaAssessment(
   area: string,
   performanceRecords: PerformanceRecord[],
   discReports: DiscReport[],
-  _approvedExceptions: string[] = [],
+  exceptionAssignments: Record<string, { area: string; label: string; type: 'projeto' | 'pos-mba' }> = {},
   rejectedItems: RejectedItemRef[] = [],
   allItemNotes: Record<string, string> = {},
   experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string },
@@ -318,7 +346,7 @@ export function buildAreaAssessment(
       ? Math.round(((disc.score10 + perfConverted) / 2) * 10) / 10
       : undefined;
 
-  const technical = computeTechnicalAdherence(profile, area, rejectedItems, allItemNotes, experienceOverride, projectRelabels);
+  const technical = computeTechnicalAdherence(profile, area, rejectedItems, allItemNotes, experienceOverride, projectRelabels, exceptionAssignments);
 
   const quadrant =
     behavioral !== undefined
