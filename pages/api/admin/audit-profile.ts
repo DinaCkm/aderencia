@@ -17,6 +17,14 @@ export interface ProfileAudit {
   overallStatus: 'provisional' | 'validated' | 'adjusted';
   overallNote?: string;
   auditedAt?: string;
+  // Ajuste manual da experiência gerencial/interina feito pelo administrador durante a
+  // auditoria — sobrepõe os meses autodeclarados pelo candidato no cálculo de pontuação.
+  experienceOverride?: {
+    managerialMonths?: number;
+    interimMonths?: number;
+    note?: string;
+    adjustedAt?: string;
+  };
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -58,11 +66,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // POST — salvar validação de um ou mais itens
   if (req.method === 'POST') {
-    const { participantId, itemValidation, overallStatus, overallNote } = req.body as {
+    const { participantId, itemValidation, overallStatus, overallNote, experienceOverride, clearExperienceOverride } = req.body as {
       participantId: string;
       itemValidation?: ItemValidation;
       overallStatus?: string;
       overallNote?: string;
+      experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string };
+      clearExperienceOverride?: boolean;
     };
 
     if (!participantId) {
@@ -99,6 +109,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       audit.overallStatus = overallStatus as ProfileAudit['overallStatus'];
       audit.overallNote = overallNote;
       audit.auditedAt = new Date().toISOString();
+    }
+
+    // Atualizar ajuste manual de experiência gerencial/interina
+    if (clearExperienceOverride) {
+      delete audit.experienceOverride;
+    } else if (experienceOverride) {
+      audit.experienceOverride = {
+        managerialMonths: experienceOverride.managerialMonths,
+        interimMonths: experienceOverride.interimMonths,
+        note: experienceOverride.note,
+        adjustedAt: new Date().toISOString(),
+      };
     }
 
     if (idx >= 0) {
