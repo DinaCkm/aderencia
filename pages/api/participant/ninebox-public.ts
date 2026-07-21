@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync } from '../../../lib/db';
 import { buildAreaAssessment } from '../../../lib/business';
+import { getEffectiveCatalogItems } from '../../../lib/catalog';
 import type { ParticipantProfile, DiscReport, PerformanceRecord } from '../../../lib/types';
 
 // Retorna apenas nome, área e quadrante — sem notas, para exibição pública entre participantes
@@ -27,6 +28,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Monta o Nine Box apenas para as áreas de interesse do participante logado
   const report: Record<string, { name: string; quadrant: string; score: number }[]> = {};
+  // Catálogo efetivo: itens fixos (código) + itens customizados criados pelo admin (banco de dados)
+  const catalogItems = await getEffectiveCatalogItems();
 
   for (const participant of participants) {
     if (!participant.selectedAreas || participant.selectedAreas.length === 0) continue;
@@ -35,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Só inclui áreas que o participante logado também selecionou
       if (!allowedAreas.includes(area)) return;
 
-      const assessment = buildAreaAssessment(participant, area, performance, discs);
+      const assessment = buildAreaAssessment(participant, area, performance, discs, {}, [], {}, undefined, {}, catalogItems);
       if (!assessment) return;
 
       report[area] = report[area] || [];

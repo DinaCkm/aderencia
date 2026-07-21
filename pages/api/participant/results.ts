@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync } from '../../../lib/db';
 import { buildAreaAssessment } from '../../../lib/business';
+import { getEffectiveCatalogItems } from '../../../lib/catalog';
 import type { ParticipantProfile, PerformanceRecord, DiscReport, DISCRecord } from '../../../lib/types';
 
 interface ItemValidation {
@@ -35,9 +36,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const experienceOverride = (profileAudit as any)?.experienceOverride;
   const projectRelabels = (profileAudit as any)?.projectRelabels || {};
   const exceptionAssignments = (profileAudit as any)?.exceptionAssignments || {};
+  // Catálogo efetivo: itens fixos (código) + itens customizados criados pelo admin (banco de dados)
+  const catalogItems = await getEffectiveCatalogItems();
 
   const results = (participant.selectedAreas || []).map((area) => {
-    const assessment = buildAreaAssessment(participant, area, performances, discReports, exceptionAssignments, rejectedItems, {}, experienceOverride, projectRelabels);
+    const assessment = buildAreaAssessment(participant, area, performances, discReports, exceptionAssignments, rejectedItems, {}, experienceOverride, projectRelabels, catalogItems);
     const steps = assessment.calculationSteps || [];
     const getStep = (name: string) => {
       const s = steps.find((st) => st.name.toLowerCase().includes(name.toLowerCase()));
