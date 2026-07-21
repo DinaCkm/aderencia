@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Campos que o admin tem permissão de atualizar
-  const ALLOWED_FIELDS = ['projectAreaMap'];
+  const ALLOWED_FIELDS = ['projectAreaMap', 'adminNote'];
   if (!ALLOWED_FIELDS.includes(field)) {
     return res.status(403).json({ error: `Campo "${field}" não pode ser atualizado pelo admin` });
   }
