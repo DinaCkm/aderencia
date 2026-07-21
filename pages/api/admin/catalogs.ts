@@ -7,6 +7,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const customItems = await readJsonAsync<CatalogItem[]>('catalogs', []);
   const customArray = Array.isArray(customItems) ? customItems : [];
 
+  // Mantido aqui (com o campo 'source' extra, só para exibição na tela de Catálogos).
+  // O cálculo de pontuação e os seletores usam lib/catalog.ts::getEffectiveCatalogItems,
+  // que aplica a mesma lógica de merge sem o campo 'source'.
   const buildAll = () => {
     const customIds = new Set(customArray.map((c) => c.id));
     const fixedOverridden = CATALOG_ITEMS.map((i) => {

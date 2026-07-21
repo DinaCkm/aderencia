@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync, loadProofFiles } from '../../../lib/db';
 import { buildAreaAssessment } from '../../../lib/business';
+import { getEffectiveCatalogItems } from '../../../lib/catalog';
 import type {
   AreaCode,
   ParticipantProfile,
@@ -27,6 +28,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!profile) {
     return res.status(404).json({ error: 'Participante não encontrado' });
   }
+
+  // Catálogo efetivo: itens fixos (código) + itens customizados criados pelo admin (banco de dados)
+  const catalogItems = await getEffectiveCatalogItems();
 
   // Carregar arquivos de comprovante da tabela proof_files separada
   const proofFilesFromDB = await loadProofFiles(profile.email || profile.id);
@@ -70,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .filter((v) => v.status === 'rejected')
           .map((v) => ({ itemKey: v.itemKey, note: v.note }));
         const ppExceptionAssignments = (ppAudit as any)?.exceptionAssignments || {};
-        const a = buildAreaAssessment(pp, area, performance, discs, ppExceptionAssignments, ppRejected);
+        const a = buildAreaAssessment(pp, area, performance, discs, ppExceptionAssignments, ppRejected, {}, undefined, {}, catalogItems);
         return { id: pp.id, score: (a.technicalAdherence || 0) + (a.behavioralAdherence || 0) };
       })
       .sort((x, y) => y.score - x.score);
@@ -79,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   };
 
   const areaAssessments = (profile.selectedAreas || []).map((area) => {
-    const assessment = buildAreaAssessment(profile, area, performance, discs, exceptionAssignments, rejectedItems, allItemNotes, experienceOverride, projectRelabels);
+    const assessment = buildAreaAssessment(profile, area, performance, discs, exceptionAssignments, rejectedItems, allItemNotes, experienceOverride, projectRelabels, catalogItems);
     const discRecord = discRecords
       .filter((d) => d.participantId === profile.id && d.area === area)
       .sort((a, b) => b.importedAt.localeCompare(a.importedAt))[0];

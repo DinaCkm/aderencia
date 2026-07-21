@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import { buildAreaAssessment } from '../../../lib/business';
+import { getEffectiveCatalogItems } from '../../../lib/catalog';
 import type { AuditReport, ParticipantProfile, AreaAssessment, DiscReport, PerformanceRecord, DISCRecord } from '../../../lib/types';
 
 interface ItemValidation {
@@ -35,6 +36,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const report: Record<string, AreaAssessmentWithMeta[]> = {};
 
+  // Catálogo efetivo: itens fixos (código) + itens customizados criados pelo admin (banco de dados)
+  const catalogItems = await getEffectiveCatalogItems();
+
   for (const participant of participants) {
     // Itens marcados como Rejeitado pelo admin na Auditoria de Fichas — pontos retirados do cálculo
     const profileAudit = profileAudits.find((a) => a.participantId === participant.id);
@@ -48,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const projectRelabels = (profileAudit as any)?.projectRelabels || {};
     const exceptionAssignments = (profileAudit as any)?.exceptionAssignments || {};
     const assessments = participant.selectedAreas.map((area) =>
-      buildAreaAssessment(participant, area, performance, discs, exceptionAssignments, rejectedItems, allItemNotes, experienceOverride, projectRelabels)
+      buildAreaAssessment(participant, area, performance, discs, exceptionAssignments, rejectedItems, allItemNotes, experienceOverride, projectRelabels, catalogItems)
     );
     assessments.forEach((assessment) => {
       report[assessment.area] = report[assessment.area] || [];
