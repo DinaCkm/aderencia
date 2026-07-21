@@ -814,6 +814,11 @@ export default function AdminAudit() {
   }, []);
   const [saving, setSaving] = useState(false);
   const [overallNote, setOverallNote] = useState('');
+  // Nota administrativa legada (gravada direto no participante, ex.: análises antigas da UGP).
+  // Independente das validações item a item — precisa ser editada/limpa manualmente quando
+  // uma decisão de auditoria mais recente tornar o texto desatualizado (ver lib/types.ts).
+  const [adminNote, setAdminNote] = useState('');
+  const [savingAdminNote, setSavingAdminNote] = useState(false);
   const [emailModal, setEmailModal] = useState<{ subject: string; body: string } | null>(null);
   const [toast, setToast] = useState('');
   const [loadError, setLoadError] = useState('');
@@ -849,6 +854,7 @@ export default function AdminAudit() {
       }
       setSelected(data);
       setOverallNote(data.audit?.overallNote || '');
+      setAdminNote(data.profile?.adminNote || '');
     } catch (err: any) {
       console.error('[audit] erro ao carregar ficha:', err);
       setLoadError(err?.message || 'Erro desconhecido ao carregar a ficha.');
@@ -889,6 +895,24 @@ export default function AdminAudit() {
     setSelected((prev) => prev ? { ...prev, audit: { ...prev.audit, overallStatus: status as any, overallNote, auditedAt: new Date().toISOString() } } : prev);
     setSaving(false);
     showToast(`Ficha marcada como "${status}"!`);
+  };
+
+  // Salva (ou limpa, se value for '') a Nota Administrativa legada gravada no participante.
+  // Diferente de overallNote/itemValidations (que ficam em profile_audits), esta nota vive
+  // direto no cadastro do participante e só aparece no PDF impresso — por isso precisa ser
+  // atualizada manualmente aqui sempre que a auditoria mudar uma decisão que ela mencione.
+  const saveAdminNote = async (value: string) => {
+    if (!selected) return;
+    setSavingAdminNote(true);
+    await fetch('/api/admin/update-participant-field', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ participantId: selected.profile.id, field: 'adminNote', value }),
+    });
+    setAdminNote(value);
+    setSelected((prev) => prev ? { ...prev, profile: { ...prev.profile, adminNote: value } } : prev);
+    setSavingAdminNote(false);
+    showToast(value ? 'Nota administrativa atualizada!' : 'Nota administrativa removida!');
   };
 
   const getValidation = (key: string) =>
@@ -1835,6 +1859,29 @@ export default function AdminAudit() {
                     </div>
                   )}
                 </SectionCard>
+              )}
+
+              {/* ── Nota Administrativa legada (gravada direto no participante) ── */}
+              {(adminNote || (selected.profile as any).adminNote) && (
+                <div style={{ background: '#eff6ff', border: '1.5px solid #93c5fd', borderRadius: 12, padding: '16px 20px', marginTop: 8 }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e40af', marginBottom: 6 }}>📋 Nota Administrativa (legado)</div>
+                  <div style={{ fontSize: '0.75rem', color: '#1e3a8a', marginBottom: 10, lineHeight: 1.5 }}>
+                    Este texto foi gravado diretamente no cadastro do participante (fora do fluxo de auditoria item a item) e é impresso no PDF final.
+                    Se alguma decisão de auditoria acima mudou, <strong>atualize ou remova este texto</strong> para não ficar contradizendo a ficha.
+                  </div>
+                  <textarea rows={4} value={adminNote} onChange={(e) => setAdminNote(e.target.value)}
+                    style={{ width: '100%', fontSize: '0.8rem', border: '1.5px solid #93c5fd', borderRadius: 8, padding: '8px 12px', resize: 'vertical', fontFamily: 'inherit', marginBottom: 8 }} />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button type="button" disabled={savingAdminNote} onClick={() => saveAdminNote(adminNote)}
+                      style={{ padding: '8px 14px', background: '#1e40af', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
+                      Salvar alteração
+                    </button>
+                    <button type="button" disabled={savingAdminNote} onClick={() => saveAdminNote('')}
+                      style={{ padding: '8px 14px', background: 'white', color: '#b91c1c', border: '1.5px solid #fca5a5', borderRadius: 8, fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
+                      Remover nota
+                    </button>
+                  </div>
+                </div>
               )}
 
               {/* ── Conclusão da Auditoria ── */}

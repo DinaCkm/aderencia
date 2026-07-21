@@ -560,11 +560,11 @@ export default function PrintProfile() {
           )}
 
           {/* Pós/MBA */}
-          {/* Nota administrativa — correção pela UGP */}
-          {(p as any).adminNote && (
+          {/* Nota administrativa — texto legado editável pelo admin na tela de auditoria */}
+          {p.adminNote && (
             <div style={{ marginBottom: 12, padding: '10px 14px', background: '#eff6ff', border: '1.5px solid #93c5fd', borderRadius: 8 }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: '#1e40af', marginBottom: 4 }}>📋 NOTA ADMINISTRATIVA</div>
-              <div style={{ fontSize: 10, color: '#1e3a8a', lineHeight: 1.6 }}>{(p as any).adminNote}</div>
+              <div style={{ fontSize: 10, color: '#1e3a8a', lineHeight: 1.6 }}>{p.adminNote}</div>
             </div>
           )}
 
