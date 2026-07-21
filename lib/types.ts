@@ -84,6 +84,13 @@ export interface ParticipantProfile {
   validationNote?: string;   // observação do admin ao validar
   validatedAt?: string;      // data da validação
   submittedAt?: string;
+  // Nota administrativa — texto legado gravado diretamente no cadastro do participante
+  // (ex.: análises anteriores da UGP). Aparece no PDF impresso (print-profile) e é editável/
+  // removível pelo admin na tela de auditoria via /api/admin/update-participant-field.
+  // IMPORTANTE: este campo é independente das validações item a item (profile_audits) —
+  // atualizá-lo ou limpá-lo é responsabilidade manual do admin sempre que uma decisão de
+  // auditoria mais recente tornar o texto aqui desatualizado.
+  adminNote?: string;
 }
 
 export interface PerformanceRecord {
