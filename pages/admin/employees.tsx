@@ -356,25 +356,33 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
 
               // Pós/MBA: para cada título, verifica se pontua e se foi rejeitado na auditoria
               const mbaAnalysis = allMBAs.map((title, idx) => {
-                const auditV = getAuditV(`postmba-${idx}`);
+                // IMPORTANTE: `p.postMBAs` é uma projeção FILTRADA de `p.mbaBlocks` (exclui
+                // blocos com área "__outro_mba__"), então `idx` aqui não corresponde ao
+                // índice original do bloco em mbaBlocks — usar `idx` diretamente mistura a
+                // validação/nome de um título com o de outro título diferente. Localizamos
+                // o bloco certo pelo valor da área e usamos SEU índice original (mesma
+                // convenção usada em audit.tsx e replicada em print-profile.tsx).
+                const blockIdx = ((p as any).mbaBlocks || []).findIndex((b: any) => b?.area === title);
+                const effIdx = blockIdx >= 0 ? blockIdx : idx;
+                const auditV = getAuditV(`postmba-${effIdx}`);
                 const auditRejected = auditV?.status === 'rejected';
                 const auditNote = auditV?.note;
                 if (auditRejected) {
-                  return { title, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditNote ? ` — ${auditNote}` : ''}`, pts: 0, areas: [] as string[], auditNote };
+                  return { title, blockIdx: effIdx, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditNote ? ` — ${auditNote}` : ''}`, pts: 0, areas: [] as string[], auditNote };
                 }
                 const matches = CATALOG_ITEMS.filter((i) => i.group === 'postMBA' && i.label === title);
                 if (matches.length === 0) {
-                  return { title, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo — pontuação mínima de 20 pts aplicada como "não relacionado"', pts: 20, areas: [] as string[], auditNote };
+                  return { title, blockIdx: effIdx, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo — pontuação mínima de 20 pts aplicada como "não relacionado"', pts: 20, areas: [] as string[], auditNote };
                 }
                 const transversal = matches.find((m) => m.classification === 'transversal');
                 if (transversal) {
-                  return { title, status: 'pontua' as const, reason: 'Título transversal — vale 40 pts em todas as áreas', pts: 40, areas: selectedAreas, auditNote };
+                  return { title, blockIdx: effIdx, status: 'pontua' as const, reason: 'Título transversal — vale 40 pts em todas as áreas', pts: 40, areas: selectedAreas, auditNote };
                 }
                 const areaMatches = matches.filter((m) => m.area && selectedAreas.includes(m.area as any));
                 if (areaMatches.length > 0) {
-                  return { title, status: 'pontua' as const, reason: `Específico para ${areaMatches.map((m) => m.area).join(', ')} — vale 20 pts`, pts: 20, areas: areaMatches.map((m) => m.area as string), auditNote };
+                  return { title, blockIdx: effIdx, status: 'pontua' as const, reason: `Específico para ${areaMatches.map((m) => m.area).join(', ')} — vale 20 pts`, pts: 20, areas: areaMatches.map((m) => m.area as string), auditNote };
                 }
-                return { title, status: 'nao-pontua' as const, reason: 'Título não relacionado às áreas de interesse selecionadas — pontuação mínima de 20 pts', pts: 20, areas: [] as string[], auditNote };
+                return { title, blockIdx: effIdx, status: 'nao-pontua' as const, reason: 'Título não relacionado às áreas de interesse selecionadas — pontuação mínima de 20 pts', pts: 20, areas: [] as string[], auditNote };
               }).map((m) => (
                 // Une a observação da auditoria ao texto exibido, mesmo quando o item já foi
                 // classificado por outro motivo (ex: pendente/validado com nota do auditor)
@@ -533,7 +541,7 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                           <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 10px', borderRadius: 8, marginBottom: 4, background: bg, border: `1px solid ${border}` }}>
                             <span style={{ fontSize: '0.85rem', flexShrink: 0, marginTop: 1 }}>{icon}</span>
                             <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>{((p as any).mbaBlocks || [])[i]?.name?.trim() || m.title}</div>
+                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>{((p as any).mbaBlocks || [])[(m as any).blockIdx ?? i]?.name?.trim() || m.title}</div>
                               <div style={{ fontSize: '0.7rem', color: textColor, marginTop: 2 }}>{m.reason}</div>
                             </div>
                             <span style={{ fontWeight: 800, fontSize: '0.82rem', color: textColor, flexShrink: 0 }}>{m.pts} pts</span>

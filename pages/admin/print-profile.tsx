@@ -177,23 +177,31 @@ export default function PrintProfile() {
   const expRejected = expAuditV?.status === 'rejected';
 
   const mbaAnalysis = allMBAs.map((title, idx) => {
-    const auditV = getAuditV(`postmba-${idx}`);
+    // IMPORTANTE: `p.postMBAs` é uma projeção FILTRADA de `p.mbaBlocks` (exclui blocos
+    // com área "__outro_mba__"), então `idx` aqui não corresponde ao índice original do
+    // bloco em mbaBlocks — usar `idx` diretamente mistura nome/comprovante/validação de
+    // um título com o de outro título completamente diferente. Localizamos o bloco certo
+    // pelo valor da área (que é exatamente o que popula `postMBAs`) e usamos SEU índice
+    // original para tudo (mesma convenção usada em audit.tsx).
+    const blockIdx = ((p as any).mbaBlocks || []).findIndex((b: any) => b?.area === title);
+    const effIdx = blockIdx >= 0 ? blockIdx : idx;
+    const auditV = getAuditV(`postmba-${effIdx}`);
     // Chave do proofMode para este MBA
-    const mbaBlock = ((p as any).mbaBlocks || [])[idx];
-    const mbaKey = `mba_${idx}:${mbaBlock?.name?.trim() || title}`;
+    const mbaBlock = ((p as any).mbaBlocks || [])[effIdx];
+    const mbaKey = `mba_${effIdx}:${mbaBlock?.name?.trim() || title}`;
     const proof = proofStatus(mbaKey);
     if (auditV?.status === 'rejected') {
-      return { title, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, proof, auditNote: auditV.note };
+      return { title, blockIdx: effIdx, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, proof, auditNote: auditV.note };
     }
     const matches = CATALOG_ITEMS.filter((i) => i.group === 'postMBA' && i.label === title);
     if (matches.length === 0) {
-      return { title, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo oficial — recebe pontuação mínima de 20 pts por possuir pós-graduação', pts: 20, proof, auditNote: auditV?.note };
+      return { title, blockIdx: effIdx, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo oficial — recebe pontuação mínima de 20 pts por possuir pós-graduação', pts: 20, proof, auditNote: auditV?.note };
     }
     const best = matches.reduce((a, b) => (b.points > a.points ? b : a));
     const cls = (best as any).classification === 'transversal'
       ? 'Título transversal — válido para qualquer área de interesse — pontuação máxima de 40 pts'
       : `Título específico para ${(best as any).area || 'área(s) específica(s)'} — 20 pts`;
-    return { title, status: 'pontua' as const, reason: cls, pts: best.points, proof, auditNote: auditV?.note };
+    return { title, blockIdx: effIdx, status: 'pontua' as const, reason: cls, pts: best.points, proof, auditNote: auditV?.note };
   }).map((m) => (
     m.status !== 'rejeitado' && m.auditNote
       ? { ...m, reason: `${m.reason} · Obs. da auditoria: "${m.auditNote}"` }
@@ -597,10 +605,10 @@ export default function PrintProfile() {
                 <div key={i} className="row-item" style={{ background: isRej ? '#fef2f2' : isPon ? '#f0fdf4' : '#fff7ed', border: `1px solid ${isRej ? '#fca5a5' : isPon ? '#86efac' : '#fed7aa'}` }}>
                   <span style={{ fontSize: 14, flexShrink: 0 }}>{isRej ? '❌' : isPon ? '✅' : '⚠️'}</span>
                   <div style={{ flex: 1 }}>
-                    <div className="label">{((p as any).mbaBlocks || [])[i]?.name?.trim() || m.title}</div>
+                    <div className="label">{((p as any).mbaBlocks || [])[(m as any).blockIdx ?? i]?.name?.trim() || m.title}</div>
                     <div className="reason" style={{ color: isRej ? '#b91c1c' : isPon ? '#15803d' : '#92400e' }}>{m.reason}</div>
                     {(m as any).proof && <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>{(m as any).proof}</div>}
-                    <div style={{ marginTop: 4 }}><ValidationBadge itemKey={`postmba-${i}`} /></div>
+                    <div style={{ marginTop: 4 }}><ValidationBadge itemKey={`postmba-${(m as any).blockIdx ?? i}`} /></div>
                   </div>
                   <span className="pts" style={{ color: isRej ? '#b91c1c' : isPon ? '#15803d' : '#92400e' }}>{m.pts} pts</span>
                 </div>
