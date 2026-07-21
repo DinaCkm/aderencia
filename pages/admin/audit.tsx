@@ -1530,11 +1530,25 @@ export default function AdminAudit() {
 
               {/* ── 6. Experiência ── */}
               <SectionCard title="6. Experiência Gerencial / Interina" icon="💼">
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                  <InfoField label="Meses em cargo gerencial efetivo" value={p.managerialMonths ? `${p.managerialMonths} meses` : null} />
-                  <InfoField label="Meses em cargo interino" value={p.interimMonths ? `${p.interimMonths} meses` : null} />
-                  <InfoField label="Total (legado)" value={p.experienceMonths ? `${p.experienceMonths} meses` : null} />
-                </div>
+                {(() => {
+                  const expOverride = (selected?.audit as any)?.experienceOverride;
+                  const hasExpOverride = expOverride && (expOverride.managerialMonths !== undefined || expOverride.interimMonths !== undefined);
+                  const effManagerial = hasExpOverride && expOverride.managerialMonths !== undefined ? expOverride.managerialMonths : p.managerialMonths;
+                  const effInterim = hasExpOverride && expOverride.interimMonths !== undefined ? expOverride.interimMonths : p.interimMonths;
+                  return (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                      <InfoField
+                        label="Meses em cargo gerencial efetivo"
+                        value={effManagerial ? `${effManagerial} meses${hasExpOverride ? ' (ajustado)' : ''}` : null}
+                      />
+                      <InfoField
+                        label="Meses em cargo interino"
+                        value={effInterim ? `${effInterim} meses${hasExpOverride ? ' (ajustado)' : ''}` : null}
+                      />
+                      <InfoField label="Total (legado)" value={p.experienceMonths ? `${p.experienceMonths} meses` : null} />
+                    </div>
+                  );
+                })()}
                 {(p.positionsHeld || []).length > 0 && (
                   <div style={{ marginBottom: 10 }}>
                     <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>Cargos declarados</div>
