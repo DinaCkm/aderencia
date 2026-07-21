@@ -3,7 +3,10 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import type { ParticipantProfile } from '../../lib/types';
-import { CATALOG_ITEMS } from '../../lib/constants';
+import { CATALOG_ITEMS as FIXED_CATALOG_ITEMS } from '../../lib/constants';
+// Ver comentário equivalente em pages/admin/audit.tsx — CATALOG_ITEMS é atualizado em runtime
+// com o catálogo completo (fixo + itens customizados) buscado via /api/admin/catalogs.
+let CATALOG_ITEMS: typeof FIXED_CATALOG_ITEMS = FIXED_CATALOG_ITEMS;
 
 interface Employee {
   email: string;
@@ -850,6 +853,19 @@ export default function AdminEmployees() {
   const [search, setSearch] = useState('');
   const [msg, setMsg] = useState('');
   const [msgType, setMsgType] = useState<'success' | 'error'>('success');
+  // Força um novo render depois que o catálogo completo (fixo + custom) é carregado da API.
+  const [, setCatalogVersion] = useState(0);
+  useEffect(() => {
+    fetch('/api/admin/catalogs')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data?.catalogs)) {
+          CATALOG_ITEMS = data.catalogs;
+          setCatalogVersion((v) => v + 1);
+        }
+      })
+      .catch(() => {});
+  }, []);
   // Formulário de novo empregado
   const [showForm, setShowForm] = useState(false);
   const [newName, setNewName] = useState('');

@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import type { ParticipantProfile } from '../../lib/types';
-import { CATALOG_ITEMS } from '../../lib/constants';
+import { CATALOG_ITEMS as FIXED_CATALOG_ITEMS } from '../../lib/constants';
+// Ver comentário equivalente em pages/admin/audit.tsx — CATALOG_ITEMS é atualizado em runtime
+// com o catálogo completo (fixo + itens customizados) buscado via /api/admin/catalogs.
+let CATALOG_ITEMS: typeof FIXED_CATALOG_ITEMS = FIXED_CATALOG_ITEMS;
 
 interface AreaAssessmentResult {
   area: string;
@@ -63,6 +66,19 @@ export default function PrintProfile() {
   const { email } = router.query;
   const [data, setData] = useState<ProfileData | null>(null);
   const [error, setError] = useState('');
+  // Força um novo render depois que o catálogo completo (fixo + custom) é carregado da API.
+  const [, setCatalogVersion] = useState(0);
+  useEffect(() => {
+    fetch('/api/admin/catalogs')
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d?.catalogs)) {
+          CATALOG_ITEMS = d.catalogs;
+          setCatalogVersion((v) => v + 1);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!email || typeof email !== 'string') return;

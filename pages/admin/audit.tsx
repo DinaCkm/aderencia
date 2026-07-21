@@ -3,7 +3,13 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ParticipantProfile } from '../../lib/types';
-import { CATALOG_ITEMS } from '../../lib/constants';
+import { CATALOG_ITEMS as FIXED_CATALOG_ITEMS } from '../../lib/constants';
+// CATALOG_ITEMS começa com a lista fixa (embutida no código) e é atualizada em runtime,
+// assim que o componente principal busca o catálogo completo (fixo + itens customizados
+// criados pela tela de Catálogos) via /api/admin/catalogs. Usar `let` (não `const`) permite
+// que essa atualização seja vista por todos os componentes deste arquivo que leem
+// CATALOG_ITEMS durante a renderização (ProjectRelabelPicker, ExceptionAssignmentPicker, etc.).
+let CATALOG_ITEMS: typeof FIXED_CATALOG_ITEMS = FIXED_CATALOG_ITEMS;
 import { bestPostMBADetail, experienceScore } from '../../lib/business';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -792,6 +798,20 @@ export default function AdminAudit() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<{ profile: ParticipantProfile; audit: ProfileAudit } | null>(null);
   const [loading, setLoading] = useState(false);
+  // Força um novo render depois que o catálogo completo (fixo + custom) é carregado da API,
+  // já que a variável CATALOG_ITEMS em si é atualizada por mutação (fora do estado do React).
+  const [, setCatalogVersion] = useState(0);
+  useEffect(() => {
+    fetch('/api/admin/catalogs')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data?.catalogs)) {
+          CATALOG_ITEMS = data.catalogs;
+          setCatalogVersion((v) => v + 1);
+        }
+      })
+      .catch(() => {}); // se falhar, continua usando a lista fixa (comportamento anterior)
+  }, []);
   const [saving, setSaving] = useState(false);
   const [overallNote, setOverallNote] = useState('');
   const [emailModal, setEmailModal] = useState<{ subject: string; body: string } | null>(null);
