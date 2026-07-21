@@ -65,8 +65,23 @@ export function bestPostMBADetail(postMBALabels: string[], area: string, catalog
     };
   }
 
-  // Seleciona o candidato de maior pontuação
-  const best = candidates.reduce((a, b) => ((b as any).points ?? 20) > ((a as any).points ?? 20) ? b : a);
+  // Seleciona o candidato de maior pontuação. Em caso de EMPATE (ex.: dois títulos
+  // transversais valendo 40 pts cada), a escolha precisa ser determinística e não pode
+  // depender da ordem arbitrária em que os itens aparecem em CATALOG_ITEMS — senão o
+  // "Título considerado" exibido nas áreas pode divergir do título que a auditoria
+  // (pages/admin/employees.tsx e print-profile.tsx) trata como o que efetivamente pontua.
+  // Critério de desempate: prioriza o título que aparece primeiro em postMBALabels,
+  // já que essa ordem reflete a sequência em que os títulos foram declarados/aprovados.
+  const labelOrder = (label: string) => {
+    const idx = postMBALabels.indexOf(label);
+    return idx === -1 ? Number.MAX_SAFE_INTEGER : idx;
+  };
+  const best = candidates.reduce((a, b) => {
+    const aPts = (a as any).points ?? 20;
+    const bPts = (b as any).points ?? 20;
+    if (bPts !== aPts) return bPts > aPts ? b : a;
+    return labelOrder(b.label) < labelOrder(a.label) ? b : a;
+  });
   const pts = (best as any).points ?? 20;
   const cls = (best as any).classification === 'transversal'
     ? `Título transversal — válido para qualquer área e representa a pontuação máxima: ${pts} de 40 pts possíveis.`
