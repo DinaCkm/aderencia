@@ -1,6 +1,6 @@
 import { CATALOG_ITEMS } from './constants';
 import { readJson } from './db';
-import type { AreaAssessment, ParticipantProfile, PerformanceRecord, DiscReport } from './types';
+import type { AreaAssessment, ParticipantProfile, PerformanceRecord, DiscReport, CatalogItem } from './types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // helpers
@@ -42,12 +42,12 @@ export function getLatestPerformance(records: PerformanceRecord[], participantId
 // Graduação e cursos extracurriculares: registrados mas NÃO entram na nota.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function bestPostMBADetail(postMBALabels: string[], area: string): {
+export function bestPostMBADetail(postMBALabels: string[], area: string, catalogItems: CatalogItem[] = CATALOG_ITEMS): {
   score: number;
   titleUsed: string | null;
   classification: string;
 } {
-  const candidates = CATALOG_ITEMS.filter(
+  const candidates = catalogItems.filter(
     (i) =>
       i.group === 'postMBA' &&
       postMBALabels.includes(i.label) &&
@@ -109,7 +109,8 @@ function computeTechnicalAdherence(
   allItemNotes: Record<string, string> = {},
   experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string },
   projectRelabels: Record<string, string> = {},
-  exceptionAssignments: Record<string, { area: string; label: string; type: 'projeto' | 'pos-mba' }> = {}
+  exceptionAssignments: Record<string, { area: string; label: string; type: 'projeto' | 'pos-mba' }> = {},
+  catalogItems: CatalogItem[] = CATALOG_ITEMS
 ): {
   technicalAdherence: number;
   calculationSteps: { name: string; value: number | string; detail?: string }[];
@@ -127,7 +128,7 @@ function computeTechnicalAdherence(
   allPostMBAs.forEach((label, i) => {
     if (rejectedKeys.has(`postmba-${i}`)) {
       // Aproxima os pontos que esse título específico teria (para exibir ao candidato quanto foi retirado)
-      const wouldBeDetail = bestPostMBADetail([label], area);
+      const wouldBeDetail = bestPostMBADetail([label], area, catalogItems);
       excludedItems.push({ label, type: 'postMBA', pointsRemoved: wouldBeDetail.score, note: noteFor(`postmba-${i}`) });
     }
   });
@@ -144,7 +145,7 @@ function computeTechnicalAdherence(
   if (exceptionPostMBALabels.length > 0) {
     postMBAsConsidered.push(...exceptionPostMBALabels);
   }
-  const postMBADet = bestPostMBADetail(postMBAsConsidered, area);
+  const postMBADet = bestPostMBADetail(postMBAsConsidered, area, catalogItems);
 
   // Experiência — usa o ajuste do administrador quando existir; senão, o valor autodeclarado.
   // Se o item "experiencia" foi rejeitado pela UGP, zera a pontuação.
@@ -185,7 +186,7 @@ function computeTechnicalAdherence(
     .map(({ label, idx }) => {
       const effLabel = effectiveLabelFor(label, idx);
       // Projeto deve existir no catálogo para a área vinculada (ou para projetos transversais, para esta área)
-      const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === effLabel && i.area === area);
+      const catalogItem = catalogItems.find((i) => i.group === 'project' && i.label === effLabel && i.area === area);
       if (!catalogItem) return null;
       const pts = (catalogItem as any).points ?? 15;
       const weight = pts >= 20 ? 'projeto estratégico central' : 'projeto de suporte/complementar';
@@ -197,7 +198,7 @@ function computeTechnicalAdherence(
   // mesmo teto de 20 pts da área.
   const exceptionProjectAssignments = exceptionEntriesForArea.filter(([, a]) => a.type === 'projeto');
   for (const [, assignment] of exceptionProjectAssignments) {
-    const exceptionCatalogItem = CATALOG_ITEMS.find(
+    const exceptionCatalogItem = catalogItems.find(
       (i) => i.group === 'project' && i.label === assignment.label && i.area === area
     );
     if (exceptionCatalogItem) {
@@ -226,7 +227,7 @@ function computeTechnicalAdherence(
   allSelectedProjects.forEach((label, i) => {
     if (!rejectedKeys.has(`projeto-${i}`)) return;
     if (!(projectAreaMap[label] === area || TRANSVERSAL_PROJECTS.includes(label))) return;
-    const catalogItem = CATALOG_ITEMS.find((it) => it.group === 'project' && it.label === label && it.area === area);
+    const catalogItem = catalogItems.find((it) => it.group === 'project' && it.label === label && it.area === area);
     const pts = catalogItem ? ((catalogItem as any).points ?? 15) : 0;
     excludedItems.push({ label, type: 'projeto', pointsRemoved: pts, note: noteFor(`projeto-${i}`) });
   });
@@ -335,7 +336,8 @@ export function buildAreaAssessment(
   rejectedItems: RejectedItemRef[] = [],
   allItemNotes: Record<string, string> = {},
   experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string },
-  projectRelabels: Record<string, string> = {}
+  projectRelabels: Record<string, string> = {},
+  catalogItems: CatalogItem[] = CATALOG_ITEMS
 ): AreaAssessment {
   const disc = getLatestDisc(discReports, profile.id, area);
   const perf = getLatestPerformance(performanceRecords, profile.id, area);
@@ -346,7 +348,7 @@ export function buildAreaAssessment(
       ? Math.round(((disc.score10 + perfConverted) / 2) * 10) / 10
       : undefined;
 
-  const technical = computeTechnicalAdherence(profile, area, rejectedItems, allItemNotes, experienceOverride, projectRelabels, exceptionAssignments);
+  const technical = computeTechnicalAdherence(profile, area, rejectedItems, allItemNotes, experienceOverride, projectRelabels, exceptionAssignments, catalogItems);
 
   const quadrant =
     behavioral !== undefined
@@ -355,10 +357,10 @@ export function buildAreaAssessment(
 
   // Detectar títulos fora do catálogo (para registro de exceções)
   const unknownPost = (profile.postMBAs ?? []).filter(
-    (label) => !CATALOG_ITEMS.some((i) => i.group === 'postMBA' && i.label === label)
+    (label) => !catalogItems.some((i) => i.group === 'postMBA' && i.label === label)
   );
   const unknownProj = (profile.selectedProjects ?? []).filter(
-    (label) => !CATALOG_ITEMS.some((i) => i.group === 'project' && i.label === label)
+    (label) => !catalogItems.some((i) => i.group === 'project' && i.label === label)
   );
   const exceptions: string[] = [];
   if (unknownPost.length) exceptions.push(`Pós/MBA fora do catálogo: ${unknownPost.join(', ')}`);
