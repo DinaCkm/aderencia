@@ -197,7 +197,15 @@ export default function PrintProfile() {
     if (matches.length === 0) {
       return { title, blockIdx: effIdx, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo oficial — recebe pontuação mínima de 20 pts por possuir pós-graduação', pts: 20, proof, auditNote: auditV?.note };
     }
-    const best = matches.reduce((a, b) => (b.points > a.points ? b : a));
+    // Quando o mesmo rótulo existe em mais de uma área do catálogo (ex.: "Controladoria"
+    // cadastrado para UAUD, UAF e UGOC, todos com 20 pts), o empate não pode ser resolvido
+    // pela ordem arbitrária de CATALOG_ITEMS — precisamos priorizar a área que o próprio
+    // candidato de fato concorre, senão o rótulo exibido pode apontar para uma área que ele
+    // nem disputa.
+    const candidateAreas: string[] = (p as any).selectedAreas || [];
+    const inCandidateAreas = matches.filter((m) => !(m as any).area || candidateAreas.includes((m as any).area));
+    const pool = inCandidateAreas.length > 0 ? inCandidateAreas : matches;
+    const best = pool.reduce((a, b) => (b.points > a.points ? b : a));
     const cls = (best as any).classification === 'transversal'
       ? 'Título transversal — válido para qualquer área de interesse — pontuação máxima de 40 pts'
       : `Título específico para ${(best as any).area || 'área(s) específica(s)'} — 20 pts`;
