@@ -147,16 +147,46 @@ function computeTechnicalAdherence(
   const noteFor = (key: string) => rejectedItems.find((r) => r.itemKey === key)?.note;
   const excludedItems: { label: string; type: 'postMBA' | 'projeto' | 'experiencia'; pointsRemoved: number; note?: string }[] = [];
 
-  // Pós/MBA — remove da lista os títulos rejeitados pela UGP antes de calcular o melhor
-  const allPostMBAs = profile.postMBAs ?? [];
-  const postMBAsConsidered = allPostMBAs.filter((_, i) => !rejectedKeys.has(`postmba-${i}`));
-  allPostMBAs.forEach((label, i) => {
-    if (rejectedKeys.has(`postmba-${i}`)) {
-      // Aproxima os pontos que esse título específico teria (para exibir ao candidato quanto foi retirado)
-      const wouldBeDetail = bestPostMBADetail([label], area, catalogItems);
-      excludedItems.push({ label, type: 'postMBA', pointsRemoved: wouldBeDetail.score, note: noteFor(`postmba-${i}`) });
-    }
-  });
+  // Pós/MBA — IMPORTANTE: `profile.postMBAs` é uma projeção FILTRADA de `profile.mbaBlocks`
+  // (exclui blocos com área "__outro_mba__" e guarda apenas o valor de ÁREA, não o nome real
+  // do título) — por isso o índice em `postMBAs` NÃO corresponde ao índice original do bloco
+  // em `mbaBlocks`, que é o índice usado pela chave `postmba-i` salva na auditoria
+  // (pages/admin/audit.tsx). Usar `postMBAs` diretamente aqui misturava nome/motivo de
+  // rejeição de um título com o de outro (ex.: um título "Outro" rejeitado desaparecia da
+  // lista e seu motivo era atribuído ao título seguinte). Usamos `mbaBlocks` com o índice
+  // original (mesma convenção de audit.tsx/print-profile.tsx/employees.tsx) para achar
+  // corretamente quais títulos foram rejeitados e com qual motivo, mantendo a fórmula de
+  // pontuação (título "Outro" continua fora do cálculo quando não rejeitado, como já era).
+  const mbaBlocksArr: Array<{ area?: string; name?: string }> = (profile as any).mbaBlocks ?? [];
+  const validMbaBlocks = mbaBlocksArr
+    .map((b, origIdx) => ({ ...b, origIdx }))
+    .filter((b) => b.area && b.name?.trim());
+  const postMBAsConsidered: string[] = [];
+  if (validMbaBlocks.length > 0) {
+    validMbaBlocks.forEach((b) => {
+      const itemKey = `postmba-${b.origIdx}`;
+      if (rejectedKeys.has(itemKey)) {
+        // Aproxima os pontos que esse título específico teria (para exibir ao candidato quanto foi retirado)
+        const approxLabel = b.area !== '__outro_mba__' ? b.area! : b.name!.trim();
+        const wouldBeDetail = bestPostMBADetail([approxLabel], area, catalogItems);
+        excludedItems.push({ label: b.name!.trim(), type: 'postMBA', pointsRemoved: wouldBeDetail.score, note: noteFor(itemKey) });
+      } else if (b.area && b.area !== '__outro_mba__') {
+        postMBAsConsidered.push(b.area);
+      }
+    });
+  } else {
+    // Fallback para participantes antigos sem mbaBlocks salvo (dados legados) — mantém o
+    // comportamento anterior baseado em postMBAs.
+    const allPostMBAs = profile.postMBAs ?? [];
+    allPostMBAs.forEach((label, i) => {
+      if (rejectedKeys.has(`postmba-${i}`)) {
+        const wouldBeDetail = bestPostMBADetail([label], area, catalogItems);
+        excludedItems.push({ label, type: 'postMBA', pointsRemoved: wouldBeDetail.score, note: noteFor(`postmba-${i}`) });
+      } else {
+        postMBAsConsidered.push(label);
+      }
+    });
+  }
   // Exceções aprovadas: cada exceção (chaveada por itemKey, ex: "excecao-0") tem sua própria
   // área e item de catálogo atribuídos pelo admin — exatamente como um projeto. Só entra no
   // cálculo se: (1) está atribuída a ESTA área, e (2) não foi rejeitada (mesma regra dos projetos:
