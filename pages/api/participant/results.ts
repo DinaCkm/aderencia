@@ -12,6 +12,7 @@ interface ItemValidation {
 interface ProfileAudit {
   participantId: string;
   itemValidations: ItemValidation[];
+  overallStatus?: 'provisional' | 'validated' | 'adjusted';
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -86,5 +87,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     };
   });
 
-  return res.status(200).json({ results });
+  // Status geral da ficha (mesma fonte usada em print-profile.tsx e na tela de auditoria),
+  // para a Visão do Colaborador poder mostrar "Definitiva" em vez de sempre "Provisória".
+  const overallStatus = profileAudit?.overallStatus || participant.validationStatus || 'provisional';
+
+  return res.status(200).json({ results, overallStatus });
 }
