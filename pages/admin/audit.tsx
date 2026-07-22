@@ -1725,7 +1725,7 @@ export default function AdminAudit() {
                             </div>
                           </div>
                         )}
-                        <ProjectAreaAdherenceAnalysis proj={proj} candidateAreas={p.selectedAreas || []} assignedArea={assignedArea2} />
+                        <ProjectAreaAdherenceAnalysis proj={relabeledTitle || proj} candidateAreas={p.selectedAreas || []} assignedArea={assignedArea2} />
                         {!mode ? (
                           <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#b45309', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 4, padding: '3px 8px', display: 'inline-block', marginBottom: 4 }}>
                             ⚠ Sem comprovação informada — solicite esclarecimentos antes de rejeitar

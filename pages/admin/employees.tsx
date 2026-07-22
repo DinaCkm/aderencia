@@ -502,8 +502,17 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
               }));
 
               // Graduação: nunca entra na nota
-              const gradItems = [p.graduation, p.graduation2].filter(Boolean) as string[];
-              if (p.graduationCourseName) gradItems.push(p.graduationCourseName);
+              // IMPORTANTE: mesma correção de print-profile.tsx — quando p.graduation é o
+              // valor especial "__outro__", ele e graduationCourseName são o MESMO registro,
+              // não dois itens separados (evita mostrar "__outro__" literal na lista).
+              const gradItems: string[] = [];
+              if (p.graduation === '__outro__') {
+                gradItems.push(`Outro: ${p.graduationCourseName || ''}`.trim());
+              } else {
+                if (p.graduation) gradItems.push(p.graduation);
+                if (p.graduationCourseName) gradItems.push(p.graduationCourseName);
+              }
+              if (p.graduation2) gradItems.push(p.graduation2);
 
               // ── Recálculo da nota auditada por área ──
               const auditedScoreByArea = selectedAreas.map((area) => {
@@ -711,7 +720,7 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                 <tbody>
                   <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
                     <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280', width: '35%' }}>Graduação 1</td>
-                    <td style={{ padding: '5px 0', color: '#111827' }}>{p.graduation || '—'}</td>
+                    <td style={{ padding: '5px 0', color: '#111827' }}>{p.graduation === '__outro__' ? 'Outro' : (p.graduation || '—')}</td>
                   </tr>
                   {p.graduation2 && (
                     <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
@@ -726,15 +735,21 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                     </tr>
                   )}
                   {(p.postMBAs || []).length > 0 ? (
-                    (p.postMBAs || []).map((title, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                        <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Pós/MBA {i + 1}</td>
-                        <td style={{ padding: '5px 0', color: '#111827' }}>
-                          {title}
-                          <span style={{ marginLeft: 8, fontSize: '0.7rem', background: '#ede9fe', color: '#7c3aed', borderRadius: 4, padding: '1px 6px' }}>entra no cálculo</span>
-                        </td>
-                      </tr>
-                    ))
+                    (p.postMBAs || []).map((title, i) => {
+                      // Resolve o nome real do curso (mbaBlocks) em vez de exibir o rótulo de
+                      // área/catálogo usado internamente para o cálculo — mesma correção da
+                      // seção "Título considerado" em lib/business.ts.
+                      const realName = ((p as any).mbaBlocks || []).find((b: any) => b?.area === title && b?.name?.trim())?.name?.trim();
+                      return (
+                        <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                          <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Pós/MBA {i + 1}</td>
+                          <td style={{ padding: '5px 0', color: '#111827' }}>
+                            {realName || title}
+                            <span style={{ marginLeft: 8, fontSize: '0.7rem', background: '#ede9fe', color: '#7c3aed', borderRadius: 4, padding: '1px 6px' }}>entra no cálculo</span>
+                          </td>
+                        </tr>
+                      );
+                    })
                   ) : (
                     <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ padding: '5px 8px 5px 0', fontWeight: 600, color: '#6b7280' }}>Pós/MBA</td>

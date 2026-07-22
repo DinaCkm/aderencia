@@ -399,7 +399,21 @@ export default function PrintProfile() {
               <div style={{ fontWeight: 800, fontSize: 13, color: '#15803d' }}>ANÁLISE DEFINITIVA</div>
               <div style={{ fontSize: 11, color: '#166534', marginTop: 2 }}>
                 Auditoria concluída pelo administrador
-                {audit?.auditedAt ? ` em ${new Date(audit.auditedAt).toLocaleDateString('pt-BR')}` : ''}.
+                {(() => {
+                  // IMPORTANTE: `audit.auditedAt` só é atualizado quando o STATUS GERAL é
+                  // (re)marcado (Validada/Ajustada/Provisória) — se um item individual for
+                  // editado depois disso sem reabrir o status geral, `auditedAt` fica parado
+                  // na data antiga, e o PDF mostrava "concluída em" uma data anterior à da
+                  // validação mais recente de fato. Usamos a mais recente entre auditedAt e
+                  // todas as `validatedAt` dos itens, pra sempre refletir a atividade real.
+                  const dates = [
+                    audit?.auditedAt,
+                    ...itemValidations.map((v) => (v as any).validatedAt).filter(Boolean),
+                  ].filter(Boolean) as string[];
+                  if (dates.length === 0) return '.';
+                  const mostRecent = dates.reduce((a, b) => (new Date(b) > new Date(a) ? b : a));
+                  return ` em ${new Date(mostRecent).toLocaleDateString('pt-BR')}.`;
+                })()}
               </div>
             </div>
             <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
@@ -740,16 +754,31 @@ export default function PrintProfile() {
           {(p.graduation || p.graduation2 || p.graduationCourseName) && (
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Graduação (registrada — não entra na nota)</div>
-              {[p.graduation, p.graduation2, p.graduationCourseName].filter(Boolean).map((g, i) => (
-                <div key={i} className="row-item" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                  <span style={{ fontSize: 14, flexShrink: 0 }}>📋</span>
-                  <div style={{ flex: 1 }}>
-                    <div className="label">{g}</div>
-                    {i === 0 && <div style={{ marginTop: 4 }}><ValidationBadge itemKey="graduacao" /></div>}
+              {(() => {
+                // IMPORTANTE: mesma lógica de audit.tsx para o valor especial "__outro__" —
+                // quando a graduação principal é "__outro__", ela e o nome do curso livre
+                // (graduationCourseName) são o MESMO registro, não dois. Sem esse tratamento,
+                // o PDF mostrava o código interno "__outro__" como um item à parte, duplicando
+                // a graduação (um registro virava dois, um deles sem sentido pra quem lê).
+                const items: string[] = [];
+                if (p.graduation === '__outro__') {
+                  items.push(`Outro: ${p.graduationCourseName || ''}`.trim());
+                } else {
+                  if (p.graduation) items.push(p.graduation);
+                  if (p.graduationCourseName) items.push(p.graduationCourseName);
+                }
+                if (p.graduation2) items.push(p.graduation2);
+                return items.filter(Boolean).map((g, i) => (
+                  <div key={i} className="row-item" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                    <span style={{ fontSize: 14, flexShrink: 0 }}>📋</span>
+                    <div style={{ flex: 1 }}>
+                      <div className="label">{g}</div>
+                      {i === 0 && <div style={{ marginTop: 4 }}><ValidationBadge itemKey="graduacao" /></div>}
+                    </div>
+                    <span style={{ fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>Não pontua</span>
                   </div>
-                  <span style={{ fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>Não pontua</span>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           )}
 
