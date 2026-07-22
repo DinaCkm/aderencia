@@ -4,6 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import type { ParticipantProfile } from '../../lib/types';
 import { CATALOG_ITEMS as FIXED_CATALOG_ITEMS } from '../../lib/constants';
+import { TRANSVERSAL_PROJECTS } from '../../lib/business';
 // Ver comentário equivalente em pages/admin/audit.tsx — CATALOG_ITEMS é atualizado em runtime
 // com o catálogo completo (fixo + itens customizados) buscado via /api/admin/catalogs.
 let CATALOG_ITEMS: typeof FIXED_CATALOG_ITEMS = FIXED_CATALOG_ITEMS;
@@ -497,8 +498,10 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                   const best = mbaMatchesForArea.reduce((a, b) => (b.points > a.points ? b : a));
                   auditedMBAPts = best.points;
                 }
+                // IMPORTANTE: projetos transversais contam em TODAS as áreas do candidato
+                // automaticamente, igual ao motor central (ver mesma correção em print-profile.tsx).
                 const validProjPts = projAnalysis
-                  .filter((m) => m.status === 'pontua' && m.area === area)
+                  .filter((m) => m.status === 'pontua' && (m.area === area || TRANSVERSAL_PROJECTS.includes(m.proj)))
                   .reduce((acc, m) => acc + m.pts, 0);
                 const auditedProjPts = Math.min(20, validProjPts);
                 const auditedExpPts = expRejected ? 0 : Math.min(20, Math.floor((totalMonths / 12) * 5 * 10) / 10);
