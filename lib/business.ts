@@ -61,7 +61,7 @@ export function bestPostMBADetail(postMBALabels: string[], area: string, catalog
     return {
       score: 20,
       titleUsed: bestLabel,
-      classification: `Título não relacionado à área ${area} — recebe pontuação mínima de 20 pts por possuir pós-graduação, mesmo que não seja da área. Para obter 20 pts (título específico da área) ou 40 pts (título transversal) seria necessário um título reconhecido no catálogo oficial para a área ${area}.`,
+      classification: `Título não relacionado à área ${area} — já recebe a pontuação mínima de 20 pts por possuir pós-graduação, mesmo que o tema não seja específico da área. Para aumentar essa pontuação (até 40 pts com um título transversal, ou mantendo 20 pts como título específico reconhecido) seria necessário um título constante no catálogo oficial para a área ${area}.`,
     };
   }
 
