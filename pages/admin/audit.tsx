@@ -79,7 +79,7 @@ function PostMBAPointsBadge({ profile, index }: { profile: ParticipantProfile; i
     .map((area) => {
       const full = bestPostMBADetail(allLabels, area).score;
       const without = bestPostMBADetail(withoutThis, area).score;
-      return { area, delta: full - without };
+      return { area, delta: full - without, full };
     })
     .filter((x) => x.delta > 0);
   if (impacts.length === 0) {
@@ -89,9 +89,18 @@ function PostMBAPointsBadge({ profile, index }: { profile: ParticipantProfile; i
       </div>
     );
   }
+  // IMPORTANTE: "full" é o quanto este título vale HOJE na nota (o que aparece na
+  // Análise/Visão do Colaborador); "delta" é a PERDA LÍQUIDA se ele for rejeitado, que
+  // pode ser menor que "full" quando existe outro título do candidato que garante um piso
+  // de pontuação mesmo sem este (ex.: título transversal de 40 pts rejeitado, mas outro
+  // título específico ainda garante 20 pts de piso — perda líquida de só 20, não 40).
+  // Mostrar só o delta (como antes) sugeria que o título "vale" apenas o valor da perda,
+  // o que diverge do valor realmente usado no cálculo e gerava falso alarme de divergência.
   return (
     <div style={{ fontSize: '0.7rem', color: '#7c2d12', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 5, padding: '4px 8px', marginBottom: 6, fontWeight: 600 }}>
-      📊 Pontuação atual: {impacts.map((x) => `${x.delta} pts em ${x.area}`).join(' | ')} — rejeitar remove esses pontos.
+      📊 Pontuação atual (usada na nota): {impacts.map((x) => `${x.full} pts em ${x.area}`).join(' | ')}.
+      {' '}Se rejeitado, a perda líquida seria: {impacts.map((x) => `${x.delta} pts em ${x.area}`).join(' | ')}
+      {impacts.some((x) => x.delta !== x.full) ? ' (outro título do candidato garante um piso de pontuação mesmo sem este).' : '.'}
     </div>
   );
 }
