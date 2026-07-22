@@ -183,7 +183,12 @@ export default function PrintProfile() {
   const effManagerialMonths = hasExpOverride && experienceOverride!.managerialMonths !== undefined ? experienceOverride!.managerialMonths! : (p.managerialMonths ?? 0);
   const effInterimMonths = hasExpOverride && experienceOverride!.interimMonths !== undefined ? experienceOverride!.interimMonths! : (p.interimMonths ?? 0);
   const totalMonths = effManagerialMonths + effInterimMonths;
-  const expPtsRaw = Math.floor((totalMonths / 12) * 5 * 10) / 10;
+  // Mesma ordem de cálculo de lib/business.ts: trunca os ANOS para 1 casa decimal antes de
+  // multiplicar por 5 — multiplicar primeiro e truncar depois (como estava) dá um resultado
+  // ligeiramente diferente (ex.: 74.1 em vez de 74.0) e faz esta seção divergir da seção
+  // "Aderência Técnica" acima, que usa o texto vindo direto de business.ts.
+  const expYearsTrunc = Math.floor((totalMonths / 12) * 10) / 10;
+  const expPtsRaw = Math.round(expYearsTrunc * 5 * 10) / 10;
   const expPts = Math.min(20, expPtsRaw);
   const expAuditV = getAuditV('experiencia');
   const expRejected = expAuditV?.status === 'rejected';
@@ -653,7 +658,7 @@ export default function PrintProfile() {
               <div style={{ flex: 1 }}>
                 <div className="label">Gerencial: {effManagerialMonths}m + Interino: {effInterimMonths}m = {totalMonths}m totais</div>
                 <div className="reason" style={{ color: expRejected ? '#b91c1c' : '#64748b' }}>
-                  {expRejected ? `Experiência rejeitada pelo auditor` : totalMonths > 0 ? `${(totalMonths / 12).toFixed(1)} anos × 5 pts/ano = ${expPtsRaw} pts${expPtsRaw > 20 ? ` — cap atingido: máximo é 20 pts` : ` (máx. 20 pts)`}` : 'Nenhuma experiência informada — 0 pts'}
+                  {expRejected ? `Experiência rejeitada pelo auditor` : totalMonths > 0 ? `${expYearsTrunc} anos × 5 pts/ano = ${expPtsRaw} pts${expPtsRaw > 20 ? ` — cap atingido: máximo é 20 pts` : ` (máx. 20 pts)`}` : 'Nenhuma experiência informada — 0 pts'}
                   {hasExpOverride ? ` · Ajustado pelo administrador (declarado pelo candidato: ${p.managerialMonths ?? 0}m + ${p.interimMonths ?? 0}m)${experienceOverride?.note ? ` — ${experienceOverride.note}` : ''}` : ''}
                 </div>
                 <div style={{ marginTop: 4 }}><ValidationBadge itemKey="experiencia" /></div>
