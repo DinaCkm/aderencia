@@ -467,7 +467,9 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
               const expRejected = expAuditV?.status === 'rejected';
               const expAuditNote = expAuditV?.note;
               const totalMonths = (p.managerialMonths ?? 0) + (p.interimMonths ?? 0);
-              const expPtsRaw = Math.floor((totalMonths / 12) * 5 * 10) / 10;
+              // Mesma ordem de cálculo de lib/business.ts (ver mesma correção em print-profile.tsx)
+              const expYearsTrunc = Math.floor((totalMonths / 12) * 10) / 10;
+              const expPtsRaw = Math.round(expYearsTrunc * 5 * 10) / 10;
               const expPts = expRejected ? 0 : Math.min(20, expPtsRaw);
 
               // Cursos: nunca entram na nota
@@ -588,7 +590,7 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                             {expRejected
                               ? `Experiência rejeitada pelo auditor${expAuditNote ? ` — ${expAuditNote}` : ''} — 0 pts`
                               : totalMonths > 0
-                                ? `${(totalMonths / 12).toFixed(1)} anos × 5 pts/ano = ${expPtsRaw} pts${expPtsRaw > 20 ? ` — cap atingido: máximo é 20 pts` : ` (máx. 20 pts)`}`
+                                ? `${expYearsTrunc} anos × 5 pts/ano = ${expPtsRaw} pts${expPtsRaw > 20 ? ` — cap atingido: máximo é 20 pts` : ` (máx. 20 pts)`}`
                                 : 'Nenhuma experiência gerencial ou interina informada — 0 pts neste critério (máx. 20 pts)'}
                           </div>
                         </div>
