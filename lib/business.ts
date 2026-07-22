@@ -28,6 +28,18 @@ export function convertPerformance(score100: number): number {
   return Math.round((normalized / 10) * 10) / 10;
 }
 
+// Resolve o rótulo de área/catálogo (usado internamente para o cálculo/matching de Pós/MBA)
+// para o NOME REAL do curso digitado pelo candidato (mbaBlocks[].name) — usado só para
+// EXIBIÇÃO em texto. Sem isso, textos como "Título considerado: X" mostravam o rótulo de
+// área do catálogo (ex.: "Gestão da Inovação") em vez do nome real do curso (ex.: "MBA
+// Executivo em Negócios e Competências Digitais"), divergindo do nome mostrado em outras
+// seções/telas que leem o nome real direto do bloco. Nunca usar o retorno desta função para
+// comparação/matching — só para o texto exibido ao usuário.
+function resolveMbaDisplayName(areaLabel: string, mbaBlocks: Array<{ area?: string; name?: string }>): string {
+  const block = mbaBlocks.find((b) => b.area === areaLabel && b.name?.trim());
+  return block?.name?.trim() || areaLabel;
+}
+
 export function getLatestDisc(reports: DiscReport[], participantId: string, area: string) {
   return pickLatest(reports.filter((r) => r.participantId === participantId && r.area === area));
 }
@@ -298,7 +310,7 @@ function computeTechnicalAdherence(
         name: 'Pós/MBA (melhor título para a área)',
         value: postMBADet.score,
         detail: postMBADet.titleUsed
-          ? `Título considerado: "${postMBADet.titleUsed}" — ${postMBADet.classification}${exceptionPostMBALabels.includes(postMBADet.titleUsed || '') ? ' · Reconhecido por exceção aprovada pela UGP (equivalência ao catálogo)' : ''}`
+          ? `Título considerado: "${resolveMbaDisplayName(postMBADet.titleUsed, mbaBlocksArr)}" — ${postMBADet.classification}${exceptionPostMBALabels.includes(postMBADet.titleUsed || '') ? ' · Reconhecido por exceção aprovada pela UGP (equivalência ao catálogo)' : ''}`
           : 'Nenhum título de Pós/MBA informado — 0 de 40 pts possíveis.',
       },
       {
