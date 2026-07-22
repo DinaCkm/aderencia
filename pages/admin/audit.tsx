@@ -10,7 +10,7 @@ import { CATALOG_ITEMS as FIXED_CATALOG_ITEMS } from '../../lib/constants';
 // que essa atualização seja vista por todos os componentes deste arquivo que leem
 // CATALOG_ITEMS durante a renderização (ProjectRelabelPicker, ExceptionAssignmentPicker, etc.).
 let CATALOG_ITEMS: typeof FIXED_CATALOG_ITEMS = FIXED_CATALOG_ITEMS;
-import { bestPostMBADetail, experienceScore } from '../../lib/business';
+import { bestPostMBADetail, experienceScore, TRANSVERSAL_PROJECTS } from '../../lib/business';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 interface ItemValidation {
@@ -1625,23 +1625,32 @@ export default function AdminAudit() {
                     const catalogMatch2 = assignedArea2
                       ? CATALOG_ITEMS.find((ci) => ci.group === 'project' && ci.label === effectiveTitle && (ci as any).area === assignedArea2)
                       : null;
-                    // Verifica se a área já atingiu o teto de 20 pts com OUTROS projetos vinculados antes deste,
-                    // mesmo que este projeto esteja corretamente reconhecido no catálogo.
-                    let capReached = false;
-                    let effectivePts = (catalogMatch2 as any)?.points ?? 0;
+                    // IMPORTANTE: o motor central (lib/business.ts) soma os pontos de TODOS os
+                    // projetos válidos da área (respeitando a regra de projetos transversais) e só
+                    // aplica o teto de 20 pts no TOTAL da área — ele NÃO reduz um projeto específico
+                    // por causa da ordem em que os projetos foram cadastrados. O código anterior
+                    // fazia exatamente isso (reduzia o projeto seguinte na lista, dando um número
+                    // de pontos que não batia com o valor realmente usado no cálculo — ex.: um
+                    // projeto de 20 pts aparecendo como "5 pts" só porque outro projeto de 15 pts
+                    // vinha antes na lista). Corrigido para mostrar sempre o valor cheio do catálogo
+                    // por projeto, e sinalizar (sem zerar nada) quando o total da área excede 20 pts.
+                    let areaTotalPts = 0;
+                    let overCap = false;
                     if (catalogMatch2 && assignedArea2) {
                       const allProjectsList = p.selectedProjects || [];
-                      const projsInSameArea = allProjectsList.filter((pp) => p.projectAreaMap?.[pp] === assignedArea2);
-                      const itemsInArea = CATALOG_ITEMS.filter((ci) => ci.group === 'project' && projsInSameArea.includes(ci.label) && (ci as any).area === assignedArea2);
-                      const totalBefore = itemsInArea
-                        .filter((ci) => projsInSameArea.indexOf(ci.label) < projsInSameArea.indexOf(proj))
-                        .reduce((acc, ci) => acc + ((ci as any).points ?? 0), 0);
-                      effectivePts = Math.max(0, Math.min((catalogMatch2 as any).points ?? 0, 20 - totalBefore));
-                      capReached = effectivePts <= 0;
+                      const rejectedProjLabels = new Set(
+                        allProjectsList.filter((_, idx) => getValidation(`projeto-${idx}`)?.status === 'rejected')
+                      );
+                      const projsForArea = allProjectsList.filter((pp) => {
+                        if (rejectedProjLabels.has(pp)) return false;
+                        return p.projectAreaMap?.[pp] === assignedArea2 || TRANSVERSAL_PROJECTS.includes(pp);
+                      });
+                      const itemsInArea = CATALOG_ITEMS.filter((ci) => ci.group === 'project' && projsForArea.includes(ci.label) && (ci as any).area === assignedArea2);
+                      areaTotalPts = itemsInArea.reduce((acc, ci) => acc + ((ci as any).points ?? 0), 0);
+                      overCap = areaTotalPts > 20;
                     }
-                    const projScore = capReached
-                      ? { pts: 0, type: `Reconhecido no catálogo, mas o teto de 20 pts da área já foi atingido por outro(s) projeto(s) — não adiciona pontos`, pontua: false, capOnly: true, rejected: false }
-                      : catalogMatch2
+                    const effectivePts = catalogMatch2 ? ((catalogMatch2 as any).points ?? 0) : 0;
+                    const projScore = catalogMatch2
                       ? { pts: effectivePts, type: (catalogMatch2 as any).points >= 20 ? 'Estratégico Central' : 'Complementar', pontua: true, capOnly: false, rejected: false }
                       : assignedArea2
                       ? { pts: 0, type: 'Não reconhecido no catálogo para esta área', pontua: false, capOnly: false, rejected: false }
@@ -1663,9 +1672,9 @@ export default function AdminAudit() {
                             {finalBadge.rejected ? `❌ 0 pts — ${finalBadge.type}` : !assignedArea2 ? '⚠️ Sem área' : finalBadge.capOnly ? `⚠️ Reconhecido — teto de 20 pts atingido` : finalBadge.pontua ? `✅ ${finalBadge.pts} pts — ${finalBadge.type}` : `❌ 0 pts — ${finalBadge.type}`}
                           </div>
                         </div>
-                        {finalBadge.capOnly && (
+                        {finalBadge.pontua && overCap && (
                           <div style={{ fontSize: '0.7rem', color: '#92400e', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, padding: '5px 8px', marginBottom: 6 }}>
-                            ℹ️ Este projeto é reconhecido corretamente no catálogo para a área vinculada, mas <strong>não soma pontos</strong> porque a área já atingiu o limite de 20 pts com outro(s) projeto(s). Validar é adequado (o comprovante é legítimo), mas não altera a nota final desta área.
+                            ℹ️ A soma dos projetos válidos desta área ultrapassa 20 pts ({areaTotalPts} pts) — o valor efetivamente usado na nota é limitado a 20 pts no <strong>total da área</strong> (não por projeto individual); os pts mostrados acima são o valor cheio de catálogo deste projeto.
                           </div>
                         )}
                         {relabeledTitle && (
