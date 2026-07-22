@@ -369,14 +369,22 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
               const getAuditV = (key: string) => itemValidations.find((v) => v.itemKey === key);
 
               // Pós/MBA: para cada título, verifica se pontua e se foi rejeitado na auditoria
+              // Rastreia blocos de mbaBlocks já usados, para o caso de duas Pós/MBA distintas
+              // compartilharem a mesma área do catálogo (ver mesma correção em print-profile.tsx).
+              const usedMbaBlockIdx = new Set<number>();
               const mbaAnalysis = allMBAs.map((title, idx) => {
                 // IMPORTANTE: `p.postMBAs` é uma projeção FILTRADA de `p.mbaBlocks` (exclui
                 // blocos com área "__outro_mba__"), então `idx` aqui não corresponde ao
                 // índice original do bloco em mbaBlocks — usar `idx` diretamente mistura a
                 // validação/nome de um título com o de outro título diferente. Localizamos
                 // o bloco certo pelo valor da área e usamos SEU índice original (mesma
-                // convenção usada em audit.tsx e replicada em print-profile.tsx).
-                const blockIdx = ((p as any).mbaBlocks || []).findIndex((b: any) => b?.area === title);
+                // convenção usada em audit.tsx e replicada em print-profile.tsx). Preferimos
+                // um bloco ainda não usado, para não colidir quando duas Pós/MBA têm a mesma
+                // área cadastrada.
+                const blocksList = (p as any).mbaBlocks || [];
+                let blockIdx = blocksList.findIndex((b: any, i: number) => b?.area === title && !usedMbaBlockIdx.has(i));
+                if (blockIdx < 0) blockIdx = blocksList.findIndex((b: any) => b?.area === title);
+                if (blockIdx >= 0) usedMbaBlockIdx.add(blockIdx);
                 const effIdx = blockIdx >= 0 ? blockIdx : idx;
                 const auditV = getAuditV(`postmba-${effIdx}`);
                 const auditRejected = auditV?.status === 'rejected';
@@ -459,7 +467,8 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
               const expRejected = expAuditV?.status === 'rejected';
               const expAuditNote = expAuditV?.note;
               const totalMonths = (p.managerialMonths ?? 0) + (p.interimMonths ?? 0);
-              const expPts = expRejected ? 0 : Math.min(20, Math.floor((totalMonths / 12) * 5 * 10) / 10);
+              const expPtsRaw = Math.floor((totalMonths / 12) * 5 * 10) / 10;
+              const expPts = expRejected ? 0 : Math.min(20, expPtsRaw);
 
               // Cursos: nunca entram na nota
               const courseAnalysis = allCourses.map((course) => ({
@@ -579,7 +588,7 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                             {expRejected
                               ? `Experiência rejeitada pelo auditor${expAuditNote ? ` — ${expAuditNote}` : ''} — 0 pts`
                               : totalMonths > 0
-                                ? `${(totalMonths / 12).toFixed(1)} anos × 5 pts/ano = ${expPts} pts (máx. 20 pts)`
+                                ? `${(totalMonths / 12).toFixed(1)} anos × 5 pts/ano = ${expPtsRaw} pts${expPtsRaw > 20 ? ` — cap atingido: máximo é 20 pts` : ` (máx. 20 pts)`}`
                                 : 'Nenhuma experiência gerencial ou interina informada — 0 pts neste critério (máx. 20 pts)'}
                           </div>
                         </div>
