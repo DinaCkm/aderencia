@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import type { ParticipantProfile } from '../../lib/types';
 import { CATALOG_ITEMS as FIXED_CATALOG_ITEMS } from '../../lib/constants';
+import { TRANSVERSAL_PROJECTS } from '../../lib/business';
 // Ver comentário equivalente em pages/admin/audit.tsx — CATALOG_ITEMS é atualizado em runtime
 // com o catálogo completo (fixo + itens customizados) buscado via /api/admin/catalogs.
 let CATALOG_ITEMS: typeof FIXED_CATALOG_ITEMS = FIXED_CATALOG_ITEMS;
@@ -292,7 +293,13 @@ export default function PrintProfile() {
     const validMBATitles = mbaAnalysis.filter((m) => m.status !== 'rejeitado').map((m) => m.title);
     const mbaMatchesForArea = CATALOG_ITEMS.filter((i) => i.group === 'postMBA' && validMBATitles.includes(i.label) && (!i.area || i.area === area));
     let auditedMBAPts = mbaMatchesForArea.length === 0 ? (validMBATitles.length > 0 ? 20 : 0) : mbaMatchesForArea.reduce((a, b) => (b.points > a.points ? b : a)).points;
-    const validProjPts = projAnalysis.filter((m) => m.status === 'pontua' && m.area === area).reduce((acc, m) => acc + m.pts, 0);
+    // IMPORTANTE: projetos transversais (TRANSVERSAL_PROJECTS) contam em TODAS as áreas
+    // do candidato automaticamente, igual ao motor central (lib/business.ts) — filtrar só
+    // por `m.area === area` (a área única atribuída pelo admin) subestimava a nota
+    // recalculada nas demais áreas quando o projeto vinculado era transversal.
+    const validProjPts = projAnalysis
+      .filter((m) => m.status === 'pontua' && (m.area === area || TRANSVERSAL_PROJECTS.includes(m.proj)))
+      .reduce((acc, m) => acc + m.pts, 0);
     const auditedProjPts = Math.min(20, validProjPts);
     const auditedExpPts = expRejected ? 0 : Math.min(20, Math.floor((totalMonths / 12) * 5 * 10) / 10);
     const auditedTotal80 = auditedMBAPts + auditedExpPts + auditedProjPts;
