@@ -414,6 +414,24 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                   : m
               ));
 
+              // Títulos de Pós/MBA com área "Outro" (__outro_mba__) — `p.postMBAs` nunca os
+              // inclui (filtrado na origem em participant.tsx), então são invisíveis ao loop
+              // acima e, quando rejeitados, seu nome/motivo desaparecia da Análise ou era
+              // exibido junto com o de outro título (mesmo `postmba-i` reaproveitado por
+              // engano). Adicionamos aqui só os REJEITADOS, apenas para exibição — não entram
+              // em `validMBATitles`/pontuação (mesmo comportamento do motor central).
+              const outroMbaRejeitados = ((p as any).mbaBlocks || [])
+                .map((b: any, origIdx: number) => ({ ...b, origIdx }))
+                .filter((b: any) => b.area === '__outro_mba__' && b.name?.trim())
+                .map((b: any) => {
+                  const auditV = getAuditV(`postmba-${b.origIdx}`);
+                  return auditV?.status === 'rejected'
+                    ? { title: b.name.trim(), blockIdx: b.origIdx, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, areas: [] as string[], auditNote: auditV.note }
+                    : null;
+                })
+                .filter((x: any) => x !== null);
+              mbaAnalysis.push(...outroMbaRejeitados);
+
               // Projetos: verifica se cada projeto está vinculado a uma área de interesse e se foi rejeitado
               const projectRelabels: Record<string, string> = (data?.audit as any)?.projectRelabels || {};
               const projAnalysis = allProjects.map((proj, idx) => {

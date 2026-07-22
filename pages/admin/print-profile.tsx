@@ -243,6 +243,26 @@ export default function PrintProfile() {
       : m
   ));
 
+  // Títulos de Pós/MBA com área "Outro" (__outro_mba__) — `p.postMBAs` NUNCA os inclui
+  // (é filtrado na origem, ver participant.tsx), então eles são invisíveis para o loop acima
+  // e, quando rejeitados, seu registro de auditoria (nome + motivo) desaparecia da Análise ou
+  // era exibido junto com o nome/motivo de outro título (mesmo índice `postmba-i` reaproveitado
+  // por engano). Aqui adicionamos apenas os que foram REJEITADOS, só para efeito de exibição —
+  // não entram em `validMBATitles`/pontuação (mantém o comportamento de cálculo já existente,
+  // igual ao motor central em lib/business.ts).
+  const outroMbaRejeitados = ((p as any).mbaBlocks || [])
+    .map((b: any, origIdx: number) => ({ ...b, origIdx }))
+    .filter((b: any) => b.area === '__outro_mba__' && b.name?.trim())
+    .map((b: any) => {
+      const auditV = getAuditV(`postmba-${b.origIdx}`);
+      const mbaKey = `mba_${b.origIdx}:${b.name.trim()}`;
+      return auditV?.status === 'rejected'
+        ? { title: b.name.trim(), blockIdx: b.origIdx, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, proof: proofStatus(mbaKey), auditNote: auditV.note }
+        : null;
+    })
+    .filter((x: any) => x !== null);
+  mbaAnalysis.push(...outroMbaRejeitados);
+
   const projAnalysis = allProjects.map((proj, idx) => {
     const auditV = getAuditV(`projeto-${idx}`);
     const projKey = `proj:${proj}`;
