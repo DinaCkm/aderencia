@@ -3,6 +3,23 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 
+// Traduz o rótulo técnico retornado por getQuadrant() em lib/business.ts (ex.: "Tecnicamente
+// Média — Comportamental Média") para a chave amigável correspondente em QUADRANT_INFO.
+// Sem esse mapa, QUADRANT_INFO[r.nineBoxClassification] nunca encontrava correspondência
+// (os formatos de string são diferentes) e caía sempre no fallback de "dados incompletos",
+// mesmo quando o quadrante já estava calculado corretamente.
+const QUADRANT_LABEL_MAP: Record<string, string> = {
+  'Tecnicamente Alta — Comportamental Alta': 'Alta Prontidão',
+  'Tecnicamente Média — Comportamental Alta': 'Pronto em Desenvolvimento',
+  'Tecnicamente Baixa — Comportamental Alta': 'Potencial de Curto Prazo',
+  'Tecnicamente Alta — Comportamental Média': 'Destaque Técnico',
+  'Tecnicamente Média — Comportamental Média': 'Potencial de Médio Prazo',
+  'Tecnicamente Baixa — Comportamental Média': 'Desenvolvimento Direcionado',
+  'Tecnicamente Alta — Comportamental Baixa': 'Risco de Liderança',
+  'Especialista Técnico sem Perfil de Liderança': 'Especialista sem Liderança',
+  'Tecnicamente Baixa — Comportamental Baixa': 'Baixa Aderência',
+};
+
 const QUADRANT_INFO: Record<string, { color: string; bg: string; icon: string; desc: string }> = {
   'Alta Prontidão':                          { color: '#065f46', bg: '#d1fae5', icon: '🏆', desc: 'Candidato com alta aderência técnica E comportamental. Candidato ideal: está pronto para assumir a posição agora ou em curto prazo.' },
   'Alta Prontidao':                          { color: '#065f46', bg: '#d1fae5', icon: '🏆', desc: 'Candidato com alta aderência técnica E comportamental. Candidato ideal: está pronto para assumir a posição agora ou em curto prazo.' },
@@ -263,6 +280,7 @@ export default function MyResults() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [participantName, setParticipantName] = useState('');
+  const [overallStatus, setOverallStatus] = useState<'provisional' | 'validated' | 'adjusted'>('provisional');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -280,6 +298,7 @@ export default function MyResults() {
           return scoreB - scoreA;
         });
         setResults(sorted);
+        if (data.overallStatus) setOverallStatus(data.overallStatus);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -350,19 +369,33 @@ export default function MyResults() {
           </div>
         </div>
 
-        {/* Banner de pontuação provisória */}
+        {/* Banner de status: Provisória (aguardando auditoria) ou Definitiva (Validada/Ajustada) — mesma fonte de status usada no PDF e na auditoria */}
         {!loading && results.length > 0 && (
-          <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '14px 18px', marginBottom: 24, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-            <div style={{ fontSize: '1.4rem', flexShrink: 0 }}>&#9888;</div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#92400e', marginBottom: 4 }}>⚠ Pontuação Provisória</div>
-              <p style={{ fontSize: '0.78rem', color: '#78350f', lineHeight: 1.6, margin: 0 }}>
-                Sua pontuação e posição no Nine Box são <strong>provisórias</strong> e estão sujeitas à confirmação pelo RH/UGP após a checagem dos documentos comprobatórios enviados.
-                Itens marcados como <em>"A UGP já tem conhecimento"</em> serão validados diretamente pela equipe. Itens com upload de documento aguardam análise.
-                Você será informado quando sua pontuação for <strong>confirmada definitivamente</strong>.
-              </p>
+          overallStatus === 'provisional' ? (
+            <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '14px 18px', marginBottom: 24, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+              <div style={{ fontSize: '1.4rem', flexShrink: 0 }}>&#9888;</div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#92400e', marginBottom: 4 }}>⚠ Pontuação Provisória</div>
+                <p style={{ fontSize: '0.78rem', color: '#78350f', lineHeight: 1.6, margin: 0 }}>
+                  Sua pontuação e posição no Nine Box são <strong>provisórias</strong> e estão sujeitas à confirmação pelo RH/UGP após a checagem dos documentos comprobatórios enviados.
+                  Itens marcados como <em>"A UGP já tem conhecimento"</em> serão validados diretamente pela equipe. Itens com upload de documento aguardam análise.
+                  Você será informado quando sua pontuação for <strong>confirmada definitivamente</strong>.
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 10, padding: '14px 18px', marginBottom: 24, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+              <div style={{ fontSize: '1.4rem', flexShrink: 0 }}>&#9989;</div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#15803d', marginBottom: 4 }}>
+                  ✅ Pontuação {overallStatus === 'adjusted' ? 'Ajustada' : 'Definitiva'}
+                </div>
+                <p style={{ fontSize: '0.78rem', color: '#166534', lineHeight: 1.6, margin: 0 }}>
+                  A auditoria dos seus documentos comprobatórios já foi concluída pelo RH/UGP. A pontuação e a posição no Nine Box exibidas abaixo são <strong>definitivas</strong>.
+                </p>
+              </div>
+            </div>
+          )
         )}
 
         {loading && (
@@ -386,7 +419,7 @@ export default function MyResults() {
 
 
         {!loading && results.map((r: any) => {
-          const qi = QUADRANT_INFO[r.nineBoxClassification] || QUADRANT_INFO['Dados incompletos para definição do quadrante'];
+          const qi = QUADRANT_INFO[QUADRANT_LABEL_MAP[r.nineBoxClassification]] || QUADRANT_INFO[r.nineBoxClassification] || QUADRANT_INFO['Dados incompletos para definição do quadrante'];
           const techScore: number = r.technicalScore ?? 0;
           const behavScore: number | undefined = r.behavioralScore;
           const totalScore: number = techScore + (behavScore ?? 0);
