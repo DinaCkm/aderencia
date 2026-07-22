@@ -2,6 +2,16 @@ import { CATALOG_ITEMS } from './constants';
 import { readJson } from './db';
 import type { AreaAssessment, ParticipantProfile, PerformanceRecord, DiscReport, CatalogItem } from './types';
 
+// Projetos transversais — pontuam automaticamente em TODAS as áreas de interesse do
+// candidato, independente da "área de aplicação" única atribuída pelo administrador.
+// Exportada para ser a fonte única também nas telas de recálculo pós-auditoria
+// (print-profile.tsx e employees.tsx), que antes ignoravam essa regra e por isso
+// subestimavam a nota técnica recalculada em áreas onde o projeto conta por ser
+// transversal, mas não é a área "oficialmente" vinculada.
+export const TRANSVERSAL_PROJECTS = [
+  'Programa de sucessão e desenvolvimento de lideranças',
+];
+
 // ─────────────────────────────────────────────────────────────────────────────
 // helpers
 // ─────────────────────────────────────────────────────────────────────────────
@@ -176,9 +186,7 @@ function computeTechnicalAdherence(
 
 
   // Projetos transversais — pontuam automaticamente em todas as áreas do candidato
-  const TRANSVERSAL_PROJECTS = [
-    'Programa de sucessão e desenvolvimento de lideranças',
-  ];
+  // (ver TRANSVERSAL_PROJECTS exportada no topo do módulo)
 
   // Projetos rejeitados pela UGP (por índice no array original selectedProjects) — excluídos de todas as áreas
   const allSelectedProjects = profile.selectedProjects ?? [];
