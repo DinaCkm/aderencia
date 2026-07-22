@@ -1855,6 +1855,17 @@ export default function AdminAudit() {
                     <div style={{ padding: '12px 14px', background: '#fffbf5', border: '1.5px solid #fde68a', borderRadius: 8 }}>
                       <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 6 }}>Justificativa (campo livre)</div>
                       <p style={{ fontSize: '0.82rem', color: '#1e293b', lineHeight: 1.6 }}>{p.exceptionJustification}</p>
+                      {/* IMPORTANTE: sem este seletor, uma exceção com justificativa em campo livre
+                          nunca poderia ser vinculada a um item do catálogo — o único jeito de ela
+                          pontuar de fato hoje é através de exceptionAssignments['excecao-legado'],
+                          o mesmo mecanismo usado no bloco de "Registro histórico" acima. */}
+                      <ExceptionAssignmentPicker
+                        candidateAreas={p.selectedAreas || []}
+                        assignment={((selected?.audit as any)?.exceptionAssignments || {})['excecao-legado']}
+                        onSave={(area, label, type) => saveExceptionAssignment('excecao-legado', area, label, type)}
+                        onClear={() => saveExceptionAssignment('excecao-legado', null, null, null)}
+                        saving={saving}
+                      />
                       <ValidationControls itemKey="excecao-legado" validation={getValidation('excecao-legado')} onSave={saveItemValidation} />
                     </div>
                   )}
