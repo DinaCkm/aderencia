@@ -58,6 +58,20 @@ interface EmployeeProfileData {
   audit?: ProfileAuditData;
 }
 
+// Traduz o rótulo técnico retornado por getQuadrant() em lib/business.ts para a chave
+// amigável correspondente em QUADRANT_DESC (mesmo mapa usado em pages/my-results.tsx).
+const QUADRANT_LABEL_MAP: Record<string, string> = {
+  'Tecnicamente Alta — Comportamental Alta': 'Alta Prontidão',
+  'Tecnicamente Média — Comportamental Alta': 'Pronto em Desenvolvimento',
+  'Tecnicamente Baixa — Comportamental Alta': 'Potencial de Curto Prazo',
+  'Tecnicamente Alta — Comportamental Média': 'Destaque Técnico',
+  'Tecnicamente Média — Comportamental Média': 'Potencial de Médio Prazo',
+  'Tecnicamente Baixa — Comportamental Média': 'Desenvolvimento Direcionado',
+  'Tecnicamente Alta — Comportamental Baixa': 'Risco de Liderança',
+  'Especialista Técnico sem Perfil de Liderança': 'Especialista sem Liderança',
+  'Tecnicamente Baixa — Comportamental Baixa': 'Baixa Aderência',
+};
+
 const QUADRANT_DESC: Record<string, string> = {
   'Potencial de Curto Prazo':    'Perfil comportamental alto, mas aderência técnica baixa. Tem o perfil certo para a área, mas ainda precisa de capacitação técnica. Pode ser desenvolvido a médio prazo.',
   'Pronto em Desenvolvimento':   'Perfil comportamental excelente e aderência técnica em desenvolvimento (média). Tem grande potencial e pode ser preparado rapidamente com capacitação técnica.',
@@ -213,9 +227,9 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
                               border: `1px solid ${a.technicalAdherence >= 7.5 && (a.behavioralAdherence ?? 0) >= 7.5 ? '#86efac' : a.technicalAdherence >= 5 && (a.behavioralAdherence ?? 0) >= 5 ? '#fcd34d' : '#fca5a5'}`,
                             }}>
                               ◉ {a.quadrant}
-                              {QUADRANT_DESC[a.quadrant] && (
+                              {(QUADRANT_DESC[QUADRANT_LABEL_MAP[a.quadrant]] || QUADRANT_DESC[a.quadrant]) && (
                                 <span
-                                  title={QUADRANT_DESC[a.quadrant]}
+                                  title={QUADRANT_DESC[QUADRANT_LABEL_MAP[a.quadrant]] || QUADRANT_DESC[a.quadrant]}
                                   style={{ cursor: 'help', fontSize: '0.8rem', marginLeft: 4, opacity: 0.7 }}
                                 >👁️</span>
                               )}
