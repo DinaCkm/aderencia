@@ -486,9 +486,11 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
               const expRejected = expAuditV?.status === 'rejected';
               const expAuditNote = expAuditV?.note;
               const totalMonths = (p.managerialMonths ?? 0) + (p.interimMonths ?? 0);
-              // Mesma ordem de cálculo de lib/business.ts (ver mesma correção em print-profile.tsx)
-              const expYearsTrunc = Math.floor((totalMonths / 12) * 10) / 10;
-              const expPtsRaw = Math.round(expYearsTrunc * 5 * 10) / 10;
+              // IMPORTANTE: replica a fórmula REAL de `experienceScore()` em lib/business.ts —
+              // floor((totalMonths/12) * 5 * 10) / 10, SEM truncar os anos antes de multiplicar
+              // (ver mesma correção e explicação em print-profile.tsx).
+              const expYearsTrunc = Math.floor((totalMonths / 12) * 10) / 10; // só para exibição ("X anos")
+              const expPtsRaw = Math.floor((totalMonths / 12) * 5 * 10) / 10;
               const expPts = expRejected ? 0 : Math.min(20, expPtsRaw);
 
               // Cursos: nunca entram na nota

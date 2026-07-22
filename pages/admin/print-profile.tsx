@@ -184,12 +184,14 @@ export default function PrintProfile() {
   const effManagerialMonths = hasExpOverride && experienceOverride!.managerialMonths !== undefined ? experienceOverride!.managerialMonths! : (p.managerialMonths ?? 0);
   const effInterimMonths = hasExpOverride && experienceOverride!.interimMonths !== undefined ? experienceOverride!.interimMonths! : (p.interimMonths ?? 0);
   const totalMonths = effManagerialMonths + effInterimMonths;
-  // Mesma ordem de cálculo de lib/business.ts: trunca os ANOS para 1 casa decimal antes de
-  // multiplicar por 5 — multiplicar primeiro e truncar depois (como estava) dá um resultado
-  // ligeiramente diferente (ex.: 74.1 em vez de 74.0) e faz esta seção divergir da seção
-  // "Aderência Técnica" acima, que usa o texto vindo direto de business.ts.
-  const expYearsTrunc = Math.floor((totalMonths / 12) * 10) / 10;
-  const expPtsRaw = Math.round(expYearsTrunc * 5 * 10) / 10;
+  // IMPORTANTE: replica a fórmula REAL de `experienceScore()` em lib/business.ts —
+  // floor((totalMonths/12) * 5 * 10) / 10, SEM truncar os anos antes de multiplicar.
+  // Um comentário anterior aqui dizia o contrário (que era preciso truncar os anos primeiro),
+  // mas isso não bate com o que lib/business.ts realmente calcula — usar a ordem errada fazia
+  // esta seção mostrar um valor (ex.: 15.5 pts) diferente do valor realmente somado na nota
+  // (ex.: 15.8 pts, vindo da tabela "Aderência Técnica" acima, que usa o texto de business.ts).
+  const expYearsTrunc = Math.floor((totalMonths / 12) * 10) / 10; // só para exibição ("X anos")
+  const expPtsRaw = Math.floor((totalMonths / 12) * 5 * 10) / 10;
   const expPts = Math.min(20, expPtsRaw);
   const expAuditV = getAuditV('experiencia');
   const expRejected = expAuditV?.status === 'rejected';
