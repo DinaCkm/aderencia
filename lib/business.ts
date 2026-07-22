@@ -309,12 +309,17 @@ function computeTechnicalAdherence(
           : (() => {
               const totalM = managerialMonths + interimMonths;
               const years = Math.floor((totalM / 12) * 10) / 10;
-              const raw = years * 5;
-              const capped = expScore === 20 && raw > 20;
+              // IMPORTANTE: usar `rawExpScore` (já calculado acima via `experienceScore()`,
+              // a mesma função que gera o valor realmente usado na nota) em vez de recalcular
+              // aqui com `years` truncado × 5 — essa segunda conta usa uma ordem de
+              // arredondamento diferente e podia gerar um número contraditório na mesma frase
+              // (ex.: "× 5 pts/ano = 15.5 pts" seguido de "15.8 de 20 pts possíveis", sendo
+              // 15.8 o valor correto e realmente somado na nota).
+              const capped = expScore === 20 && rawExpScore >= 20;
               const adjustedSuffix = hasOverride
                 ? ` · Ajustado pelo administrador (declarado pelo candidato: ${profile.managerialMonths ?? 0}m gerencial + ${profile.interimMonths ?? 0}m interino)${experienceOverride?.note ? ` — ${experienceOverride.note}` : ''}`
                 : '';
-              return `Gerencial: ${managerialMonths}m + Interino: ${interimMonths}m = ${totalM}m totais (${years} anos × 5 pts/ano = ${Math.round(raw * 10) / 10} pts)`
+              return `Gerencial: ${managerialMonths}m + Interino: ${interimMonths}m = ${totalM}m totais (${years} anos × 5 pts/ano = ${rawExpScore} pts)`
                 + (capped ? ` — cap atingido: máximo é 20 pts` : ` — ${expScore} de 20 pts possíveis`)
                 + adjustedSuffix;
             })(),
