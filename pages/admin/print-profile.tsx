@@ -160,9 +160,20 @@ export default function PrintProfile() {
   const allCourses = p.selectedCourses || [];
   const allFreeCourses = ((p as any).freeCourses || []).filter((c: any) => c?.name?.trim() && c?.area && (c?.hours || 0) >= 16);
 
+  // Normaliza chaves de comprovante: remove espaços extras e espaços após ":" no separador
+  // (mesma lógica de audit.tsx — sem isso, um nome salvo com espaço a mais faz o
+  // comprovante "sumir" na Análise mesmo quando ele existe e aparece certo na Auditoria).
+  function normalizeKey(key: string): string {
+    const colonIdx = key.indexOf(':');
+    if (colonIdx < 0) return key.trim();
+    const prefix = key.slice(0, colonIdx).trim();
+    const name = key.slice(colonIdx + 1).trim();
+    return `${prefix}:${name}`;
+  }
+
   // Helper: status do comprovante de um item
   function proofStatus(key: string): string {
-    const mode = (p as any).proofMode?.[key];
+    const mode = (p as any).proofMode?.[key] ?? (p as any).proofMode?.[normalizeKey(key)];
     if (mode === 'ugp-knows') return '📁 UGP possui o documento';
     if (mode === 'upload') return '📎 Comprovante enviado pelo candidato';
     return '⚠️ Sem comprovante informado';
@@ -172,18 +183,28 @@ export default function PrintProfile() {
   const effManagerialMonths = hasExpOverride && experienceOverride!.managerialMonths !== undefined ? experienceOverride!.managerialMonths! : (p.managerialMonths ?? 0);
   const effInterimMonths = hasExpOverride && experienceOverride!.interimMonths !== undefined ? experienceOverride!.interimMonths! : (p.interimMonths ?? 0);
   const totalMonths = effManagerialMonths + effInterimMonths;
-  const expPts = Math.min(20, Math.floor((totalMonths / 12) * 5 * 10) / 10);
+  const expPtsRaw = Math.floor((totalMonths / 12) * 5 * 10) / 10;
+  const expPts = Math.min(20, expPtsRaw);
   const expAuditV = getAuditV('experiencia');
   const expRejected = expAuditV?.status === 'rejected';
 
+  // Rastreia quais blocos de mbaBlocks já foram usados, para o caso de duas Pós/MBA
+  // distintas compartilharem a mesma área do catálogo (ex.: duas pós em "Comunicação
+  // Corporativa") — sem isso, ambas as iterações do .map abaixo encontrariam sempre o
+  // MESMO primeiro bloco correspondente, duplicando um título e omitindo o outro.
+  const usedMbaBlockIdx = new Set<number>();
   const mbaAnalysis = allMBAs.map((title, idx) => {
     // IMPORTANTE: `p.postMBAs` é uma projeção FILTRADA de `p.mbaBlocks` (exclui blocos
     // com área "__outro_mba__"), então `idx` aqui não corresponde ao índice original do
     // bloco em mbaBlocks — usar `idx` diretamente mistura nome/comprovante/validação de
     // um título com o de outro título completamente diferente. Localizamos o bloco certo
     // pelo valor da área (que é exatamente o que popula `postMBAs`) e usamos SEU índice
-    // original para tudo (mesma convenção usada em audit.tsx).
-    const blockIdx = ((p as any).mbaBlocks || []).findIndex((b: any) => b?.area === title);
+    // original para tudo (mesma convenção usada em audit.tsx). Preferimos um bloco ainda
+    // não usado, para não colidir quando duas Pós/MBA têm a mesma área cadastrada.
+    const blocksList = (p as any).mbaBlocks || [];
+    let blockIdx = blocksList.findIndex((b: any, i: number) => b?.area === title && !usedMbaBlockIdx.has(i));
+    if (blockIdx < 0) blockIdx = blocksList.findIndex((b: any) => b?.area === title);
+    if (blockIdx >= 0) usedMbaBlockIdx.add(blockIdx);
     const effIdx = blockIdx >= 0 ? blockIdx : idx;
     const auditV = getAuditV(`postmba-${effIdx}`);
     // Chave do proofMode para este MBA
@@ -632,7 +653,7 @@ export default function PrintProfile() {
               <div style={{ flex: 1 }}>
                 <div className="label">Gerencial: {effManagerialMonths}m + Interino: {effInterimMonths}m = {totalMonths}m totais</div>
                 <div className="reason" style={{ color: expRejected ? '#b91c1c' : '#64748b' }}>
-                  {expRejected ? `Experiência rejeitada pelo auditor` : totalMonths > 0 ? `${(totalMonths / 12).toFixed(1)} anos × 5 pts/ano = ${expPts} pts (máx. 20 pts)` : 'Nenhuma experiência informada — 0 pts'}
+                  {expRejected ? `Experiência rejeitada pelo auditor` : totalMonths > 0 ? `${(totalMonths / 12).toFixed(1)} anos × 5 pts/ano = ${expPtsRaw} pts${expPtsRaw > 20 ? ` — cap atingido: máximo é 20 pts` : ` (máx. 20 pts)`}` : 'Nenhuma experiência informada — 0 pts'}
                   {hasExpOverride ? ` · Ajustado pelo administrador (declarado pelo candidato: ${p.managerialMonths ?? 0}m + ${p.interimMonths ?? 0}m)${experienceOverride?.note ? ` — ${experienceOverride.note}` : ''}` : ''}
                 </div>
                 <div style={{ marginTop: 4 }}><ValidationBadge itemKey="experiencia" /></div>
