@@ -10,6 +10,7 @@ interface CandidateSummary {
 }
 interface ApiResult {
   mode: string;
+  aviso?: string;
   totalFichasConclusivasVerificadas: number;
   fichasComItensNormalizados: number;
   detalhe: CandidateSummary[];
@@ -119,6 +120,11 @@ export default function NormalizeTool() {
 
         {result && (
           <div style={{ background: 'white', border: '1.5px solid #e2e8f0', borderRadius: 10, padding: 20 }}>
+            {result.aviso && (
+              <div style={{ background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: 8, padding: '10px 14px', marginBottom: 14, fontSize: '0.8rem', color: '#92400e', fontWeight: 600 }}>
+                ⚠️ {result.aviso}
+              </div>
+            )}
             <div style={{
               display: 'inline-block', padding: '4px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 700, marginBottom: 14,
               background: result.mode.startsWith('applied') ? '#d1fae5' : '#fef9c3',
