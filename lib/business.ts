@@ -395,10 +395,20 @@ const NINE_BOX_QUADRANTS: { x: 'low' | 'mid' | 'high'; y: 'low' | 'mid' | 'high'
   { x: 'low',  y: 'low',  label: 'Tecnicamente Baixa — Comportamental Baixa' },
 ];
 
+// Faixa única de classificação de nota (Baixa/Média/Alta) — fonte única para o Nine Box.
+// ANTES desta correção, pages/my-results.tsx tinha seus próprios limiares (4 / 7) só para
+// decidir qual célula da matriz visual destacar, diferentes dos limiares oficiais usados aqui
+// (5 / 7,5) para gerar o TEXTO do quadrante — uma nota técnica de 7,2, por exemplo, aparecia
+// como "Média" no texto mas acendia a célula "Alta" no desenho. Qualquer tela que precise
+// classificar uma nota em Baixa/Média/Alta deve usar esta função, nunca reimplementar limiares.
+export function classifyScoreBand(score: number): 'low' | 'mid' | 'high' {
+  return score < 5 ? 'low' : score < 7.5 ? 'mid' : 'high';
+}
+
 function getQuadrant(technical: number, behavioral: number): string {
   // Faixas: Baixa = 0–4,9 | Média = 5,0–7,4 | Alta = 7,5–10
-  const x: 'low' | 'mid' | 'high' = technical < 5 ? 'low' : technical < 7.5 ? 'mid' : 'high';
-  const y: 'low' | 'mid' | 'high' = behavioral < 5 ? 'low' : behavioral < 7.5 ? 'mid' : 'high';
+  const x = classifyScoreBand(technical);
+  const y = classifyScoreBand(behavioral);
   return NINE_BOX_QUADRANTS.find((q) => q.x === x && q.y === y)?.label ?? 'Quadrante não definido';
 }
 
@@ -416,7 +426,12 @@ export function buildAreaAssessment(
   allItemNotes: Record<string, string> = {},
   experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string },
   projectRelabels: Record<string, string> = {},
-  catalogItems: CatalogItem[] = CATALOG_ITEMS
+  catalogItems: CatalogItem[] = CATALOG_ITEMS,
+  // Validações item a item do candidato — usadas para separar a nota CONFIRMADA (só itens
+  // já aprovados explicitamente) da nota POTENCIAL (aprovados + pendentes, que é o cálculo
+  // antigo, de antes desta separação). Decisão de política: item pendente não pontua na nota
+  // definitiva, aparece só como simulação. Ver getPendingScorableItems() para a regra.
+  itemValidations: ItemValidationLite[] = []
 ): AreaAssessment {
   const disc = getLatestDisc(discReports, profile.id, area);
   const perf = getLatestPerformance(performanceRecords, profile.id, area);
@@ -427,7 +442,16 @@ export function buildAreaAssessment(
       ? Math.round(((disc.score10 + perfConverted) / 2) * 10) / 10
       : undefined;
 
-  const technical = computeTechnicalAdherence(profile, area, rejectedItems, allItemNotes, experienceOverride, projectRelabels, exceptionAssignments, catalogItems);
+  // Nota POTENCIAL: comportamento histórico — só exclui itens explicitamente rejeitados.
+  // Reaproveitada como está para não haver NENHUMA mudança de resultado para quem não tem
+  // item pendente (garantia dada na aprovação da correção).
+  const potential = computeTechnicalAdherence(profile, area, rejectedItems, allItemNotes, experienceOverride, projectRelabels, exceptionAssignments, catalogItems);
+
+  // Nota CONFIRMADA: além dos rejeitados, também exclui itens ainda pendentes (sem decisão
+  // explícita de aprovação). Esta é a nota "oficial" — a que vale para decisão de sucessão.
+  const pendingItems = getPendingScorableItems(profile, itemValidations, exceptionAssignments);
+  const confirmedExclusions: RejectedItemRef[] = [...rejectedItems, ...pendingItems.map((p) => ({ itemKey: p.itemKey }))];
+  const technical = computeTechnicalAdherence(profile, area, confirmedExclusions, allItemNotes, experienceOverride, projectRelabels, exceptionAssignments, catalogItems);
 
   const quadrant =
     behavioral !== undefined
@@ -453,6 +477,10 @@ export function buildAreaAssessment(
     performanceConverted: perfConverted,
     behavioralAdherence: behavioral,
     technicalAdherence: technical.technicalAdherence,
+    // Nota potencial (informativa): quanto seria a nota técnica se todos os itens hoje
+    // pendentes fossem aprovados. Nunca soma na nota oficial (technicalAdherence acima).
+    technicalAdherencePotential: potential.technicalAdherence,
+    pendingItems,
     quadrant,
     postMBADetail: technical.postMBADetail,
     projectsDetail: technical.projectsDetail,
@@ -500,23 +528,15 @@ export function buildAreaAssessment(
 //     do catálogo por item, só aplicando o teto no agregado — dando a impressão de que
 //     cada projeto vale mais do que realmente conta.
 // Esta função usa o comportamento mais completo (o de employees.tsx) como canônico.
-export interface ItemValidationLite {
-  itemKey: string;
-  status: 'pending' | 'approved' | 'rejected';
-  note?: string;
-  validatedAt?: string;
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Estado de decisão por item pontuável (aprovado / pendente / rejeitado) — FONTE ÚNICA
 // ─────────────────────────────────────────────────────────────────────────────
-// PRIMEIRO DEPLOY da Fase 1 (pré-requisito de normalização): esta função é usada por
-// pages/api/admin/normalize-legacy-approvals.ts para identificar, em fichas já concluídas
-// (Validada/Ajustada), quais itens pontuáveis nunca tiveram decisão explícita registrada —
-// e assim normalizar os dados legados ANTES de qualquer mudança na regra de cálculo entrar
-// em produção. Esta função é 100% aditiva: não altera nenhuma função já existente, não muda
-// nenhum resultado hoje calculado. A regra de pontuação (nota confirmada vs. potencial) e a
-// trava de conclusão só serão ativadas no SEGUNDO deploy, depois da normalização concluída.
+// Usada por: (1) pages/api/admin/audit-profile.ts, para travar a conclusão da ficha
+// enquanto houver item pontuável pendente; (2) buildAreaAssessment, para separar a nota
+// confirmada (só itens aprovados) da nota potencial (aprovados + pendentes, como no
+// comportamento antigo). As duas pontas usam exatamente a mesma enumeração de itens —
+// se um item aqui, ele conta pros dois propósitos; nenhuma tela ou endpoint deve refazer
+// essa lista por conta própria.
 export type ScorableItemType = 'postMBA' | 'projeto' | 'experiencia' | 'excecao';
 
 export interface ScorableItemState {
@@ -537,10 +557,9 @@ export function getScorableItemsState(
     // IMPORTANTE: pode haver mais de um registro para o mesmo itemKey (ex.: um "pending"
     // antigo do auditor aguardando retorno, seguido depois por um "approved"/"rejected" mais
     // recente). Usar sempre o primeiro registro encontrado (.find()) fazia um "pending" antigo
-    // prevalecer para sempre, mesmo depois de uma decisão posterior — bug real que impedia a
-    // normalização de "colar" em itens que já tinham um pending explícito registrado antes.
-    // Aqui usamos o registro com o `validatedAt` mais recente; em empate (ou ausência de
-    // validatedAt em algum lado), o que aparece depois na lista vence.
+    // prevalecer para sempre, mesmo depois de uma decisão posterior — bug real confirmado em
+    // produção (caso Alorran de Freitas Barbosa). Usamos o registro com `validatedAt` mais
+    // recente; em empate (ou ausência de validatedAt), o que aparece depois na lista vence.
     const mostRecent = matches.reduce((latest, current) =>
       (current.validatedAt || '') >= (latest.validatedAt || '') ? current : latest
     );
@@ -551,6 +570,9 @@ export function getScorableItemsState(
 
   const items: ScorableItemState[] = [];
 
+  // Pós/MBA — cada bloco válido (área preenchida + nome preenchido), exceto títulos "Outro"
+  // (__outro_mba__), que só entram no cálculo se reconhecidos por exceção — nesse caso já
+  // aparecem via exceptionAssignments abaixo, então não são listados duas vezes aqui.
   const mbaBlocksArr: Array<{ area?: string; name?: string }> = (profile as any).mbaBlocks ?? [];
   mbaBlocksArr
     .map((b, origIdx) => ({ ...b, origIdx }))
@@ -560,16 +582,19 @@ export function getScorableItemsState(
       items.push({ itemKey, type: 'postMBA', label: b.name!.trim(), status: statusFor(itemKey) });
     });
 
+  // Experiência — só é item pontuável se houver meses gerenciais/interinos declarados
   const totalMonths = (profile.managerialMonths ?? 0) + (profile.interimMonths ?? 0);
   if (totalMonths > 0) {
     items.push({ itemKey: 'experiencia', type: 'experiencia', label: 'Experiência gerencial/interina', status: statusFor('experiencia') });
   }
 
+  // Projetos — cada projeto selecionado pelo candidato
   (profile.selectedProjects ?? []).forEach((label, idx) => {
     const itemKey = `projeto-${idx}`;
     items.push({ itemKey, type: 'projeto', label, status: statusFor(itemKey) });
   });
 
+  // Exceções com área/catálogo já atribuídos pelo admin — mesmo tratamento de um projeto
   Object.entries(exceptionAssignments).forEach(([itemKey, assignment]) => {
     items.push({ itemKey, type: 'excecao', label: assignment.label, status: statusFor(itemKey) });
   });
@@ -583,6 +608,14 @@ export function getPendingScorableItems(
   exceptionAssignments: Record<string, { area: string; label: string; type: 'projeto' | 'pos-mba' }> = {}
 ): ScorableItemState[] {
   return getScorableItemsState(profile, itemValidations, exceptionAssignments).filter((i) => i.status === 'pending');
+}
+
+
+export interface ItemValidationLite {
+  itemKey: string;
+  status: 'pending' | 'approved' | 'rejected';
+  note?: string;
+  validatedAt?: string;
 }
 
 export interface MbaAnalysisItem {

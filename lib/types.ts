@@ -158,6 +158,10 @@ export interface AreaAssessment {
   performanceConverted?: number;
   behavioralAdherence?: number;
   technicalAdherence: number;
+  // Nota técnica se todos os itens hoje pendentes fossem aprovados — só informativa,
+  // nunca soma na nota oficial (technicalAdherence). Ver getPendingScorableItems() em lib/business.ts.
+  technicalAdherencePotential?: number;
+  pendingItems?: { itemKey: string; type: 'postMBA' | 'projeto' | 'experiencia' | 'excecao'; label: string; status: 'approved' | 'pending' | 'rejected' }[];
   quadrant: string;
   postMBADetail?: PostMBADetail;       // detalhes do título de Pós/MBA considerado
   projectsDetail?: ProjectDetail[];    // projetos considerados com pontuação
