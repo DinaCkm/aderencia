@@ -971,8 +971,18 @@ export default function AdminAudit() {
     showToast(value ? 'Nota administrativa atualizada!' : 'Nota administrativa removida!');
   };
 
-  const getValidation = (key: string) =>
-    selected?.audit.itemValidations.find((v) => v.itemKey === key);
+  // IMPORTANTE: pode haver mais de um registro para o mesmo itemKey (ex.: um "pending" antigo
+  // aguardando retorno, seguido depois por uma decisão mais recente, ou por uma normalização
+  // técnica). Usar sempre o primeiro registro (.find()) fazia a tela mostrar um estado antigo
+  // mesmo depois de uma decisão posterior — mesmo bug já corrigido em lib/business.ts e em
+  // normalize-legacy-approvals.ts. Aqui usamos o registro com validatedAt mais recente.
+  const getValidation = (key: string) => {
+    const matches = selected?.audit.itemValidations.filter((v) => v.itemKey === key) || [];
+    if (matches.length === 0) return undefined;
+    return matches.reduce((latest, current) =>
+      (current.validatedAt || '') >= (latest.validatedAt || '') ? current : latest
+    );
+  };
 
   // Salva o ajuste manual de experiência gerencial/interina feito pelo administrador
   const saveExperienceOverride = async (managerialMonths: number, interimMonths: number, note: string) => {
