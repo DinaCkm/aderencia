@@ -504,6 +504,7 @@ export interface ItemValidationLite {
   itemKey: string;
   status: 'pending' | 'approved' | 'rejected';
   note?: string;
+  validatedAt?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -531,10 +532,20 @@ export function getScorableItemsState(
   exceptionAssignments: Record<string, { area: string; label: string; type: 'projeto' | 'pos-mba' }> = {}
 ): ScorableItemState[] {
   const statusFor = (key: string): 'approved' | 'pending' | 'rejected' => {
-    const v = itemValidations.find((iv) => iv.itemKey === key);
-    if (!v) return 'pending'; // sem registro = mesmo estado hoje já exibido como "⏳ Pendente" na UI
-    if (v.status === 'approved') return 'approved';
-    if (v.status === 'rejected') return 'rejected';
+    const matches = itemValidations.filter((iv) => iv.itemKey === key);
+    if (matches.length === 0) return 'pending'; // sem registro = mesmo estado hoje já exibido como "⏳ Pendente" na UI
+    // IMPORTANTE: pode haver mais de um registro para o mesmo itemKey (ex.: um "pending"
+    // antigo do auditor aguardando retorno, seguido depois por um "approved"/"rejected" mais
+    // recente). Usar sempre o primeiro registro encontrado (.find()) fazia um "pending" antigo
+    // prevalecer para sempre, mesmo depois de uma decisão posterior — bug real que impedia a
+    // normalização de "colar" em itens que já tinham um pending explícito registrado antes.
+    // Aqui usamos o registro com o `validatedAt` mais recente; em empate (ou ausência de
+    // validatedAt em algum lado), o que aparece depois na lista vence.
+    const mostRecent = matches.reduce((latest, current) =>
+      (current.validatedAt || '') >= (latest.validatedAt || '') ? current : latest
+    );
+    if (mostRecent.status === 'approved') return 'approved';
+    if (mostRecent.status === 'rejected') return 'rejected';
     return 'pending';
   };
 
