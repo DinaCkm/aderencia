@@ -482,10 +482,10 @@ export default function MyResults() {
                     maxScore={40}
                     color="#7c3aed"
                     summary={r.postMBADetail?.titleUsed
-                      ? `"${r.postMBADetail.titleUsed}" — ${r.postMBADetail.classification}`
+                      ? `"${r.postMBADetail.titleUsedDisplay ?? r.postMBADetail.titleUsed}" — ${r.postMBADetail.classification}`
                       : 'Nenhum título informado'}
                     details={[
-                      { label: 'Título considerado', value: r.postMBADetail?.titleUsed ?? 'Nenhum' },
+                      { label: 'Título considerado', value: (r.postMBADetail?.titleUsedDisplay ?? r.postMBADetail?.titleUsed) ?? 'Nenhum' },
                       { label: 'Classificação', value: r.postMBADetail?.classification ?? '—' },
                       { label: 'Pontuação atribuída', value: `${r.postMBADetail?.score ?? 0} pts de 40 possíveis` },
                       { label: 'Regra', value: 'Transversal = 40 pts | Específico da área = 20 pts | Não relacionado à área = 20 pts (pontuação mínima do bloco) | Sem título = 0 pts' },
