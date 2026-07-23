@@ -836,6 +836,9 @@ export default function AdminAudit() {
   }, []);
   const [saving, setSaving] = useState(false);
   const [overallNote, setOverallNote] = useState('');
+  // Preenchido quando o backend recusa concluir a ficha (409) por haver item pontuável
+  // pendente — ver trava em pages/api/admin/audit-profile.ts. Null = sem bloqueio ativo.
+  const [pendingBlock, setPendingBlock] = useState<{ itemKey: string; type: string; label: string; status: string }[] | null>(null);
   // Nota administrativa legada (gravada direto no participante, ex.: análises antigas da UGP).
   // Independente das validações item a item — precisa ser editada/limpa manualmente quando
   // uma decisão de auditoria mais recente tornar o texto desatualizado (ver lib/types.ts).
@@ -862,6 +865,7 @@ export default function AdminAudit() {
     setLoading(true);
     setSelected(null);
     setLoadError('');
+    setPendingBlock(null);
     try {
       const res = await fetch(`/api/admin/audit-profile?email=${encodeURIComponent(email)}`);
       const rawText = await res.text();
@@ -888,35 +892,65 @@ export default function AdminAudit() {
   const saveItemValidation = async (v: ItemValidation) => {
     if (!selected) return;
     setSaving(true);
-    await fetch('/api/admin/audit-profile', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ participantId: selected.profile.id, itemValidation: v }),
-    });
-    // Atualizar estado local
-    setSelected((prev) => {
-      if (!prev) return prev;
-      const existing = prev.audit.itemValidations.findIndex((x) => x.itemKey === v.itemKey);
-      const updated = [...prev.audit.itemValidations];
-      if (existing >= 0) updated[existing] = { ...v, validatedAt: new Date().toISOString() };
-      else updated.push({ ...v, validatedAt: new Date().toISOString() });
-      return { ...prev, audit: { ...prev.audit, itemValidations: updated } };
-    });
-    setSaving(false);
-    showToast('Item salvo!');
+    try {
+      const res = await fetch('/api/admin/audit-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ participantId: selected.profile.id, itemValidation: v }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({} as any));
+        setSaving(false);
+        showToast(`❌ Erro ao salvar item: ${errData.error || res.statusText}`);
+        return;
+      }
+      // Atualizar estado local — só depois de confirmado que o servidor gravou
+      setSelected((prev) => {
+        if (!prev) return prev;
+        const existing = prev.audit.itemValidations.findIndex((x) => x.itemKey === v.itemKey);
+        const updated = [...prev.audit.itemValidations];
+        if (existing >= 0) updated[existing] = { ...v, validatedAt: new Date().toISOString() };
+        else updated.push({ ...v, validatedAt: new Date().toISOString() });
+        return { ...prev, audit: { ...prev.audit, itemValidations: updated } };
+      });
+      setSaving(false);
+      setPendingBlock(null);
+      showToast('Item salvo!');
+    } catch {
+      setSaving(false);
+      showToast('❌ Erro de conexão ao salvar item. Tente novamente.');
+    }
   };
 
   const saveOverallStatus = async (status: string) => {
     if (!selected) return;
     setSaving(true);
-    await fetch('/api/admin/audit-profile', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ participantId: selected.profile.id, overallStatus: status, overallNote }),
-    });
-    setSelected((prev) => prev ? { ...prev, audit: { ...prev.audit, overallStatus: status as any, overallNote, auditedAt: new Date().toISOString() } } : prev);
-    setSaving(false);
-    showToast(`Ficha marcada como "${status}"!`);
+    try {
+      const res = await fetch('/api/admin/audit-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ participantId: selected.profile.id, overallStatus: status, overallNote }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({} as any));
+        if (res.status === 409 && errData.pendingItems) {
+          setPendingBlock(errData.pendingItems);
+          showToast(`❌ ${errData.error || 'Não é possível concluir: há itens pendentes.'}`);
+        } else {
+          setPendingBlock(null);
+          showToast(`❌ Erro ao salvar status: ${errData.error || res.statusText}`);
+        }
+        setSaving(false);
+        return;
+      }
+      setPendingBlock(null);
+      setSelected((prev) => prev ? { ...prev, audit: { ...prev.audit, overallStatus: status as any, overallNote, auditedAt: new Date().toISOString() } } : prev);
+      setSaving(false);
+      showToast(`Ficha marcada como "${status}"!`);
+    } catch {
+      setSaving(false);
+      showToast('❌ Erro de conexão ao salvar status. Tente novamente.');
+    }
   };
 
   // Salva (ou limpa, se value for '') a Nota Administrativa legada gravada no participante.
@@ -1948,6 +1982,19 @@ export default function AdminAudit() {
                     placeholder="Registre aqui qualquer observação geral sobre a ficha deste participante..."
                     style={{ width: '100%', fontSize: '0.8rem', border: '1.5px solid #e2e8f0', borderRadius: 8, padding: '8px 12px', resize: 'vertical', fontFamily: 'inherit' }} />
                 </div>
+                {pendingBlock && pendingBlock.length > 0 && (
+                  <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 8, padding: '12px 16px', marginBottom: 14, fontSize: '0.8rem', color: '#991b1b' }}>
+                    <strong>❌ Não é possível concluir a ficha: {pendingBlock.length} item(ns) ainda sem decisão (aprovado ou rejeitado).</strong>
+                    <ul style={{ margin: '8px 0 0 18px', padding: 0 }}>
+                      {pendingBlock.map((it) => (
+                        <li key={it.itemKey}>
+                          <strong>{it.type === 'postMBA' ? 'Pós/MBA' : it.type === 'projeto' ? 'Projeto' : it.type === 'excecao' ? 'Exceção' : 'Experiência'}:</strong> {it.label}
+                        </li>
+                      ))}
+                    </ul>
+                    <div style={{ marginTop: 8, color: '#7f1d1d' }}>Aprove ou rejeite cada item acima na respectiva seção da ficha, depois tente concluir novamente.</div>
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                   {/* Botão Validada */}
                   <div style={{ flex: 1, minWidth: 140, position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
