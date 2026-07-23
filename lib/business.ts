@@ -506,6 +506,74 @@ export interface ItemValidationLite {
   note?: string;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Estado de decisão por item pontuável (aprovado / pendente / rejeitado) — FONTE ÚNICA
+// ─────────────────────────────────────────────────────────────────────────────
+// PRIMEIRO DEPLOY da Fase 1 (pré-requisito de normalização): esta função é usada por
+// pages/api/admin/normalize-legacy-approvals.ts para identificar, em fichas já concluídas
+// (Validada/Ajustada), quais itens pontuáveis nunca tiveram decisão explícita registrada —
+// e assim normalizar os dados legados ANTES de qualquer mudança na regra de cálculo entrar
+// em produção. Esta função é 100% aditiva: não altera nenhuma função já existente, não muda
+// nenhum resultado hoje calculado. A regra de pontuação (nota confirmada vs. potencial) e a
+// trava de conclusão só serão ativadas no SEGUNDO deploy, depois da normalização concluída.
+export type ScorableItemType = 'postMBA' | 'projeto' | 'experiencia' | 'excecao';
+
+export interface ScorableItemState {
+  itemKey: string;
+  type: ScorableItemType;
+  label: string;
+  status: 'approved' | 'pending' | 'rejected';
+}
+
+export function getScorableItemsState(
+  profile: ParticipantProfile,
+  itemValidations: ItemValidationLite[],
+  exceptionAssignments: Record<string, { area: string; label: string; type: 'projeto' | 'pos-mba' }> = {}
+): ScorableItemState[] {
+  const statusFor = (key: string): 'approved' | 'pending' | 'rejected' => {
+    const v = itemValidations.find((iv) => iv.itemKey === key);
+    if (!v) return 'pending'; // sem registro = mesmo estado hoje já exibido como "⏳ Pendente" na UI
+    if (v.status === 'approved') return 'approved';
+    if (v.status === 'rejected') return 'rejected';
+    return 'pending';
+  };
+
+  const items: ScorableItemState[] = [];
+
+  const mbaBlocksArr: Array<{ area?: string; name?: string }> = (profile as any).mbaBlocks ?? [];
+  mbaBlocksArr
+    .map((b, origIdx) => ({ ...b, origIdx }))
+    .filter((b) => b.area && b.area !== '__outro_mba__' && b.name?.trim())
+    .forEach((b) => {
+      const itemKey = `postmba-${b.origIdx}`;
+      items.push({ itemKey, type: 'postMBA', label: b.name!.trim(), status: statusFor(itemKey) });
+    });
+
+  const totalMonths = (profile.managerialMonths ?? 0) + (profile.interimMonths ?? 0);
+  if (totalMonths > 0) {
+    items.push({ itemKey: 'experiencia', type: 'experiencia', label: 'Experiência gerencial/interina', status: statusFor('experiencia') });
+  }
+
+  (profile.selectedProjects ?? []).forEach((label, idx) => {
+    const itemKey = `projeto-${idx}`;
+    items.push({ itemKey, type: 'projeto', label, status: statusFor(itemKey) });
+  });
+
+  Object.entries(exceptionAssignments).forEach(([itemKey, assignment]) => {
+    items.push({ itemKey, type: 'excecao', label: assignment.label, status: statusFor(itemKey) });
+  });
+
+  return items;
+}
+
+export function getPendingScorableItems(
+  profile: ParticipantProfile,
+  itemValidations: ItemValidationLite[],
+  exceptionAssignments: Record<string, { area: string; label: string; type: 'projeto' | 'pos-mba' }> = {}
+): ScorableItemState[] {
+  return getScorableItemsState(profile, itemValidations, exceptionAssignments).filter((i) => i.status === 'pending');
+}
+
 export interface MbaAnalysisItem {
   title: string;
   blockIdx: number;
