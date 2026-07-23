@@ -618,6 +618,23 @@ export interface ItemValidationLite {
   validatedAt?: string;
 }
 
+// Deduplica itemValidations por itemKey, mantendo só o registro mais recente (por
+// validatedAt). FONTE ÚNICA: qualquer código que precise filtrar itemValidations por status
+// (ex.: montar a lista de itens rejeitados para excluir da nota) deve passar por aqui primeiro
+// — filtrar direto no array bruto é o mesmo bug já corrigido em getScorableItemsState/
+// getValidation/getAuditV: um registro antigo (ex. "rejected") podia continuar sendo
+// considerado mesmo depois de uma decisão mais recente reverter para "approved".
+export function dedupeItemValidations(itemValidations: ItemValidationLite[]): ItemValidationLite[] {
+  const latestByKey = new Map<string, ItemValidationLite>();
+  for (const v of itemValidations) {
+    const existing = latestByKey.get(v.itemKey);
+    if (!existing || (v.validatedAt || '') >= (existing.validatedAt || '')) {
+      latestByKey.set(v.itemKey, v);
+    }
+  }
+  return Array.from(latestByKey.values());
+}
+
 export interface MbaAnalysisItem {
   title: string;
   blockIdx: number;
