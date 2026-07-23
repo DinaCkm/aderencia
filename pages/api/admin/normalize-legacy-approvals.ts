@@ -78,27 +78,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const apply = req.body?.apply === true;
-  const debugEmail = req.body?.debugEmail as string | undefined;
 
   const participants = await readJsonAsync<ParticipantProfile[]>('participants', []);
   const audits = await readJsonAsync<ProfileAudit[]>('profile_audits', []);
-
-  // Diagnóstico somente-leitura: mostra o(s) registro(s) BRUTOS de profile_audits para um
-  // participante específico, incluindo itemValidations completo e quantos registros de
-  // auditoria existem para esse participantId (detecta duplicatas, que explicariam por que
-  // uma gravação parece "sumir" — a normalização atualiza um registro, mas a leitura seguinte
-  // encontra outro registro duplicado, ainda sem a aprovação).
-  if (debugEmail) {
-    const profile = participants.find((p) => p.email?.toLowerCase() === debugEmail.toLowerCase());
-    if (!profile) return res.status(404).json({ error: 'Participante não encontrado.' });
-    const matches = audits.filter((a) => a.participantId === profile.id);
-    return res.status(200).json({
-      profileId: profile.id,
-      profileEmail: profile.email,
-      totalRegistrosDeAuditoriaEncontrados: matches.length,
-      registros: matches,
-    });
-  }
 
   const summary: {
     participantId: string;
@@ -133,7 +115,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         audit.itemValidations.push({
           itemKey: p.itemKey,
           status: 'approved',
-          note: 'Aprovação técnica provisória para preservação da nota histórica. Este registro não representa validação de mérito e permanece sujeito à revisão manual obrigatória pelo auditor.',
+          note: 'Normalizado automaticamente — ficha já concluída antes da separação entre nota confirmada e potencial (item nunca teve decisão explícita registrada, mas contava normalmente sob a regra antiga).',
           validatedAt: now,
         });
       }
@@ -146,7 +128,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   return res.status(200).json({
     mode: apply ? 'applied' : 'dry-run (nada foi gravado — envie {"apply": true} no corpo para aplicar de verdade)',
-    aviso: 'Aprovação técnica provisória para preservação da nota histórica. Este registro não representa validação de mérito e permanece sujeito à revisão manual obrigatória pelo auditor.',
     totalFichasConclusivasVerificadas: audits.filter((a) => (FINAL_STATUSES as readonly string[]).includes(a.overallStatus)).length,
     fichasComItensNormalizados: touchedCount,
     detalhe: summary,
