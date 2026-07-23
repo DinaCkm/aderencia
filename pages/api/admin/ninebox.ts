@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const projectRelabels = (profileAudit as any)?.projectRelabels || {};
     const exceptionAssignments = (profileAudit as any)?.exceptionAssignments || {};
     const assessments = participant.selectedAreas.map((area) =>
-      buildAreaAssessment(participant, area, performance, discs, exceptionAssignments, rejectedItems, allItemNotes, experienceOverride, projectRelabels, catalogItems)
+      buildAreaAssessment(participant, area, performance, discs, exceptionAssignments, rejectedItems, allItemNotes, experienceOverride, projectRelabels, catalogItems, profileAudit?.itemValidations || [])
     );
     assessments.forEach((assessment) => {
       report[assessment.area] = report[assessment.area] || [];

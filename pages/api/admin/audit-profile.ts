@@ -1,6 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync, writeJsonAsync, loadProofFiles } from '../../../lib/db';
+import { getPendingScorableItems } from '../../../lib/business';
 import type { ParticipantProfile } from '../../../lib/types';
+
+// Status que representam encerramento da auditoria — nenhum deles pode ser gravado enquanto
+// houver item pontuável pendente (ver getPendingScorableItems em lib/business.ts). "adjusted"
+// entra aqui porque já é tratado como definitivo em outras partes do sistema (ex.: o banner
+// do PDF mostra "ANÁLISE DEFINITIVA" tanto para "validated" quanto para "adjusted").
+const FINAL_STATUSES = ['validated', 'adjusted'] as const;
 
 // Estrutura de validação por item
 export interface ItemValidation {
@@ -115,13 +122,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Atualizar status geral
-    if (overallStatus) {
-      audit.overallStatus = overallStatus as ProfileAudit['overallStatus'];
-      audit.overallNote = overallNote;
-      audit.auditedAt = new Date().toISOString();
-    }
-
     // Atualizar ajuste manual de experiência gerencial/interina
     if (clearExperienceOverride) {
       delete audit.experienceOverride;
@@ -158,6 +158,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         delete assignments[exceptionAssignment.itemKey];
       }
       audit.exceptionAssignments = assignments;
+    }
+
+    // ── Trava de conclusão com pendência ──────────────────────────────────────
+    // Nenhuma ficha pode receber um status conclusivo (Validada/Ajustada) enquanto houver
+    // item pontuável sem decisão explícita (aprovado ou rejeitado). Checa usando o estado
+    // já atualizado da auditoria nesta mesma requisição (ex.: se o admin acabou de aprovar
+    // o último item pendente E marcar a ficha como Validada no mesmo clique, isso é permitido).
+    // Se bloqueado, a requisição inteira é rejeitada sem gravar nada — inclusive as outras
+    // alterações desta mesma chamada — para não deixar gravação parcial ambígua.
+    if (overallStatus && (FINAL_STATUSES as readonly string[]).includes(overallStatus)) {
+      const participants = await readJsonAsync<ParticipantProfile[]>('participants', []);
+      const profile = participants.find((p) => p.id === participantId);
+      if (!profile) {
+        return res.status(404).json({ error: 'Participante não encontrado — não é possível concluir a auditoria.' });
+      }
+      const pendingItems = getPendingScorableItems(profile, audit.itemValidations, audit.exceptionAssignments || {});
+      if (pendingItems.length > 0) {
+        return res.status(409).json({
+          error: `Não é possível concluir a ficha como "${overallStatus === 'validated' ? 'Validada' : 'Ajustada'}": há ${pendingItems.length} item(ns) pontuável(is) ainda pendente(s) de aprovação ou rejeição.`,
+          pendingItems,
+        });
+      }
+    }
+
+    // Atualizar status geral (só chega aqui se passou pela trava acima, quando aplicável)
+    if (overallStatus) {
+      audit.overallStatus = overallStatus as ProfileAudit['overallStatus'];
+      audit.overallNote = overallNote;
+      audit.auditedAt = new Date().toISOString();
     }
 
     if (idx >= 0) {
