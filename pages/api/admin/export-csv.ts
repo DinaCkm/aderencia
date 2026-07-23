@@ -1,6 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync } from '../../../lib/db';
+import { dedupeItemValidations, getScorableItemsState, buildAreaAssessment, getLatestPerformance } from '../../../lib/business';
+import { getEffectiveCatalogItems } from '../../../lib/catalog';
 import type { ParticipantProfile, PerformanceRecord, DISCRecord } from '../../../lib/types';
+import type { ProfileAudit } from './audit-profile';
 
 function esc(value: unknown): string {
   if (value === null || value === undefined) return '';
@@ -115,41 +118,100 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (type === 'completo') {
-    // Exportação completa: todos os dados em um único CSV
+    // Exportação completa: TODAS as colunas dos outros exports + status item a item + nota
+    // calculada por área. Antes desta correção, este export nem carregava a tabela de
+    // auditoria (profile_audits) — por isso não tinha nenhum status item a item, só o status
+    // geral da ficha. Também faltavam colunas já presentes no export "participants"
+    // (Graduação 2, Modo de Comprovação, Observação/Data de Validação).
     const participants = await readJsonAsync<ParticipantProfile[]>('participants', []);
     const performance = await readJsonAsync<PerformanceRecord[]>('performance', []);
     const discRecords = await readJsonAsync<DISCRecord[]>('disc_records', []);
+    const discReports = await readJsonAsync<any[]>('discReports', []);
+    const audits = await readJsonAsync<ProfileAudit[]>('profile_audits', []);
+    const catalogItems = await getEffectiveCatalogItems();
 
     const submitted = participants.filter((p) => p.submittedAt);
 
-    // Criar mapa de performance e DISC por participantId
-    const perfMap: Record<string, number> = {};
-    for (const r of performance) {
-      if (!perfMap[r.participantId] || r.date > (performance.find(x => x.participantId === r.participantId && perfMap[x.participantId] === x.score100)?.date || '')) {
-        perfMap[r.participantId] = r.score100;
-      }
-    }
-    // Pegar score DISC mais recente por participante+área
+    // Score DISC (correlação %) mais recente por participante+área — só para exibição
     const discMap: Record<string, number> = {};
     for (const r of discRecords) {
       const key = `${r.participantId}__${r.area}`;
       discMap[key] = r.correlationPct;
     }
 
+    const TYPE_LABEL: Record<string, string> = {
+      postMBA: 'Pós/MBA', projeto: 'Projeto', experiencia: 'Experiência', excecao: 'Exceção',
+    };
+
     const headers = [
       'Nome', 'E-mail', 'Matrícula', 'Áreas de Interesse', 'Data de Envio',
-      'Graduação', 'Pós/MBA', 'Meses Gerenciais', 'Meses Interinos',
+      'Graduação', 'Graduação 2', 'Nome do Curso de Graduação', 'Pós/MBA',
+      'Meses Gerenciais', 'Meses Interinos',
       'Cursos Extracurriculares', 'Projetos Estratégicos',
-      'Score Performance (0-100)', 'Score DISC por Área',
-      'Status de Exceção', 'Validação',
+      'Modo de Comprovação (Graduação)', 'Modo de Comprovação (Pós/MBA)',
+      'Score Performance (0-100)', 'Score DISC por Área (correlação %)',
+      'Status de Exceção (legado)',
+      'Status Geral da Ficha', 'Observação de Validação', 'Data de Validação',
+      // Novas colunas — status item a item, deduplicado (só o registro mais recente por item)
+      'Itens Pendentes (item: motivo)',
+      'Itens Aprovados (item)',
+      'Itens Rejeitados (item: motivo)',
+      'Total de Itens Pontuáveis Pendentes',
+      // Novas colunas — nota calculada por área (usa o mesmo motor central de todas as telas)
+      'Nota Técnica Confirmada por Área',
+      'Nota Técnica Potencial por Área (se pendentes fossem aprovados)',
+      'Nota Comportamental por Área',
+      'Nota Total (Técnica+Comportamental) por Área',
+      'Quadrante Nine Box por Área',
     ];
 
     const lines = [headers.join(',')];
 
     for (const p of submitted) {
+      const proofGrad = p.proofFiles?.['grad'] || p.proofFiles?.['grad2'] || '';
+      const proofMBA = Object.entries(p.proofFiles || {})
+        .filter(([k]) => k.startsWith('mba_'))
+        .map(([, v]) => (v.startsWith('data:') || v.length > 100 ? '[arquivo]' : v))
+        .join(' | ');
+
       const discByArea = (p.selectedAreas || [])
         .map((a) => `${a}: ${discMap[`${p.id}__${a}`] ?? 'N/A'}`)
         .join(' | ');
+
+      const audit = audits.find((a) => a.participantId === p.id);
+      const dedupedValidations = dedupeItemValidations(audit?.itemValidations || []);
+      const exceptionAssignments = (audit as any)?.exceptionAssignments || {};
+      const scorableItems = getScorableItemsState(p, dedupedValidations, exceptionAssignments);
+
+      const label = (itemKey: string, fallback: string) => {
+        const found = scorableItems.find((s) => s.itemKey === itemKey);
+        return found ? `${TYPE_LABEL[found.type]}: ${found.label}` : fallback;
+      };
+      const notaFor = (itemKey: string) => dedupedValidations.find((v) => v.itemKey === itemKey)?.note || '';
+
+      const pendingList = scorableItems.filter((s) => s.status === 'pending')
+        .map((s) => `${TYPE_LABEL[s.type]}: ${s.label}${notaFor(s.itemKey) ? ` (${notaFor(s.itemKey)})` : ''}`)
+        .join(' | ');
+      const approvedList = scorableItems.filter((s) => s.status === 'approved')
+        .map((s) => `${TYPE_LABEL[s.type]}: ${s.label}`)
+        .join(' | ');
+      const rejectedList = scorableItems.filter((s) => s.status === 'rejected')
+        .map((s) => `${TYPE_LABEL[s.type]}: ${s.label}${notaFor(s.itemKey) ? ` (${notaFor(s.itemKey)})` : ''}`)
+        .join(' | ');
+      const pendingCount = scorableItems.filter((s) => s.status === 'pending').length;
+
+      // Nota calculada por área — mesmo motor central usado em todas as telas do sistema
+      const rejectedItems = dedupedValidations.filter((v) => v.status === 'rejected').map((v) => ({ itemKey: v.itemKey, note: v.note }));
+      const experienceOverride = (audit as any)?.experienceOverride;
+      const projectRelabels = (audit as any)?.projectRelabels || {};
+      const areaAssessments = (p.selectedAreas || []).map((area) =>
+        buildAreaAssessment(p, area, performance, discReports, exceptionAssignments, rejectedItems, {}, experienceOverride, projectRelabels, catalogItems, dedupedValidations)
+      );
+      const confirmadaPorArea = areaAssessments.map((a) => `${a.area}: ${a.technicalAdherence}`).join(' | ');
+      const potencialPorArea = areaAssessments.map((a) => `${a.area}: ${a.technicalAdherencePotential ?? a.technicalAdherence}`).join(' | ');
+      const comportamentalPorArea = areaAssessments.map((a) => `${a.area}: ${a.behavioralAdherence ?? 'N/A'}`).join(' | ');
+      const totalPorArea = areaAssessments.map((a) => `${a.area}: ${((a.technicalAdherence || 0) + (a.behavioralAdherence || 0)).toFixed(1)}`).join(' | ');
+      const quadrantePorArea = areaAssessments.map((a) => `${a.area}: ${a.quadrant}`).join(' | ');
 
       lines.push(row([
         p.name,
@@ -158,15 +220,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         (p.selectedAreas || []).join(' | '),
         p.submittedAt ? new Date(p.submittedAt).toLocaleString('pt-BR') : '',
         p.graduation || '',
+        p.graduation2 || '',
+        p.graduationCourseName || '',
         (p.postMBAs || []).join(' | '),
         p.managerialMonths ?? '',
         p.interimMonths ?? '',
         (p.selectedCourses || []).join(' | '),
         (p.selectedProjects || []).join(' | '),
-        perfMap[p.id] ?? '',
+        proofGrad.startsWith('data:') || proofGrad.length > 100 ? 'arquivo enviado' : proofGrad || 'não informado',
+        proofMBA || 'não informado',
+        getLatestPerformance(performance, p.id, '')?.score100 ?? '',
         discByArea,
         p.exceptionStatus || '',
-        p.validationStatus || '',
+        audit?.overallStatus || p.validationStatus || 'provisional',
+        audit?.overallNote || p.validationNote || '',
+        audit?.auditedAt ? new Date(audit.auditedAt).toLocaleString('pt-BR') : (p.validatedAt ? new Date(p.validatedAt).toLocaleString('pt-BR') : ''),
+        pendingList,
+        approvedList,
+        rejectedList,
+        pendingCount,
+        confirmadaPorArea,
+        potencialPorArea,
+        comportamentalPorArea,
+        totalPorArea,
+        quadrantePorArea,
       ]));
     }
 
