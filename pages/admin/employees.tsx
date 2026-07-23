@@ -4,7 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import type { ParticipantProfile } from '../../lib/types';
 import { CATALOG_ITEMS as FIXED_CATALOG_ITEMS } from '../../lib/constants';
-import { TRANSVERSAL_PROJECTS } from '../../lib/business';
+import { TRANSVERSAL_PROJECTS, buildMbaAnalysis, buildProjAnalysis } from '../../lib/business';
 // Ver comentário equivalente em pages/admin/audit.tsx — CATALOG_ITEMS é atualizado em runtime
 // com o catálogo completo (fixo + itens customizados) buscado via /api/admin/catalogs.
 let CATALOG_ITEMS: typeof FIXED_CATALOG_ITEMS = FIXED_CATALOG_ITEMS;
@@ -366,120 +366,27 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
               const itemValidations = data?.audit?.itemValidations || [];
               const hasAudit = itemValidations.length > 0;
 
-              // Helper: retorna validação de um item pela chave
+              // Helper: retorna validação de um item pela chave (ainda usado pela seção de experiência)
               const getAuditV = (key: string) => itemValidations.find((v) => v.itemKey === key);
 
-              // Pós/MBA: para cada título, verifica se pontua e se foi rejeitado na auditoria
-              // Rastreia blocos de mbaBlocks já usados, para o caso de duas Pós/MBA distintas
-              // compartilharem a mesma área do catálogo (ver mesma correção em print-profile.tsx).
-              const usedMbaBlockIdx = new Set<number>();
-              const mbaAnalysis = allMBAs.map((title, idx) => {
-                // IMPORTANTE: `p.postMBAs` é uma projeção FILTRADA de `p.mbaBlocks` (exclui
-                // blocos com área "__outro_mba__"), então `idx` aqui não corresponde ao
-                // índice original do bloco em mbaBlocks — usar `idx` diretamente mistura a
-                // validação/nome de um título com o de outro título diferente. Localizamos
-                // o bloco certo pelo valor da área e usamos SEU índice original (mesma
-                // convenção usada em audit.tsx e replicada em print-profile.tsx). Preferimos
-                // um bloco ainda não usado, para não colidir quando duas Pós/MBA têm a mesma
-                // área cadastrada.
-                const blocksList = (p as any).mbaBlocks || [];
-                let blockIdx = blocksList.findIndex((b: any, i: number) => b?.area === title && !usedMbaBlockIdx.has(i));
-                if (blockIdx < 0) blockIdx = blocksList.findIndex((b: any) => b?.area === title);
-                if (blockIdx >= 0) usedMbaBlockIdx.add(blockIdx);
-                const effIdx = blockIdx >= 0 ? blockIdx : idx;
-                const auditV = getAuditV(`postmba-${effIdx}`);
-                const auditRejected = auditV?.status === 'rejected';
-                const auditNote = auditV?.note;
-                if (auditRejected) {
-                  return { title, blockIdx: effIdx, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditNote ? ` — ${auditNote}` : ''}`, pts: 0, areas: [] as string[], auditNote };
-                }
-                const matches = CATALOG_ITEMS.filter((i) => i.group === 'postMBA' && i.label === title);
-                if (matches.length === 0) {
-                  return { title, blockIdx: effIdx, status: 'nao-pontua' as const, reason: 'Título não encontrado no catálogo — pontuação mínima de 20 pts aplicada como "não relacionado"', pts: 20, areas: [] as string[], auditNote };
-                }
-                const transversal = matches.find((m) => m.classification === 'transversal');
-                if (transversal) {
-                  return { title, blockIdx: effIdx, status: 'pontua' as const, reason: 'Título transversal — vale 40 pts em todas as áreas', pts: 40, areas: selectedAreas, auditNote };
-                }
-                const areaMatches = matches.filter((m) => m.area && selectedAreas.includes(m.area as any));
-                if (areaMatches.length > 0) {
-                  return { title, blockIdx: effIdx, status: 'pontua' as const, reason: `Específico para ${areaMatches.map((m) => m.area).join(', ')} — vale 20 pts`, pts: 20, areas: areaMatches.map((m) => m.area as string), auditNote };
-                }
-                return { title, blockIdx: effIdx, status: 'nao-pontua' as const, reason: 'Título não relacionado às áreas de interesse selecionadas — pontuação mínima de 20 pts', pts: 20, areas: [] as string[], auditNote };
-              }).map((m) => (
-                // Une a observação da auditoria ao texto exibido, mesmo quando o item já foi
-                // classificado por outro motivo (ex: pendente/validado com nota do auditor)
-                m.status !== 'rejeitado' && m.auditNote
-                  ? { ...m, reason: `${m.reason} · Obs. da auditoria: "${m.auditNote}"` }
-                  : m
-              ));
+              // Helper: status do comprovante de um item (mesmo texto usado no restante da tela)
+              function normalizeKey(key: string): string {
+                const colonIdx = key.indexOf(':');
+                if (colonIdx < 0) return key.trim();
+                return `${key.slice(0, colonIdx).trim()}:${key.slice(colonIdx + 1).trim()}`;
+              }
+              const proofStatus = (key: string): string => {
+                const mode = (p as any).proofMode?.[key] ?? (p as any).proofMode?.[normalizeKey(key)];
+                return proofLabel(mode);
+              };
 
-              // Títulos de Pós/MBA com área "Outro" (__outro_mba__) — `p.postMBAs` nunca os
-              // inclui (filtrado na origem em participant.tsx), então são invisíveis ao loop
-              // acima e, quando rejeitados, seu nome/motivo desaparecia da Análise ou era
-              // exibido junto com o de outro título (mesmo `postmba-i` reaproveitado por
-              // engano). Adicionamos aqui só os REJEITADOS, apenas para exibição — não entram
-              // em `validMBATitles`/pontuação (mesmo comportamento do motor central).
-              const outroMbaRejeitados = ((p as any).mbaBlocks || [])
-                .map((b: any, origIdx: number) => ({ ...b, origIdx }))
-                .filter((b: any) => b.area === '__outro_mba__' && b.name?.trim())
-                .map((b: any) => {
-                  const auditV = getAuditV(`postmba-${b.origIdx}`);
-                  return auditV?.status === 'rejected'
-                    ? { title: b.name.trim(), blockIdx: b.origIdx, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, areas: [] as string[], auditNote: auditV.note }
-                    : null;
-                })
-                .filter((x: any) => x !== null);
-              mbaAnalysis.push(...outroMbaRejeitados);
-
-              // Projetos: verifica se cada projeto está vinculado a uma área de interesse e se foi rejeitado
+              // Fonte única (lib/business.ts) — antes esta lógica era uma cópia local
+              // independente que já havia divergido da usada em print-profile.tsx (não
+              // verificava se a área vinculada do projeto era uma área de interesse do
+              // candidato, e não aplicava o teto de 20 pts por item). Ver histórico de correção.
               const projectRelabels: Record<string, string> = (data?.audit as any)?.projectRelabels || {};
-              const projAnalysis = allProjects.map((proj, idx) => {
-                const auditV = getAuditV(`projeto-${idx}`);
-                const auditRejected = auditV?.status === 'rejected';
-                const auditNote = auditV?.note;
-                const effProj = projectRelabels[`projeto-${idx}`] || proj;
-                if (auditRejected) {
-                  return { proj, status: 'rejeitado' as const, reason: `Comprovante rejeitado pelo auditor${auditNote ? ` — ${auditNote}` : ''}`, pts: 0, area: p.projectAreaMap?.[proj] || null, auditNote };
-                }
-                const vinculadaArea = p.projectAreaMap?.[proj] || null;
-                const catalogItem = CATALOG_ITEMS.find((i) => i.group === 'project' && i.label === effProj && i.area === vinculadaArea);
-                // Verifica se este projeto está catalogado para alguma OUTRA área de interesse
-                // do candidato — para sugerir a realocação em vez de simplesmente zerar.
-                const altAreaMatch = CATALOG_ITEMS.find(
-                  (i) => i.group === 'project' && i.label === effProj && i.area !== vinculadaArea && selectedAreas.includes(i.area as any)
-                );
-                const altSuggestion = altAreaMatch
-                  ? ` Este projeto está catalogado para a área ${altAreaMatch.area} (${altAreaMatch.points} pts), que também é uma das áreas de interesse do candidato — considere vincular o projeto a essa área em vez de ${vinculadaArea || 'nenhuma'}.`
-                  : '';
-                if (!vinculadaArea) {
-                  return { proj, status: 'nao-pontua' as const, reason: 'Projeto sem área vinculada — não entra no cálculo' + altSuggestion, pts: 0, area: null, auditNote };
-                }
-                if (!selectedAreas.includes(vinculadaArea as any)) {
-                  return { proj, status: 'nao-pontua' as const, reason: `Área vinculada (${vinculadaArea}) não está entre as áreas de interesse selecionadas` + altSuggestion, pts: 0, area: vinculadaArea, auditNote };
-                }
-                if (!catalogItem) {
-                  return { proj, status: 'nao-pontua' as const, reason: `O tema deste projeto não é aderente à área ${vinculadaArea} conforme o catálogo oficial de projetos estratégicos.` + altSuggestion, pts: 0, area: vinculadaArea, auditNote };
-                }
-                const projsInSameArea = allProjects.filter((pp) => p.projectAreaMap?.[pp] === vinculadaArea);
-                const itemsInArea = CATALOG_ITEMS.filter((i) => i.group === 'project' && projsInSameArea.includes(i.label) && i.area === vinculadaArea);
-                const totalBefore = itemsInArea
-                  .filter((i) => projsInSameArea.indexOf(i.label) < projsInSameArea.indexOf(proj))
-                  .reduce((acc, i) => acc + i.points, 0);
-                const pts = catalogItem.points;
-                const effective = Math.max(0, Math.min(pts, 20 - totalBefore));
-                const relabelNote = effProj !== proj ? ` · Reclassificado pelo administrador de "${proj}" para "${effProj}"` : '';
-                if (effective <= 0) {
-                  return { proj, status: 'nao-pontua' as const, reason: `Cap de 20 pts já atingido para a área ${vinculadaArea} — este projeto não adiciona pontos`, pts: 0, area: vinculadaArea, auditNote };
-                }
-                return { proj, status: 'pontua' as const, reason: `Área ${vinculadaArea} — ${pts} pts no catálogo${effective < pts ? ` (limitado a ${effective} pts pelo cap de 20 pts da área)` : ''}${relabelNote}`, pts: effective, area: vinculadaArea, auditNote };
-              }).map((m) => (
-                // Une a observação da auditoria ao texto exibido, mesmo quando o projeto já foi
-                // classificado por outro motivo (ex: não aderente ao catálogo, cap atingido, etc.)
-                m.status !== 'rejeitado' && m.auditNote
-                  ? { ...m, reason: `${m.reason} · Obs. da auditoria: "${m.auditNote}"` }
-                  : m
-              ));
+              const mbaAnalysis = buildMbaAnalysis(p, itemValidations, proofStatus, CATALOG_ITEMS);
+              const projAnalysis = buildProjAnalysis(p, itemValidations, proofStatus, projectRelabels, CATALOG_ITEMS);
 
               // Experiência: verificar se foi rejeitada na auditoria
               const expAuditV = getAuditV('experiencia');
