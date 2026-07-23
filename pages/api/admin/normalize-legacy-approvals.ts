@@ -55,4 +55,100 @@ interface ProfileAudit {
   overallStatus: 'provisional' | 'validated' | 'adjusted';
   overallNote?: string;
   auditedAt?: string;
-  experienceOverride?: { managerialMonths?: number;
+  experienceOverride?: { managerialMonths?: number; interimMonths?: number; note?: string; adjustedAt?: string };
+  projectRelabels?: Record<string, string>;
+  exceptionAssignments?: Record<string, { area: string; label: string; type: 'projeto' | 'pos-mba' }>;
+}
+
+const FINAL_STATUSES = ['validated', 'adjusted'] as const;
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed — use POST com header Authorization: Bearer <NORMALIZE_SECRET>.' });
+  }
+
+  const secretConfigured = process.env.NORMALIZE_SECRET;
+  if (!secretConfigured) {
+    return res.status(403).json({ error: 'Endpoint desabilitado: variável de ambiente NORMALIZE_SECRET não configurada no Railway.' });
+  }
+  const authHeader = req.headers.authorization || '';
+  const providedSecret = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : '';
+  if (providedSecret !== secretConfigured) {
+    return res.status(403).json({ error: 'Não autorizado. Envie o header "Authorization: Bearer <NORMALIZE_SECRET>".' });
+  }
+
+  const apply = req.body?.apply === true;
+  const debugEmail = req.body?.debugEmail as string | undefined;
+
+  const participants = await readJsonAsync<ParticipantProfile[]>('participants', []);
+  const audits = await readJsonAsync<ProfileAudit[]>('profile_audits', []);
+
+  // Diagnóstico somente-leitura: mostra o(s) registro(s) BRUTOS de profile_audits para um
+  // participante específico, incluindo itemValidations completo e quantos registros de
+  // auditoria existem para esse participantId (detecta duplicatas, que explicariam por que
+  // uma gravação parece "sumir" — a normalização atualiza um registro, mas a leitura seguinte
+  // encontra outro registro duplicado, ainda sem a aprovação).
+  if (debugEmail) {
+    const profile = participants.find((p) => p.email?.toLowerCase() === debugEmail.toLowerCase());
+    if (!profile) return res.status(404).json({ error: 'Participante não encontrado.' });
+    const matches = audits.filter((a) => a.participantId === profile.id);
+    return res.status(200).json({
+      profileId: profile.id,
+      profileEmail: profile.email,
+      totalRegistrosDeAuditoriaEncontrados: matches.length,
+      registros: matches,
+    });
+  }
+
+  const summary: {
+    participantId: string;
+    participantName: string;
+    overallStatus: string;
+    backfilledItems: { itemKey: string; type: string; label: string }[];
+  }[] = [];
+
+  let touchedCount = 0;
+
+  for (const audit of audits) {
+    if (!(FINAL_STATUSES as readonly string[]).includes(audit.overallStatus)) continue;
+
+    const profile = participants.find((p) => p.id === audit.participantId);
+    if (!profile) continue; // participante removido/órfão — nada a normalizar
+
+    const pending = getPendingScorableItems(profile, audit.itemValidations || [], audit.exceptionAssignments || {});
+    if (pending.length === 0) continue;
+
+    summary.push({
+      participantId: audit.participantId,
+      participantName: profile.name || profile.email || audit.participantId,
+      overallStatus: audit.overallStatus,
+      backfilledItems: pending.map((p) => ({ itemKey: p.itemKey, type: p.type, label: p.label })),
+    });
+    touchedCount++;
+
+    if (apply) {
+      const now = new Date().toISOString();
+      for (const p of pending) {
+        audit.itemValidations = audit.itemValidations || [];
+        audit.itemValidations.push({
+          itemKey: p.itemKey,
+          status: 'approved',
+          note: 'Aprovação técnica provisória para preservação da nota histórica. Este registro não representa validação de mérito e permanece sujeito à revisão manual obrigatória pelo auditor.',
+          validatedAt: now,
+        });
+      }
+    }
+  }
+
+  if (apply && touchedCount > 0) {
+    await writeJsonAsync('profile_audits', audits);
+  }
+
+  return res.status(200).json({
+    mode: apply ? 'applied' : 'dry-run (nada foi gravado — envie {"apply": true} no corpo para aplicar de verdade)',
+    aviso: 'Aprovação técnica provisória para preservação da nota histórica. Este registro não representa validação de mérito e permanece sujeito à revisão manual obrigatória pelo auditor.',
+    totalFichasConclusivasVerificadas: audits.filter((a) => (FINAL_STATUSES as readonly string[]).includes(a.overallStatus)).length,
+    fichasComItensNormalizados: touchedCount,
+    detalhe: summary,
+  });
+}
