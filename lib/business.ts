@@ -792,3 +792,46 @@ export function buildProjAnalysis(
       : m
   ));
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ranking com desempate completo — FONTE ÚNICA
+// ─────────────────────────────────────────────────────────────────────────────
+// Critério de ordenação: aderência total (técnica+comportamental) desc → nota técnica desc
+// → nota comportamental desc → nota de performance (0-10) desc → correlação DISC (%) desc →
+// nome em ordem alfabética. Participantes sem dado comportamental completo (behavioralAdherence
+// undefined) vão sempre para o final, ordenados só por nome — nunca tratados como zero, pra não
+// distorcer a posição de quem tem cálculo completo. Usada tanto pelo ranking já existente em
+// employee-profile.ts quanto pelo relatório de Ranking de Aderência por Unidade, pra nunca
+// existir uma "quarta lógica" de ordenação divergente entre as telas.
+export interface RankableEntry {
+  participantId: string;
+  name: string;
+  technicalAdherence: number;
+  behavioralAdherence?: number;
+  performanceConverted?: number;
+  discCorrelationPct?: number;
+}
+
+export function sortByAdherenceRanking<T extends RankableEntry>(entries: T[]): T[] {
+  const complete = entries.filter((e) => e.behavioralAdherence !== undefined);
+  const incomplete = entries.filter((e) => e.behavioralAdherence === undefined);
+
+  complete.sort((a, b) => {
+    const totalA = a.technicalAdherence + (a.behavioralAdherence as number);
+    const totalB = b.technicalAdherence + (b.behavioralAdherence as number);
+    if (totalB !== totalA) return totalB - totalA;
+    if (b.technicalAdherence !== a.technicalAdherence) return b.technicalAdherence - a.technicalAdherence;
+    if ((b.behavioralAdherence as number) !== (a.behavioralAdherence as number)) return (b.behavioralAdherence as number) - (a.behavioralAdherence as number);
+    const perfA = a.performanceConverted ?? -1;
+    const perfB = b.performanceConverted ?? -1;
+    if (perfB !== perfA) return perfB - perfA;
+    const discA = a.discCorrelationPct ?? -1;
+    const discB = b.discCorrelationPct ?? -1;
+    if (discB !== discA) return discB - discA;
+    return a.name.localeCompare(b.name, 'pt-BR');
+  });
+
+  incomplete.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+
+  return [...complete, ...incomplete];
+}
