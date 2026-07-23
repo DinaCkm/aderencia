@@ -130,12 +130,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const now = new Date().toISOString();
       for (const p of pending) {
         audit.itemValidations = audit.itemValidations || [];
-        audit.itemValidations.push({
+        // IMPORTANTE: substitui o registro existente para este itemKey (mesmo padrão usado
+        // em audit-profile.ts), em vez de empilhar um novo — evita duplicatas acumulando na
+        // lista, que já causaram um bug real (registro "pending" antigo nunca sendo superado
+        // na leitura porque um novo "approved" era só acrescentado ao final, não substituía).
+        const existingIdx = audit.itemValidations.findIndex((v) => v.itemKey === p.itemKey);
+        const newRecord = {
           itemKey: p.itemKey,
-          status: 'approved',
+          status: 'approved' as const,
           note: 'Aprovação técnica provisória para preservação da nota histórica. Este registro não representa validação de mérito e permanece sujeito à revisão manual obrigatória pelo auditor.',
           validatedAt: now,
-        });
+        };
+        if (existingIdx >= 0) {
+          audit.itemValidations[existingIdx] = newRecord;
+        } else {
+          audit.itemValidations.push(newRecord);
+        }
       }
     }
   }
