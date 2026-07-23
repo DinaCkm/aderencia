@@ -75,13 +75,26 @@ function Badge({ status }: { status: 'pending' | 'approved' | 'rejected' }) {
 function PostMBAPointsBadge({ profile, index }: { profile: ParticipantProfile; index: number }) {
   const allLabels = profile.postMBAs || [];
   const withoutThis = allLabels.filter((_, i) => i !== index);
-  const impacts = (profile.selectedAreas || [])
+  const allImpacts = (profile.selectedAreas || [])
     .map((area) => {
       const full = bestPostMBADetail(allLabels, area).score;
       const without = bestPostMBADetail(withoutThis, area).score;
       return { area, delta: full - without, full };
-    })
-    .filter((x) => x.delta > 0);
+    });
+  const impacts = allImpacts.filter((x) => x.delta > 0);
+  // Título "redundante": ele CONTRIBUI hoje (full > 0), mas rejeitá-lo isoladamente não
+  // muda a nota (delta === 0) porque outro título do candidato, com pontuação idêntica,
+  // cobre a mesma área — ex.: dois títulos cadastrados na mesma área/rótulo do catálogo.
+  // Isso é bem diferente de um título que simplesmente não pontua em nenhuma área.
+  const redundant = allImpacts.filter((x) => x.delta === 0 && x.full > 0);
+  if (impacts.length === 0 && redundant.length > 0) {
+    return (
+      <div style={{ fontSize: '0.7rem', color: '#7c2d12', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 5, padding: '4px 8px', marginBottom: 6, fontWeight: 600 }}>
+        📊 Pontuação atual (usada na nota): {redundant.map((x) => `${x.full} pts em ${x.area}`).join(' | ')}.
+        {' '}Rejeitar apenas este título não reduz a nota, pois outro título do candidato tem pontuação equivalente na(s) mesma(s) área(s) e cobriria o mesmo valor sozinho — os dois são intercambiáveis para o cálculo hoje.
+      </div>
+    );
+  }
   if (impacts.length === 0) {
     return (
       <div style={{ fontSize: '0.7rem', color: '#6b7280', marginBottom: 6 }}>
