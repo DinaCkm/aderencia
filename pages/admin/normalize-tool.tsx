@@ -24,12 +24,49 @@ const TYPE_LABEL: Record<string, string> = {
   excecao: 'Exceção',
 };
 
+interface AuditDebugResult {
+  profileId: string;
+  profileEmail: string;
+  totalRegistrosDeAuditoriaEncontrados: number;
+  registros: any[];
+  error?: string;
+}
+
 export default function NormalizeTool() {
   const [secret, setSecret] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ApiResult | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [hasRunDryRun, setHasRunDryRun] = useState(false);
+  const [debugEmail, setDebugEmail] = useState('');
+  const [debugResult, setDebugResult] = useState<AuditDebugResult | null>(null);
+  const [debugLoading, setDebugLoading] = useState(false);
+  const [debugError, setDebugError] = useState('');
+
+  const runDebug = async () => {
+    if (!secret.trim()) { setDebugError('Preencha a senha antes.'); return; }
+    if (!debugEmail.trim()) { setDebugError('Preencha o e-mail do candidato.'); return; }
+    setDebugLoading(true);
+    setDebugError('');
+    setDebugResult(null);
+    try {
+      const res = await fetch('/api/admin/normalize-legacy-approvals', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${secret.trim()}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ debugEmail: debugEmail.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setDebugError(data.error || `Erro ${res.status}`);
+      } else {
+        setDebugResult(data);
+      }
+    } catch {
+      setDebugError('Erro de conexão.');
+    } finally {
+      setDebugLoading(false);
+    }
+  };
 
   const run = async (apply: boolean) => {
     if (!secret.trim()) {
@@ -164,6 +201,54 @@ export default function NormalizeTool() {
             )}
           </div>
         )}
+
+        <div style={{ marginTop: 40, paddingTop: 24, borderTop: '1px dashed #cbd5e1' }}>
+          <h2 style={{ fontSize: '1.05rem', marginBottom: 8 }}>🔍 Diagnóstico — ver auditoria bruta de um candidato</h2>
+          <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: 14 }}>
+            Use isto quando um candidato aparece na Prévia mesmo depois de "Aplicar de verdade" — mostra o que
+            realmente está gravado no banco para ele (itemValidations completo, e quantos registros de auditoria
+            existem para esse participante, que ajuda a detectar duplicatas).
+          </p>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <input
+              type="text"
+              value={debugEmail}
+              onChange={(e) => setDebugEmail(e.target.value)}
+              placeholder="email do candidato..."
+              style={{ flex: 1, padding: '10px 12px', border: '1.5px solid #cbd5e1', borderRadius: 8, fontSize: '0.85rem' }}
+            />
+            <button
+              type="button"
+              disabled={debugLoading}
+              onClick={runDebug}
+              style={{ padding: '10px 20px', background: debugLoading ? '#94a3b8' : '#7c3aed', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: debugLoading ? 'default' : 'pointer' }}
+            >
+              {debugLoading ? 'Buscando...' : 'Ver auditoria bruta'}
+            </button>
+          </div>
+          {debugError && (
+            <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', color: '#991b1b', borderRadius: 8, padding: '10px 14px', marginBottom: 12, fontSize: '0.82rem' }}>
+              ❌ {debugError}
+            </div>
+          )}
+          {debugResult && (
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 16 }}>
+              <p style={{ fontSize: '0.82rem', marginBottom: 6 }}>
+                <strong>Participante:</strong> {debugResult.profileEmail} (id: {debugResult.profileId})
+              </p>
+              <p style={{ fontSize: '0.82rem', marginBottom: 10 }}>
+                <strong>Registros de auditoria encontrados para este participante:</strong>{' '}
+                <span style={{ fontWeight: 700, color: debugResult.totalRegistrosDeAuditoriaEncontrados > 1 ? '#dc2626' : '#15803d' }}>
+                  {debugResult.totalRegistrosDeAuditoriaEncontrados}
+                </span>
+                {debugResult.totalRegistrosDeAuditoriaEncontrados > 1 && ' ⚠️ Mais de um registro para o mesmo participante — provável causa da gravação parecer sumir.'}
+              </p>
+              <pre style={{ background: '#1e293b', color: '#e2e8f0', padding: 14, borderRadius: 8, fontSize: '0.72rem', overflowX: 'auto', maxHeight: 400 }}>
+                {JSON.stringify(debugResult.registros, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
