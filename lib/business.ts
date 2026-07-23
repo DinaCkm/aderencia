@@ -644,7 +644,14 @@ export function buildMbaAnalysis(
   proofStatus: (key: string) => string,
   catalogItems: CatalogItem[] = CATALOG_ITEMS
 ): MbaAnalysisItem[] {
-  const getAuditV = (key: string) => itemValidations.find((v) => v.itemKey === key);
+  // Mesmo bug já corrigido em getScorableItemsState/getValidation: usa o registro mais
+  // recente por validatedAt, não o primeiro — evita que um "pending" antigo prevaleça sobre
+  // uma decisão posterior na exibição do motivo/status deste item.
+  const getAuditV = (key: string) => {
+    const matches = itemValidations.filter((v) => v.itemKey === key);
+    if (matches.length === 0) return undefined;
+    return matches.reduce((latest, current) => ((current.validatedAt || '') >= (latest.validatedAt || '') ? current : latest));
+  };
   const allMBAs = profile.postMBAs || [];
   const candidateAreas: string[] = (profile as any).selectedAreas || [];
   const blocksList: Array<{ area?: string; name?: string }> = (profile as any).mbaBlocks || [];
@@ -709,7 +716,11 @@ export function buildProjAnalysis(
   projectRelabels: Record<string, string> = {},
   catalogItems: CatalogItem[] = CATALOG_ITEMS
 ): ProjAnalysisItem[] {
-  const getAuditV = (key: string) => itemValidations.find((v) => v.itemKey === key);
+  const getAuditV = (key: string) => {
+    const matches = itemValidations.filter((v) => v.itemKey === key);
+    if (matches.length === 0) return undefined;
+    return matches.reduce((latest, current) => ((current.validatedAt || '') >= (latest.validatedAt || '') ? current : latest));
+  };
   const allProjects = profile.selectedProjects || [];
   const selectedAreas: string[] = (profile as any).selectedAreas || [];
   const projectAreaMap: Record<string, string> = (profile as any).projectAreaMap || {};
