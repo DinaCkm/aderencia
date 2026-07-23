@@ -17,6 +17,7 @@
     "@sparticuz/chromium-min": "^149.0.0",
     "@types/pdfkit": "^0.17.6",
     "@types/pg": "^8.20.0",
+    "exceljs": "^4.4.0",
     "mysql2": "^3.22.3",
     "next": "^14.2.35",
     "pdfkit": "^0.19.1",
