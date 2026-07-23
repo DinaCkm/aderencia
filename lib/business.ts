@@ -151,7 +151,7 @@ function computeTechnicalAdherence(
 ): {
   technicalAdherence: number;
   calculationSteps: { name: string; value: number | string; detail?: string }[];
-  postMBADetail: { titleUsed: string | null; classification: string; score: number };
+  postMBADetail: { titleUsed: string | null; titleUsedDisplay?: string | null; classification: string; score: number };
   projectsDetail: { label: string; points: number }[];
   excludedItems: { label: string; type: 'postMBA' | 'projeto' | 'experiencia'; pointsRemoved: number; note?: string }[];
 } {
@@ -213,6 +213,15 @@ function computeTechnicalAdherence(
     postMBAsConsidered.push(...exceptionPostMBALabels);
   }
   const postMBADet = bestPostMBADetail(postMBAsConsidered, area, catalogItems);
+  // Nome real do curso (mbaBlocks) pra exibição, resolvido a partir do rótulo de área/catálogo
+  // usado internamente pra pontuação — ver resolveMbaDisplayName() para o motivo. Exposto aqui
+  // como campo próprio pra qualquer tela (Visão do Colaborador, PDF, etc.) usar diretamente,
+  // sem precisar reconstruir essa resolução por conta própria (o que já causou o mesmo bug
+  // aparecer de novo em my-results.tsx mesmo depois da correção no texto de calculationSteps).
+  const postMBADetWithDisplay = {
+    ...postMBADet,
+    titleUsedDisplay: postMBADet.titleUsed ? resolveMbaDisplayName(postMBADet.titleUsed, mbaBlocksArr) : null,
+  };
 
   // Experiência — usa o ajuste do administrador quando existir; senão, o valor autodeclarado.
   // Se o item "experiencia" foi rejeitado pela UGP, zera a pontuação.
@@ -302,7 +311,7 @@ function computeTechnicalAdherence(
 
   return {
     technicalAdherence: score10,
-    postMBADetail: postMBADet,
+    postMBADetail: postMBADetWithDisplay,
     projectsDetail: projItems.map((i) => ({ label: i.label, points: i.points, weight: i.weight })),
     excludedItems,
     calculationSteps: [

@@ -140,6 +140,7 @@ export interface AssessmentCalculation {
 
 export interface PostMBADetail {
   titleUsed: string | null;
+  titleUsedDisplay?: string | null;
   classification: string;
   score: number;
 }
