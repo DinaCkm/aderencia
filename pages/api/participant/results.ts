@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const catalogItems = await getEffectiveCatalogItems();
 
   const results = (participant.selectedAreas || []).map((area) => {
-    const assessment = buildAreaAssessment(participant, area, performances, discReports, exceptionAssignments, rejectedItems, {}, experienceOverride, projectRelabels, catalogItems);
+    const assessment = buildAreaAssessment(participant, area, performances, discReports, exceptionAssignments, rejectedItems, {}, experienceOverride, projectRelabels, catalogItems, profileAudit?.itemValidations || []);
     const steps = assessment.calculationSteps || [];
     const getStep = (name: string) => {
       const s = steps.find((st) => st.name.toLowerCase().includes(name.toLowerCase()));
@@ -55,6 +55,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return {
       area,
       technicalScore: assessment.technicalAdherence,
+      technicalScorePotential: assessment.technicalAdherencePotential,
+      pendingItems: assessment.pendingItems || [],
       behavioralScore: assessment.behavioralAdherence,
       totalScore: (assessment.technicalAdherence || 0) + (assessment.behavioralAdherence || 0),
       nineBoxClassification: assessment.quadrant,
