@@ -60,6 +60,28 @@ export default function AdminDashboard() {
     }
   };
 
+  const downloadRankingExcel = async () => {
+    setDownloading('ranking-excel');
+    try {
+      const res = await fetch('/api/admin/ranking-by-unit-export');
+      if (!res.ok) throw new Error('Erro ao exportar');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const date = new Date().toISOString().slice(0, 10);
+      a.download = `Ranking_de_Aderencia_por_Unidade_${date}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert('Erro ao baixar o arquivo. Tente novamente.');
+    } finally {
+      setDownloading(null);
+    }
+  };
+
   useEffect(() => {
     const role = sessionStorage.getItem('aderenciaRole');
     const name = sessionStorage.getItem('aderenciaName');
@@ -211,6 +233,23 @@ export default function AdminDashboard() {
               {downloading === 'disc' ? '⏳ Baixando...' : '🔷 Resultados DISC'}
             </button>
           </div>
+        </div>
+
+        {/* Ranking de Aderência por Unidade */}
+        <div className="section-card" style={{ marginBottom: '28px', padding: '24px 28px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '1.3rem' }}>🏆</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--primary)' }}>Ranking de Aderência por Unidade</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Gera uma planilha Excel com o ranking de cada unidade de interesse, usando exatamente as mesmas notas já auditadas do sistema.</div>
+            </div>
+          </div>
+          <button
+            onClick={downloadRankingExcel}
+            disabled={downloading === 'ranking-excel'}
+            style={{ background: '#B45309', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', opacity: downloading === 'ranking-excel' ? 0.7 : 1 }}>
+            {downloading === 'ranking-excel' ? '⏳ Gerando...' : '🏆 Ranking — Exportar para Excel'}
+          </button>
         </div>
 
         {/* Menu Cards */}
