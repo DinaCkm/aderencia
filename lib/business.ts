@@ -480,3 +480,175 @@ export function buildAreaAssessment(
     exceptions,
   };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Análise de auditoria por item (Pós/MBA e Projetos) — FONTE ÚNICA
+// ─────────────────────────────────────────────────────────────────────────────
+// Usada por pages/admin/print-profile.tsx e pages/admin/employees.tsx para explicar,
+// item a item, se um título/projeto pontua, por quê, e com que comprovante — para fins
+// de auditoria/exibição (não confundir com computeTechnicalAdherence, que decide qual
+// título de Pós/MBA efetivamente "vence" para compor a nota de cada área).
+//
+// IMPORTANTE — histórico: até esta consolidação, print-profile.tsx e employees.tsx
+// mantinham CADA UM sua própria cópia independente desta lógica, e elas já haviam
+// divergido de forma real (não só de texto):
+//   - employees.tsx verificava se a área vinculada de um projeto está entre as áreas
+//     de interesse do candidato; print-profile.tsx não verificava, podendo exibir
+//     "pontua" para uma área que o candidato nem concorre.
+//   - employees.tsx aplicava o teto de 20 pts por área de forma incremental por item
+//     (mostrando "limitado a X pts"); print-profile.tsx mostrava sempre o valor bruto
+//     do catálogo por item, só aplicando o teto no agregado — dando a impressão de que
+//     cada projeto vale mais do que realmente conta.
+// Esta função usa o comportamento mais completo (o de employees.tsx) como canônico.
+export interface ItemValidationLite {
+  itemKey: string;
+  status: 'pending' | 'approved' | 'rejected';
+  note?: string;
+}
+
+export interface MbaAnalysisItem {
+  title: string;
+  blockIdx: number;
+  status: 'pontua' | 'nao-pontua' | 'rejeitado';
+  reason: string;
+  pts: number;
+  proof: string;
+  auditNote?: string;
+}
+
+export interface ProjAnalysisItem {
+  proj: string;
+  status: 'pontua' | 'nao-pontua' | 'rejeitado';
+  reason: string;
+  pts: number;
+  area: string | null;
+  proof: string;
+  auditNote?: string;
+}
+
+export function buildMbaAnalysis(
+  profile: ParticipantProfile,
+  itemValidations: ItemValidationLite[],
+  proofStatus: (key: string) => string,
+  catalogItems: CatalogItem[] = CATALOG_ITEMS
+): MbaAnalysisItem[] {
+  const getAuditV = (key: string) => itemValidations.find((v) => v.itemKey === key);
+  const allMBAs = profile.postMBAs || [];
+  const candidateAreas: string[] = (profile as any).selectedAreas || [];
+  const blocksList: Array<{ area?: string; name?: string }> = (profile as any).mbaBlocks || [];
+  const usedMbaBlockIdx = new Set<number>();
+
+  const base: MbaAnalysisItem[] = allMBAs.map((title, idx) => {
+    // `profile.postMBAs` é uma projeção filtrada de `mbaBlocks` (guarda só a área) — por
+    // isso `idx` aqui não corresponde ao índice original do bloco. Localizamos o bloco
+    // certo pela área (o mesmo valor que popula `postMBAs`) e usamos o índice original
+    // para tudo, preferindo um bloco ainda não usado (duas Pós/MBA podem ter a mesma área).
+    let blockIdx = blocksList.findIndex((b, i) => b?.area === title && !usedMbaBlockIdx.has(i));
+    if (blockIdx < 0) blockIdx = blocksList.findIndex((b) => b?.area === title);
+    if (blockIdx >= 0) usedMbaBlockIdx.add(blockIdx);
+    const effIdx = blockIdx >= 0 ? blockIdx : idx;
+    const auditV = getAuditV(`postmba-${effIdx}`);
+    const mbaBlock = blocksList[effIdx];
+    const mbaKey = `mba_${effIdx}:${mbaBlock?.name?.trim() || title}`;
+    const proof = proofStatus(mbaKey);
+    if (auditV?.status === 'rejected') {
+      return { title, blockIdx: effIdx, status: 'rejeitado', reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, proof, auditNote: auditV.note };
+    }
+    const matches = catalogItems.filter((i) => i.group === 'postMBA' && i.label === title);
+    if (matches.length === 0) {
+      return { title, blockIdx: effIdx, status: 'nao-pontua', reason: 'Título não encontrado no catálogo oficial — recebe pontuação mínima de 20 pts por possuir pós-graduação', pts: 20, proof, auditNote: auditV?.note };
+    }
+    // Empate entre itens do catálogo com o mesmo rótulo em áreas diferentes: prioriza a
+    // área que o candidato de fato concorre, para não apontar para uma área que ele nem
+    // disputa (não pode depender da ordem arbitrária de CATALOG_ITEMS).
+    const inCandidateAreas = matches.filter((m) => !m.area || candidateAreas.includes(m.area));
+    const pool = inCandidateAreas.length > 0 ? inCandidateAreas : matches;
+    const best = pool.reduce((a, b) => (((b as any).points ?? 0) > ((a as any).points ?? 0) ? b : a));
+    const cls = (best as any).classification === 'transversal'
+      ? 'Título transversal — válido para qualquer área de interesse — pontuação máxima de 40 pts'
+      : `Título específico para ${(best as any).area || 'área(s) específica(s)'} — 20 pts`;
+    return { title, blockIdx: effIdx, status: 'pontua', reason: cls, pts: (best as any).points, proof, auditNote: auditV?.note };
+  });
+
+  // Títulos com área "Outro" (__outro_mba__) nunca entram em `postMBAs` — adicionamos
+  // aqui apenas os REJEITADOS, só para exibição (não entram na pontuação).
+  const outroMbaRejeitados: MbaAnalysisItem[] = blocksList
+    .map((b, origIdx) => ({ ...b, origIdx }))
+    .filter((b) => b.area === '__outro_mba__' && b.name?.trim())
+    .map((b): MbaAnalysisItem | null => {
+      const auditV = getAuditV(`postmba-${b.origIdx}`);
+      const mbaKey = `mba_${b.origIdx}:${b.name!.trim()}`;
+      if (auditV?.status !== 'rejected') return null;
+      return { title: b.name!.trim(), blockIdx: b.origIdx, status: 'rejeitado', reason: `Comprovante rejeitado pelo auditor${auditV.note ? ` — ${auditV.note}` : ''}`, pts: 0, proof: proofStatus(mbaKey), auditNote: auditV.note };
+    })
+    .filter((x): x is MbaAnalysisItem => x !== null);
+
+  return [...base, ...outroMbaRejeitados].map((m) => (
+    m.status !== 'rejeitado' && m.auditNote
+      ? { ...m, reason: `${m.reason} · Obs. da auditoria: "${m.auditNote}"` }
+      : m
+  ));
+}
+
+export function buildProjAnalysis(
+  profile: ParticipantProfile,
+  itemValidations: ItemValidationLite[],
+  proofStatus: (key: string) => string,
+  projectRelabels: Record<string, string> = {},
+  catalogItems: CatalogItem[] = CATALOG_ITEMS
+): ProjAnalysisItem[] {
+  const getAuditV = (key: string) => itemValidations.find((v) => v.itemKey === key);
+  const allProjects = profile.selectedProjects || [];
+  const selectedAreas: string[] = (profile as any).selectedAreas || [];
+  const projectAreaMap: Record<string, string> = (profile as any).projectAreaMap || {};
+
+  const result: ProjAnalysisItem[] = allProjects.map((proj, idx) => {
+    const auditV = getAuditV(`projeto-${idx}`);
+    const auditNote = auditV?.note;
+    const effProj = projectRelabels[`projeto-${idx}`] || proj;
+    const proof = proofStatus(`proj:${proj}`);
+    const vinculadaArea = projectAreaMap[proj] || null;
+    if (auditV?.status === 'rejected') {
+      return { proj, status: 'rejeitado', reason: `Comprovante rejeitado pelo auditor${auditNote ? ` — ${auditNote}` : ''}`, pts: 0, area: vinculadaArea, proof, auditNote };
+    }
+    const catalogItem = catalogItems.find((i) => i.group === 'project' && i.label === effProj && i.area === vinculadaArea);
+    const altAreaMatch = catalogItems.find(
+      (i) => i.group === 'project' && i.label === effProj && i.area !== vinculadaArea && selectedAreas.includes((i.area || '') as any)
+    );
+    const altSuggestion = altAreaMatch
+      ? ` Este projeto está catalogado para a área ${altAreaMatch.area} (${(altAreaMatch as any).points} pts), que também é uma das áreas de interesse do candidato — considere vincular o projeto a essa área em vez de ${vinculadaArea || 'nenhuma'}.`
+      : '';
+    if (!vinculadaArea) {
+      return { proj, status: 'nao-pontua', reason: 'Projeto sem área vinculada — não entra no cálculo' + altSuggestion, pts: 0, area: null, proof, auditNote };
+    }
+    // Área vinculada precisa estar entre as áreas de interesse do candidato — senão o
+    // motor central (computeTechnicalAdherence) nunca soma este projeto em nenhuma área.
+    if (!selectedAreas.includes(vinculadaArea as any)) {
+      return { proj, status: 'nao-pontua', reason: `Área vinculada (${vinculadaArea}) não está entre as áreas de interesse selecionadas` + altSuggestion, pts: 0, area: vinculadaArea, proof, auditNote };
+    }
+    if (!catalogItem) {
+      return { proj, status: 'nao-pontua', reason: `O tema deste projeto não é aderente à área ${vinculadaArea} conforme o catálogo oficial de projetos estratégicos.` + altSuggestion, pts: 0, area: vinculadaArea, proof, auditNote };
+    }
+    // Teto de 20 pts por área, aplicado por ordem de declaração — mesmo critério já usado
+    // no recálculo agregado (Math.min(20, soma)), mas explicitado por item para o auditor
+    // ver exatamente quanto cada projeto está realmente contribuindo.
+    const projsInSameArea = allProjects.filter((pp) => projectAreaMap[pp] === vinculadaArea);
+    const itemsInArea = catalogItems.filter((i) => i.group === 'project' && projsInSameArea.includes(i.label) && i.area === vinculadaArea);
+    const totalBefore = itemsInArea
+      .filter((i) => projsInSameArea.indexOf(i.label) < projsInSameArea.indexOf(proj))
+      .reduce((acc, i) => acc + (i as any).points, 0);
+    const pts = (catalogItem as any).points;
+    const effective = Math.max(0, Math.min(pts, 20 - totalBefore));
+    const relabelNote = effProj !== proj ? ` · Reclassificado pelo administrador de "${proj}" para "${effProj}"` : '';
+    if (effective <= 0) {
+      return { proj, status: 'nao-pontua', reason: `Cap de 20 pts já atingido para a área ${vinculadaArea} — este projeto não adiciona pontos`, pts: 0, area: vinculadaArea, proof, auditNote };
+    }
+    return { proj, status: 'pontua', reason: `Área ${vinculadaArea} — ${pts} pts no catálogo${effective < pts ? ` (limitado a ${effective} pts pelo cap de 20 pts da área)` : ''}${relabelNote}`, pts: effective, area: vinculadaArea, proof, auditNote };
+  });
+
+  return result.map((m) => (
+    m.status !== 'rejeitado' && m.auditNote
+      ? { ...m, reason: `${m.reason} · Obs. da auditoria: "${m.auditNote}"` }
+      : m
+  ));
+}
