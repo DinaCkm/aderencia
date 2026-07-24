@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: '/admin/ninebox', label: 'Nine Box', icon: '🎯' },
   { href: '/admin/employees', label: 'Empregados', icon: '👤' },
   { href: '/admin/audit', label: 'Auditoria de Fichas', icon: '🔎' },
+  { href: '/admin/admins', label: 'Administradores', icon: '🛡️' },
   { href: '/admin/backups', label: 'Backups', icon: '💾' },
 ];
 
@@ -27,6 +28,7 @@ const MENU_CARDS = [
   { href: '/admin/import-participants', icon: '📥', title: 'Importar Colaboradores', desc: 'Adicione novos participantes em lote via CSV', color: '#ec4899' },
   { href: '/admin/employees', icon: '👤', title: 'Gestão de Empregados', desc: 'Crie, edite e exclua empregados individualmente', color: '#0e7490' },
   { href: '/admin/audit', icon: '🔎', title: 'Auditoria de Fichas', desc: 'Leia a ficha completa de cada candidato, valide item por item e solicite informações por e-mail', color: '#7c3aed' },
+  { href: '/admin/admins', icon: '🛡️', title: 'Administradores', desc: 'Crie, edite e remova usuários com acesso ao painel administrativo', color: '#dc2626' },
   { href: '/admin/backups', icon: '💾', title: 'Backups', desc: 'Veja os backups salvos no banco e dispare um backup manual', color: '#334155' },
 ];
 
