@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       'Data de Validação',
     ];
 
-    const lines = [headers.join(',')];
+    const lines = [row(headers)]; // escapa o cabeçalho também — evita que vírgulas dentro de nomes de coluna quebrem o alinhamento
 
     for (const p of submitted) {
       const proofGrad = p.proofFiles?.['grad'] || p.proofFiles?.['grad2'] || '';
@@ -92,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (type === 'performance') {
     const records = await readJsonAsync<PerformanceRecord[]>('performance', []);
     const headers = ['Participante ID', 'Área', 'Score (0-100)', 'Data de Importação'];
-    const lines = [headers.join(',')];
+    const lines = [row(headers)]; // escapa o cabeçalho também — evita que vírgulas dentro de nomes de coluna quebrem o alinhamento
     for (const r of records) {
       lines.push(row([r.participantId, r.area, r.score100, r.date]));
     }
@@ -106,7 +106,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (type === 'disc') {
     const records = await readJsonAsync<DISCRecord[]>('disc_records', []);
     const headers = ['Participante ID', 'Nome', 'Área', 'Correlação DISC (%)', 'D (pessoa)', 'I (pessoa)', 'S (pessoa)', 'C (pessoa)', 'D (cargo)', 'I (cargo)', 'S (cargo)', 'C (cargo)', 'Data de Importação'];
-    const lines = [headers.join(',')];
+    const lines = [row(headers)]; // escapa o cabeçalho também — evita que vírgulas dentro de nomes de coluna quebrem o alinhamento
     for (const r of records) {
       lines.push(row([r.participantId, r.participantName, r.area, r.correlationPct, r.personD, r.personI, r.personS, r.personC, r.jobD, r.jobI, r.jobS, r.jobC, r.importedAt]));
     }
@@ -176,7 +176,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       'Graduação', 'Graduação 2', 'Nome do Curso de Graduação', 'Justificativa de Exceção (Graduação)',
       'Modo de Comprovação (Graduação)',
       // Pós/MBA
-      'Pós/MBA (nome real do curso, com área do catálogo)', 'Modo de Comprovação (Pós/MBA)',
+      'Pós/MBA (nome real do curso — com área do catálogo)', 'Modo de Comprovação (Pós/MBA)',
       // Experiência
       'Meses Gerenciais (declarado)', 'Meses Interinos (declarado)', 'Meses Totais (legado)',
       'Ajuste do Admin — Meses Gerenciais', 'Ajuste do Admin — Meses Interinos', 'Ajuste do Admin — Observação',
@@ -187,13 +187,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Exceções
       'Solicitou Exceção?', 'Exceções Estruturadas (tipo | item | área alvo | objetivo)',
       'Status de Exceção (legado)', 'Item de Catálogo Vinculado (legado)', 'Justificativa de Aprovação (legado)',
-      'Vínculos de Exceção (admin, por exceção estruturada)',
+      'Vínculos de Exceção (admin — por exceção estruturada)',
       // Comportamental
       'Score Performance (0-100)', 'Data de Importação da Performance',
       'DISC por Área (correlação % | D/I/S/C pessoa | D/I/S/C cargo)',
       // Status geral da ficha
       'Status Geral da Ficha', 'Observação de Validação (auditoria)', 'Nota Administrativa (legado)',
-      'Data de Validação (auditoria)', 'Data de Validação (legado, ficha)',
+      'Data de Validação (auditoria)', 'Data de Validação (legado — ficha)',
       // Todos os itens auditados (inclusive os que não pontuam)
       'Todos os Itens Auditados (item: status: motivo)',
       // Itens pontuáveis — pendência/aprovação
@@ -211,7 +211,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       'Anexos (nomes de arquivo)',
     ];
 
-    const lines = [headers.join(',')];
+    const lines = [row(headers)]; // escapa o cabeçalho também — evita que vírgulas dentro de nomes de coluna quebrem o alinhamento
 
     for (const p of submitted) {
       const proofGrad = p.proofFiles?.['grad'] || p.proofFiles?.['grad2'] || '';
