@@ -294,20 +294,25 @@ function ValidationControls({
 }
 
 // ─── Seletor de reclassificação de projeto ─────────────────────────────────
-// Mostrado quando o título escolhido pelo candidato não bate com o catálogo da área
-// vinculada — permite ao admin escolher o item correto do catálogo para essa área,
-// sem alterar o texto original informado pelo candidato.
-function ProjectRelabelPicker({ area, onPick, saving }: {
+// Permite ao admin reclassificar o item de catálogo vinculado a este projeto para
+// a área selecionada — disponível sempre (mesmo quando o título do candidato já
+// bate com um item do catálogo), para cobrir o caso de um comprovante novo/adicional
+// justificar a reclassificação para outro item, sem alterar o texto original
+// informado pelo candidato.
+function ProjectRelabelPicker({ area, matched, saving, onPick }: {
   area: string;
-  onPick: (newLabel: string) => void;
+  matched: boolean;
   saving: boolean;
+  onPick: (newLabel: string) => void;
 }) {
   const options = CATALOG_ITEMS.filter((ci) => ci.group === 'project' && (ci as any).area === area);
   if (options.length === 0) return null;
   return (
     <div style={{ marginBottom: 8, padding: '8px 10px', background: '#eff6ff', border: '1.5px solid #93c5fd', borderRadius: 6 }}>
       <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1d4ed8', marginBottom: 6 }}>
-        🔄 Título não reconhecido para esta área — se o comprovante corresponder a outro item do catálogo, reclassifique aqui:
+        🔄 {matched
+          ? 'Reclassificar item do catálogo para esta área — use se um novo comprovante justificar outro item:'
+          : 'Título não reconhecido para esta área — se o comprovante corresponder a outro item do catálogo, reclassifique aqui:'}
       </div>
       <select
         defaultValue=""
@@ -1743,8 +1748,13 @@ export default function AdminAudit() {
                             </button>
                           </div>
                         )}
-                        {!relabeledTitle && !catalogMatch2 && assignedArea2 && (
-                          <ProjectRelabelPicker area={assignedArea2} onPick={(newLabel) => saveProjectRelabel(projItemKey, newLabel)} saving={saving} />
+                        {!relabeledTitle && assignedArea2 && (
+                          <ProjectRelabelPicker
+                            area={assignedArea2}
+                            matched={!!catalogMatch2}
+                            saving={saving}
+                            onPick={(newLabel) => saveProjectRelabel(projItemKey, newLabel)}
+                          />
                         )}
                         {p.projectAreaMap?.[proj] ? (
                           <div style={{ fontSize: '0.72rem', color: '#5b21b6', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
