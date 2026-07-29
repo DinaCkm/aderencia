@@ -22,13 +22,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Dados do participante incompletos.' });
   }
 
-  // Verificar se o processo está encerrado — bloquear alterações de conteúdo
+  // Verificar se o processo está encerrado — bloquear alterações de conteúdo,
+  // EXCETO para e-mails na lista de liberação individual (ver /api/admin/participant-access).
   const processConfig = await readJsonAsync<ProcessConfig>('process_config', { processClosed: false });
   if (processConfig.processClosed) {
-    return res.status(403).json({
-      error: 'O prazo de inscrição foi encerrado. Não é mais possível alterar os dados do formulário.',
-      processClosed: true,
-    });
+    const overrides = await readJsonAsync<string[]>('participant_access_overrides', []);
+    const isOverridden = overrides.includes((data.email || '').trim().toLowerCase());
+    if (!isOverridden) {
+      return res.status(403).json({
+        error: 'O prazo de inscrição foi encerrado. Não é mais possível alterar os dados do formulário.',
+        processClosed: true,
+      });
+    }
   }
 
   // Extrair arquivos base64 do proofFiles antes de salvar no JSON de participants.
