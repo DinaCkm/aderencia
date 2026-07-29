@@ -383,17 +383,32 @@ export default function ParticipantForm() {
     }
     const adminUser = role === 'admin';
     setIsAdmin(adminUser);
-    // Bloqueio por data apenas para participantes
-    if (!adminUser) {
-      const now = new Date();
-      if (now < OPEN_DATE) { setDateBlock('before'); }
-      else if (now > CLOSE_DATE) { setDateBlock('after'); }
-    }
-    // Verificar se o processo foi encerrado pelo admin
-    fetch('/api/participant/process-status')
+    // Verificar se o processo foi encerrado pelo admin E se este e-mail tem
+    // liberação individual (reabertura apenas para candidatos específicos,
+    // gerenciada em /api/admin/participant-access). Quando há liberação
+    // individual, ignoramos tanto o toggle geral quanto a janela de datas
+    // abaixo — os demais participantes continuam bloqueados normalmente.
+    fetch(`/api/participant/process-status?email=${encodeURIComponent(email)}`)
       .then((r) => r.ok ? r.json() : null)
-      .then((d) => { if (d?.processClosed) setProcessClosed(true); })
-      .catch(() => {});
+      .then((d) => {
+        const overridden = !!d?.overrideActive;
+        if (d?.processClosed && !overridden) setProcessClosed(true);
+        // Bloqueio por data apenas para participantes, e só se não houver liberação individual
+        if (!adminUser && !overridden) {
+          const now = new Date();
+          if (now < OPEN_DATE) { setDateBlock('before'); }
+          else if (now > CLOSE_DATE) { setDateBlock('after'); }
+        }
+      })
+      .catch(() => {
+        // Falha ao consultar liberação individual: mantém o comportamento
+        // seguro anterior (aplica bloqueio por data normalmente).
+        if (!adminUser) {
+          const now = new Date();
+          if (now < OPEN_DATE) { setDateBlock('before'); }
+          else if (now > CLOSE_DATE) { setDateBlock('after'); }
+        }
+      });
     setParticipantName(name || '');
     // Sempre buscar perfil do servidor primeiro — tem prioridade sobre rascunho local
     // O rascunho só é usado se o servidor não tiver dados (participante nunca submeteu)
