@@ -39,6 +39,9 @@ export default function AdminDashboard() {
   const [downloading, setDownloading] = useState<string | null>(null);
   const [processClosed, setProcessClosed] = useState<boolean | null>(null);
   const [processToggling, setProcessToggling] = useState(false);
+  const [overrideEmails, setOverrideEmails] = useState<string[]>([]);
+  const [overrideInput, setOverrideInput] = useState('');
+  const [overrideSaving, setOverrideSaving] = useState(false);
 
   const downloadCSV = async (type: string, label: string) => {
     setDownloading(type);
@@ -91,7 +94,58 @@ export default function AdminDashboard() {
     setAdminName(name || 'Administrador');
     fetch('/api/admin/stats').then(r => r.json()).then(d => setStats(d)).catch(() => {});
     fetch('/api/admin/process-config').then(r => r.json()).then(d => setProcessClosed(d.processClosed ?? false)).catch(() => {});
+    fetch('/api/admin/participant-access').then(r => r.json()).then(d => setOverrideEmails(d.emails ?? [])).catch(() => {});
   }, [router]);
+
+  const addOverrideEmails = async () => {
+    const raw = overrideInput
+      .split(/[\n,;]+/)
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+    if (raw.length === 0) return;
+    setOverrideSaving(true);
+    try {
+      const merged = Array.from(new Set([...overrideEmails, ...raw]));
+      const res = await fetch('/api/admin/participant-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emails: merged }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setOverrideEmails(d.emails ?? merged);
+        setOverrideInput('');
+      } else {
+        alert('Erro ao liberar os e-mails. Tente novamente.');
+      }
+    } catch {
+      alert('Erro de conexão. Tente novamente.');
+    } finally {
+      setOverrideSaving(false);
+    }
+  };
+
+  const removeOverrideEmail = async (email: string) => {
+    if (!window.confirm(`Remover a liberação individual de ${email}? A pessoa voltará a ficar bloqueada junto com os demais.`)) return;
+    setOverrideSaving(true);
+    try {
+      const res = await fetch('/api/admin/participant-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ removeEmail: email }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setOverrideEmails(d.emails ?? overrideEmails.filter((e) => e !== email));
+      } else {
+        alert('Erro ao remover o e-mail. Tente novamente.');
+      }
+    } catch {
+      alert('Erro de conexão. Tente novamente.');
+    } finally {
+      setOverrideSaving(false);
+    }
+  };
 
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
 
@@ -198,6 +252,66 @@ export default function AdminDashboard() {
               {processToggling ? '\u23F3 Aguarde...' : processClosed ? '\uD83D\uDD13 Reabrir Processo' : '\uD83D\uDD12 Encerrar Processo'}
             </button>
           </div>
+        </div>
+
+        {/* Liberação individual de preenchimento — ignora o encerramento geral e a janela de datas */}
+        <div className="section-card" style={{ marginBottom: '28px', padding: '24px 28px', border: '2px solid #3b82f6', background: '#eff6ff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '1.3rem' }}>🔓</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '1rem', color: '#1d4ed8' }}>Liberação individual de preenchimento</div>
+              <div style={{ fontSize: '0.8rem', color: '#1e40af', marginTop: 2 }}>
+                Libera o formulário apenas para os e-mails abaixo, mesmo com o processo geral encerrado e mesmo fora da janela de datas padrão. Quem não estiver na lista continua bloqueado normalmente — inclusive quem já finalizou a ficha.
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, marginTop: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+            <textarea
+              value={overrideInput}
+              onChange={(e) => setOverrideInput(e.target.value)}
+              placeholder="Cole um ou mais e-mails (um por linha, ou separados por vírgula)"
+              rows={2}
+              style={{ flex: '1 1 320px', minWidth: 260, fontSize: '0.85rem', padding: '8px 10px', borderRadius: 6, border: '1.5px solid #93c5fd', resize: 'vertical' }}
+            />
+            <button
+              onClick={addOverrideEmails}
+              disabled={overrideSaving || !overrideInput.trim()}
+              style={{
+                background: '#2563eb', color: 'white', border: 'none', borderRadius: 8,
+                padding: '10px 20px', fontWeight: 700, cursor: overrideSaving ? 'wait' : 'pointer',
+                fontSize: '0.85rem', opacity: overrideSaving ? 0.7 : 1, minWidth: 120, height: 'fit-content',
+              }}
+            >
+              {overrideSaving ? 'Aguarde...' : '+ Liberar'}
+            </button>
+          </div>
+
+          {overrideEmails.length === 0 ? (
+            <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Nenhum e-mail com liberação individual no momento.</div>
+          ) : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {overrideEmails.map((email) => (
+                <span key={email} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: 'white', border: '1.5px solid #93c5fd', borderRadius: 20,
+                  padding: '4px 10px 4px 12px', fontSize: '0.78rem', color: '#1e3a8a',
+                }}>
+                  {email}
+                  <button
+                    onClick={() => removeOverrideEmail(email)}
+                    disabled={overrideSaving}
+                    title="Remover liberação"
+                    style={{
+                      background: '#dbeafe', border: 'none', borderRadius: '50%',
+                      width: 18, height: 18, lineHeight: '18px', textAlign: 'center',
+                      cursor: 'pointer', color: '#1d4ed8', fontSize: '0.75rem', padding: 0,
+                    }}
+                  >×</button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Exportação de Dados */}
