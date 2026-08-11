@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import type { ParticipantProfile } from '../../lib/types';
 import { CATALOG_ITEMS as FIXED_CATALOG_ITEMS } from '../../lib/constants';
-import { TRANSVERSAL_PROJECTS, buildMbaAnalysis, buildProjAnalysis } from '../../lib/business';
+import { TRANSVERSAL_PROJECTS, buildMbaAnalysis, buildProjAnalysis, dedupeItemValidations } from '../../lib/business';
 // Ver comentário equivalente em pages/admin/audit.tsx — CATALOG_ITEMS é atualizado em runtime
 // com o catálogo completo (fixo + itens customizados) buscado via /api/admin/catalogs.
 let CATALOG_ITEMS: typeof FIXED_CATALOG_ITEMS = FIXED_CATALOG_ITEMS;
@@ -99,7 +99,13 @@ export default function PrintProfile() {
   const areas = data.areaAssessments || [];
   const audit = data.audit;
   const overallStatus = audit?.overallStatus || p.validationStatus || 'provisional';
-  const itemValidations = audit?.itemValidations || [];
+  // IMPORTANTE: sempre deduplicar por itemKey (mantendo só o registro mais recente por
+  // validatedAt) antes de exibir. Registros antigos de normalizações legadas (Fase 1) podem
+  // ter deixado mais de um registro para o mesmo item no banco — sem isto, o "Resumo da
+  // Auditoria" abaixo mostrava linhas repetidas para o mesmo item com status divergente
+  // (ex.: "Rejeitado" e depois "Validado"), o que gera dúvida no candidato e pode motivar
+  // recurso indevido. Fonte única: lib/business.ts → dedupeItemValidations().
+  const itemValidations = dedupeItemValidations(audit?.itemValidations || []);
   const getAuditV = (key: string) => itemValidations.find((v) => v.itemKey === key);
 
   // Rótulo legível para cada item auditado (usado no Resumo da Auditoria)

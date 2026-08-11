@@ -4,7 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import type { ParticipantProfile } from '../../lib/types';
 import { CATALOG_ITEMS as FIXED_CATALOG_ITEMS } from '../../lib/constants';
-import { TRANSVERSAL_PROJECTS, buildMbaAnalysis, buildProjAnalysis } from '../../lib/business';
+import { TRANSVERSAL_PROJECTS, buildMbaAnalysis, buildProjAnalysis, dedupeItemValidations } from '../../lib/business';
 // Ver comentário equivalente em pages/admin/audit.tsx — CATALOG_ITEMS é atualizado em runtime
 // com o catálogo completo (fixo + itens customizados) buscado via /api/admin/catalogs.
 let CATALOG_ITEMS: typeof FIXED_CATALOG_ITEMS = FIXED_CATALOG_ITEMS;
@@ -363,7 +363,11 @@ function EmployeeProfileModal({ email, onClose }: { email: string; onClose: () =
               const allProjects = p.selectedProjects || [];
               const allCourses = p.selectedCourses || [];
               const selectedAreas = p.selectedAreas || [];
-              const itemValidations = data?.audit?.itemValidations || [];
+              // Deduplica por itemKey (mantém só o registro mais recente por validatedAt) —
+              // evita mostrar/considerar um registro antigo (ex.: de uma normalização legada)
+              // por cima de uma decisão mais recente. Mesma correção aplicada em
+              // print-profile.tsx. Fonte única: lib/business.ts → dedupeItemValidations().
+              const itemValidations = dedupeItemValidations(data?.audit?.itemValidations || []);
               const hasAudit = itemValidations.length > 0;
 
               // Helper: retorna validação de um item pela chave (ainda usado pela seção de experiência)
