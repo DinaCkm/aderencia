@@ -217,6 +217,69 @@ function ExperienceOverrideEditor({
   );
 }
 
+// Editor para o admin corrigir as áreas de interesse cadastradas do candidato. Necessário
+// porque todo o cálculo de projetos depende de `selectedAreas` (um projeto só pontua se a área
+// vinculada estiver nessa lista) — sem essa correção, um erro no cadastro original deixa
+// projetos "órfãos" sem pontuar, sem nenhuma forma de o admin consertar.
+function AreaOverrideEditor({
+  profile, onSave, saving,
+}: {
+  profile: ParticipantProfile;
+  onSave: (areas: string[], reason: string) => Promise<boolean | void>;
+  saving: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [areas, setAreas] = useState<string[]>(profile.selectedAreas || []);
+  const [reason, setReason] = useState('');
+
+  const toggleArea = (code: string) => {
+    setAreas((prev) => (prev.includes(code) ? prev.filter((a) => a !== code) : [...prev, code]));
+  };
+
+  if (!editing) {
+    return (
+      <button type="button" onClick={() => { setAreas(profile.selectedAreas || []); setEditing(true); }}
+        style={{ fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #93c5fd', borderRadius: 6, cursor: 'pointer', marginTop: 8 }}>
+        ✏️ Corrigir áreas de interesse cadastradas
+      </button>
+    );
+  }
+
+  return (
+    <div style={{ marginTop: 8, padding: '10px 12px', background: '#eff6ff', border: '1.5px solid #93c5fd', borderRadius: 8 }}>
+      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1d4ed8', marginBottom: 8 }}>
+        ✏️ Corrigir áreas de interesse (ajusta o cadastro do candidato — afeta diretamente quais projetos pontuam)
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+        {Object.entries(AREA_LABELS).map(([code, label]) => (
+          <label key={code} style={{
+            fontSize: '0.74rem', display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer',
+            background: areas.includes(code) ? '#ede9fe' : 'white',
+            border: `1px solid ${areas.includes(code) ? '#c4b5fd' : '#cbd5e1'}`,
+            borderRadius: 6, padding: '4px 10px', color: areas.includes(code) ? '#5b21b6' : '#475569',
+          }}>
+            <input type="checkbox" checked={areas.includes(code)} onChange={() => toggleArea(code)} />
+            {label}
+          </label>
+        ))}
+      </div>
+      <textarea rows={2} placeholder="Motivo da correção (ex: candidata confirmou por e-mail que a área correta é UGE, não URC...)"
+        value={reason} onChange={(e) => setReason(e.target.value)}
+        style={{ width: '100%', fontSize: '0.75rem', border: '1px solid #cbd5e1', borderRadius: 6, padding: '6px 8px', resize: 'vertical', fontFamily: 'inherit', marginBottom: 8 }} />
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button type="button" disabled={saving || areas.length === 0} onClick={async () => { const ok = await onSave(areas, reason); if (ok !== false) setEditing(false); }}
+          style={{ fontSize: '0.75rem', fontWeight: 700, padding: '5px 14px', background: '#2563eb', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer', opacity: (saving || areas.length === 0) ? 0.6 : 1 }}>
+          {saving ? '⏳ Salvando...' : '💾 Salvar correção'}
+        </button>
+        <button type="button" onClick={() => setEditing(false)}
+          style={{ fontSize: '0.75rem', fontWeight: 600, padding: '5px 14px', background: 'white', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: 6, cursor: 'pointer' }}>
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ValidationControls({
   itemKey, validation, onSave,
 }: {
@@ -989,6 +1052,33 @@ export default function AdminAudit() {
     );
   };
 
+  // Salva a correção administrativa das áreas de interesse cadastradas do candidato
+  const saveAreaOverride = async (areas: string[], reason: string) => {
+    if (!selected) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/admin/update-areas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ participantId: selected.profile.id, selectedAreas: areas, reason }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(`❌ Erro ao corrigir áreas: ${errData.error || res.statusText}`);
+        setSaving(false);
+        return false;
+      }
+      if (selected.profile.email) await loadProfile(selected.profile.email);
+      setSaving(false);
+      showToast('Áreas de interesse corrigidas!');
+      return true;
+    } catch (err) {
+      showToast('❌ Erro de conexão ao corrigir áreas. Tente novamente.');
+      setSaving(false);
+      return false;
+    }
+  };
+
   // Salva o ajuste manual de experiência gerencial/interina feito pelo administrador
   const saveExperienceOverride = async (managerialMonths: number, interimMonths: number, note: string) => {
     if (!selected) return;
@@ -1420,6 +1510,7 @@ export default function AdminAudit() {
                     ))}
                   </div>
                 )}
+                <AreaOverrideEditor profile={p} onSave={saveAreaOverride} saving={saving} />
                 <ValidationControls itemKey="areas-interesse" validation={getValidation('areas-interesse')} onSave={saveItemValidation} />
               </SectionCard>
 
