@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync } from '../../../lib/db';
-import { buildAreaAssessment } from '../../../lib/business';
+import { buildAreaAssessment, dedupeItemValidations } from '../../../lib/business';
 import { getEffectiveCatalogItems } from '../../../lib/catalog';
 import type { ParticipantProfile, PerformanceRecord, DiscReport, DISCRecord } from '../../../lib/types';
 
@@ -31,7 +31,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Itens marcados como Rejeitado pela UGP na Auditoria de Fichas — pontos retirados do cálculo
   const profileAudit = profileAudits.find((a) => a.participantId === participant.id);
-  const rejectedItems = (profileAudit?.itemValidations || [])
+  // Deduplica por itemKey (mantém só o registro mais recente por validatedAt) antes de
+  // derivar rejeitados/pontuação — evita que um registro antigo duplicado (ex.: de
+  // normalização legada da Fase 1) prevaleça sobre a decisão real mais recente na tela
+  // que o próprio candidato vê. Fonte única: lib/business.ts → dedupeItemValidations().
+  const dedupedItemValidations = dedupeItemValidations(profileAudit?.itemValidations || []);
+  const rejectedItems = dedupedItemValidations
     .filter((v) => v.status === 'rejected')
     .map((v) => ({ itemKey: v.itemKey, note: v.note }));
   const experienceOverride = (profileAudit as any)?.experienceOverride;
@@ -41,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const catalogItems = await getEffectiveCatalogItems();
 
   const results = (participant.selectedAreas || []).map((area) => {
-    const assessment = buildAreaAssessment(participant, area, performances, discReports, exceptionAssignments, rejectedItems, {}, experienceOverride, projectRelabels, catalogItems, profileAudit?.itemValidations || []);
+    const assessment = buildAreaAssessment(participant, area, performances, discReports, exceptionAssignments, rejectedItems, {}, experienceOverride, projectRelabels, catalogItems, dedupedItemValidations);
     const steps = assessment.calculationSteps || [];
     const getStep = (name: string) => {
       const s = steps.find((st) => st.name.toLowerCase().includes(name.toLowerCase()));
