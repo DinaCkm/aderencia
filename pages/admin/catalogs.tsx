@@ -22,7 +22,18 @@ const NAV_ITEMS = [
   { href: '/admin/ninebox', label: 'Nine Box', icon: '🎯' },
 ];
 
-const EMPTY_ITEM = { id: '', label: '', group: 'course', classification: 'transversal', area: '' };
+const EMPTY_ITEM = { id: '', label: '', group: 'course', classification: 'transversal', area: '', points: '' as number | string };
+
+// Grupos cuja pontuação entra diretamente no cálculo da nota (ver lib/business.ts) — o campo
+// de pontos é obrigatório para estes. Mesma lista usada em pages/api/admin/catalogs.ts.
+const SCORABLE_GROUPS = ['postMBA', 'project'];
+
+// Sugestão de pontuação por grupo + classificação (referência — o admin pode ajustar).
+function suggestedPoints(group: string, classification: string): number | null {
+  if (group === 'postMBA') return classification === 'transversal' ? 40 : 20;
+  if (group === 'project') return 20;
+  return null;
+}
 
 export default function AdminCatalogs() {
   const router = useRouter();
@@ -31,6 +42,7 @@ export default function AdminCatalogs() {
   const [item, setItem] = useState({ ...EMPTY_ITEM });
   const [editingItem, setEditingItem] = useState<any | null>(null);
   const [message, setMessage] = useState('');
+  const [affected, setAffected] = useState<{ id: string; name: string; email: string }[] | null>(null);
   const [importMessage, setImportMessage] = useState('');
   const [filterGroup, setFilterGroup] = useState('');
   const [filterSource, setFilterSource] = useState('');
@@ -53,7 +65,7 @@ export default function AdminCatalogs() {
   }, [router]);
 
   const downloadTemplate = () => {
-    const template = `id,label,group,classification,area\nmba-strategic,MBA Estratégia Corporativa,postMBA,transversal,\ncurso-lideranca,Curso de Liderança Estratégica,course,transversal,\nprojeto-transformacao,Projeto de Transformação Digital,project,transversal,\n`;
+    const template = `id,label,group,classification,area,points\nmba-strategic,MBA Estratégia Corporativa,postMBA,transversal,,40\ncurso-lideranca,Curso de Liderança Estratégica,course,transversal,,\nprojeto-transformacao,Projeto de Transformação Digital,project,area-specific,UAF,20\n`;
     const blob = new Blob([template], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -69,8 +81,13 @@ export default function AdminCatalogs() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (SCORABLE_GROUPS.includes(item.group) && (item.points === '' || item.points === undefined || Number(item.points) <= 0)) {
+      setMessage(`Informe a pontuação (points) — obrigatória para o grupo "${GROUP_LABELS[item.group] || item.group}". Sugestão: ${suggestedPoints(item.group, item.classification)} pts.`);
+      return;
+    }
     const method = editingItem ? 'PUT' : 'POST';
-    const payload = editingItem ? { ...editingItem, ...item } : item;
+    const normalizedItem = { ...item, points: item.points === '' ? undefined : Number(item.points) };
+    const payload = editingItem ? { ...editingItem, ...normalizedItem } : normalizedItem;
     const res = await fetch('/api/admin/catalogs', {
       method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
     });
@@ -78,18 +95,21 @@ export default function AdminCatalogs() {
     if (res.ok) {
       setCatalogs(data.catalogs || catalogs);
       setMessage(data.message || 'Item salvo com sucesso.');
+      setAffected(data.affected || null);
       setItem({ ...EMPTY_ITEM });
       setEditingItem(null);
       setShowForm(false);
       fetchCatalogs();
     } else {
       setMessage(data.error || 'Erro ao salvar item.');
+      setAffected(null);
     }
   };
 
   const handleEdit = (c: any) => {
     setEditingItem(c);
-    setItem({ id: c.id, label: c.label, group: c.group, classification: c.classification, area: c.area || '' });
+    setItem({ id: c.id, label: c.label, group: c.group, classification: c.classification, area: c.area || '', points: c.points ?? '' });
+    setAffected(null);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -173,7 +193,7 @@ export default function AdminCatalogs() {
               </h2>
               {!showForm && <p style={{ color: 'var(--text-muted)', fontSize: '0.78rem', margin: '4px 0 0' }}>Cadastre cursos, projetos e pós/MBA nas listas fechadas</p>}
             </div>
-            <button className="btn-outline" style={{ fontSize: '0.78rem' }} onClick={() => { setShowForm(!showForm); if (showForm) { setEditingItem(null); setItem({ ...EMPTY_ITEM }); } }}>
+            <button className="btn-outline" style={{ fontSize: '0.78rem' }} onClick={() => { setShowForm(!showForm); if (showForm) { setEditingItem(null); setItem({ ...EMPTY_ITEM }); setMessage(''); setAffected(null); } }}>
               {showForm ? 'Fechar' : 'Abrir formulário'}
             </button>
           </div>
@@ -190,28 +210,77 @@ export default function AdminCatalogs() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Grupo *</label>
-                  <select className="form-input" value={item.group} onChange={(e) => setItem({ ...item, group: e.target.value })}>
+                  <select className="form-input" value={item.group} onChange={(e) => {
+                    const newGroup = e.target.value;
+                    const suggestion = suggestedPoints(newGroup, item.classification);
+                    // Só preenche automaticamente se o campo de pontos ainda não foi tocado manualmente
+                    // (evita sobrescrever um valor que o admin já digitou de propósito).
+                    const shouldAutoFill = item.points === '' || item.points === suggestedPoints(item.group, item.classification);
+                    setItem({ ...item, group: newGroup, points: shouldAutoFill && suggestion !== null ? suggestion : item.points });
+                  }}>
                     {GROUPS.map((g) => <option key={g} value={g}>{GROUP_LABELS[g] || g}</option>)}
                   </select>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Classificação *</label>
-                  <select className="form-input" value={item.classification} onChange={(e) => setItem({ ...item, classification: e.target.value })}>
+                  <select className="form-input" value={item.classification} onChange={(e) => {
+                    const newClassification = e.target.value;
+                    const suggestion = suggestedPoints(item.group, newClassification);
+                    const shouldAutoFill = item.points === '' || item.points === suggestedPoints(item.group, item.classification);
+                    setItem({ ...item, classification: newClassification, points: shouldAutoFill && suggestion !== null ? suggestion : item.points });
+                  }}>
                     {CLASSIFICATIONS.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Área (apenas para itens específicos)</label>
-                <select className="form-input" value={item.area} onChange={(e) => setItem({ ...item, area: e.target.value })}>
-                  <option value="">Nenhuma (transversal)</option>
-                  {OFFICIAL_AREAS.map((a) => <option key={a.code} value={a.code}>{a.label}</option>)}
-                </select>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="form-group">
+                  <label className="form-label">Área (apenas para itens específicos)</label>
+                  <select className="form-input" value={item.area} onChange={(e) => setItem({ ...item, area: e.target.value })}>
+                    <option value="">Nenhuma (transversal)</option>
+                    {OFFICIAL_AREAS.map((a) => <option key={a.code} value={a.code}>{a.label}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">
+                    Pontuação (points) {SCORABLE_GROUPS.includes(item.group) ? '*' : '(opcional — não entra na nota)'}
+                  </label>
+                  <input
+                    className="form-input" type="number" min={0} step={1}
+                    placeholder={suggestedPoints(item.group, item.classification) !== null ? `Sugestão: ${suggestedPoints(item.group, item.classification)}` : 'Não pontua'}
+                    value={item.points}
+                    onChange={(e) => setItem({ ...item, points: e.target.value === '' ? '' : Number(e.target.value) })}
+                    required={SCORABLE_GROUPS.includes(item.group)}
+                  />
+                  {item.group === 'postMBA' && (
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
+                      Regra oficial: Pós/MBA transversal = 40 pts · específico de área = 20 pts.
+                    </p>
+                  )}
+                </div>
               </div>
-              {message && <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 'var(--radius-sm)', padding: '8px 14px', color: '#15803d', fontSize: '0.8rem', marginBottom: 12 }}>{message}</div>}
+              {message && (
+                <div style={{ background: message.toLowerCase().includes('erro') || message.toLowerCase().includes('obrigatória') ? '#fef2f2' : '#f0fdf4', border: `1px solid ${message.toLowerCase().includes('erro') || message.toLowerCase().includes('obrigatória') ? '#fca5a5' : '#86efac'}`, borderRadius: 'var(--radius-sm)', padding: '8px 14px', color: message.toLowerCase().includes('erro') || message.toLowerCase().includes('obrigatória') ? '#dc2626' : '#15803d', fontSize: '0.8rem', marginBottom: 12 }}>
+                  {message}
+                </div>
+              )}
+              {affected && affected.length > 0 && (
+                <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 'var(--radius-sm)', padding: '10px 14px', color: '#92400e', fontSize: '0.8rem', marginBottom: 12 }}>
+                  <strong>⚠️ {affected.length} candidato(s) já possuem este título e serão afetados:</strong>
+                  <ul style={{ margin: '6px 0 4px', paddingLeft: 18 }}>
+                    {affected.map((a) => <li key={a.id}>{a.name}</li>)}
+                  </ul>
+                  A nota é recalculada automaticamente na próxima vez que a ficha de cada um for aberta (na Auditoria, no PDF ou na Visão do Colaborador) — não é preciso fazer mais nada.
+                </div>
+              )}
+              {affected && affected.length === 0 && (
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 'var(--radius-sm)', padding: '8px 14px', color: '#475569', fontSize: '0.78rem', marginBottom: 12 }}>
+                  Nenhum candidato possui este título ainda — nada a recalcular por enquanto.
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 10 }}>
                 <button type="submit" className="btn-primary">{editingItem ? 'Salvar alterações' : 'Adicionar item'}</button>
-                {editingItem && <button type="button" className="btn-outline" onClick={() => { setEditingItem(null); setItem({ ...EMPTY_ITEM }); setShowForm(false); }}>Cancelar</button>}
+                {editingItem && <button type="button" className="btn-outline" onClick={() => { setEditingItem(null); setItem({ ...EMPTY_ITEM }); setShowForm(false); setMessage(''); setAffected(null); }}>Cancelar</button>}
               </div>
             </form>
           )}
@@ -222,7 +291,9 @@ export default function AdminCatalogs() {
           <details>
             <summary style={{ cursor: 'pointer', fontWeight: 700, color: 'var(--purple)', fontSize: '0.95rem' }}>📄 Importar Catálogo via CSV</summary>
             <div style={{ marginTop: 16 }}>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: 12 }}>Formato: id,label,group,classification,area</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: 12 }}>
+                Formato: id,label,group,classification,area,points — a coluna <strong>points</strong> é obrigatória (e deve ser maior que zero) para linhas com group = postMBA ou project; linhas dessas sem pontuação válida são ignoradas na importação.
+              </p>
               <button type="button" className="btn-outline" style={{ marginBottom: 16, fontSize: '0.78rem' }} onClick={downloadTemplate}>Baixar modelo CSV</button>
               <form onSubmit={handleImport}>
                 <div className="form-group">
@@ -267,13 +338,14 @@ export default function AdminCatalogs() {
                   <th>Grupo</th>
                   <th>Classificação</th>
                   <th>Área</th>
+                  <th>Pontos</th>
                   <th>Origem</th>
                   <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>Nenhum item encontrado.</td></tr>
+                  <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>Nenhum item encontrado.</td></tr>
                 ) : filtered.map((c: any, i: number) => (
                   <tr key={c.id} style={{ background: i % 2 === 0 ? 'white' : 'var(--surface)' }}>
                     <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)', fontSize: '0.72rem' }}>{c.id}</td>
@@ -281,6 +353,9 @@ export default function AdminCatalogs() {
                     <td><span style={{ background: 'var(--gradient-soft)', color: 'var(--purple)', borderRadius: 4, padding: '2px 8px', fontSize: '0.7rem', fontWeight: 600 }}>{GROUP_LABELS[c.group] || c.group}</span></td>
                     <td style={{ color: 'var(--text-muted)' }}>{c.classification}</td>
                     <td style={{ color: 'var(--text-muted)' }}>{c.area || '—'}</td>
+                    <td style={{ color: c.points ? '#1e293b' : '#f59e0b', fontWeight: c.points ? 400 : 600 }}>
+                      {c.points ?? (SCORABLE_GROUPS.includes(c.group) ? '⚠️ faltando' : '—')}
+                    </td>
                     <td>
                       <span className={`badge ${c.source === 'custom' ? 'badge-green' : 'badge-gray'}`} style={{ fontSize: '0.68rem' }}>
                         {c.source === 'custom' ? 'Custom' : 'Fixo'}
