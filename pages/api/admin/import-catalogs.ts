@@ -38,10 +38,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const rows = parseCsv(text);
   const catalogs = readJson<CatalogItem[]>('catalogs', []);
   let imported = 0;
+  const skipped: string[] = [];
+  // Grupos cuja pontuação entra no cálculo da nota (ver mesma lista em pages/api/admin/catalogs.ts)
+  const SCORABLE_GROUPS = ['postMBA', 'project'];
 
   for (const row of rows) {
-    const [id, label, group, classification, area] = row;
+    // Coluna 6 (points) é opcional para a maioria dos grupos, mas OBRIGATÓRIA para
+    // postMBA/project — sem ela o item pontuaria errado (ver comentário em catalogs.ts).
+    const [id, label, group, classification, area, pointsRaw] = row;
     if (!id || !label || !group || !classification) {
+      continue;
+    }
+    const points = pointsRaw !== undefined && pointsRaw !== '' ? Number(pointsRaw) : undefined;
+    if (SCORABLE_GROUPS.includes(group) && (points === undefined || Number.isNaN(points) || points <= 0)) {
+      skipped.push(`${id} (coluna "points" obrigatória e deve ser > 0 para o grupo "${group}")`);
       continue;
     }
 
@@ -50,7 +60,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       label,
       group: group as CatalogItem['group'],
       classification: classification as CatalogItem['classification'],
-      area: (area as AreaCode) || undefined
+      area: (area as AreaCode) || undefined,
+      points: points !== undefined && !Number.isNaN(points) ? points : undefined,
     };
 
     const existingIndex = catalogs.findIndex((entry) => entry.id === item.id);
@@ -63,5 +74,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   writeJson('catalogs', catalogs);
-  return res.status(200).json({ message: `Importados ${imported} itens de catálogo.` });
+  const skippedMsg = skipped.length > 0 ? ` ${skipped.length} linha(s) ignorada(s): ${skipped.join('; ')}` : '';
+  return res.status(200).json({ message: `Importados ${imported} itens de catálogo.${skippedMsg}` });
 }
