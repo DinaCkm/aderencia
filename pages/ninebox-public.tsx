@@ -114,6 +114,10 @@ export default function NineBoxPublic() {
               👤 {participantName}
             </span>
           )}
+          <a href="/guia-nine-box.html" target="_blank" rel="noopener noreferrer">
+            <button className="btn-outline" style={{ fontSize: '0.8rem', padding: '6px 14px' }}>📘 Guia do Nine Box</button>
+          </a>
+          <Link href="/analise"><button className="btn-outline" style={{ fontSize: '0.8rem', padding: '6px 14px' }}>📄 Ver Análise Completa</button></Link>
           <Link href="/my-results"><button className="btn-outline" style={{ fontSize: '0.8rem', padding: '6px 14px' }}>Meus resultados</button></Link>
           <button className="btn-logout" onClick={logout}>Sair</button>
         </div>
