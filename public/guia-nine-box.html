@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Guia didático sobre o funcionamento do Nine Box na Avaliação de Aderência do Banco de Sucessores.">
+  <title>Guia do Nine Box | Avaliação de Aderência</title>
+  <style>
+    :root {
+      --purple: #5b2d8e;
+      --purple-dark: #3e1d66;
+      --purple-soft: #f3e8ff;
+      --blue: #1d4ed8;
+      --teal: #0f766e;
+      --green: #15803d;
+      --amber: #b45309;
+      --red: #b91c1c;
+      --ink: #1f2937;
+      --muted: #5f6b7a;
+      --line: #dfe3ea;
+      --surface: #ffffff;
+      --page: #f5f6fa;
+      --shadow: 0 10px 30px rgba(42, 28, 68, 0.09);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--page);
+      font-family: Calibri, "Segoe UI", Arial, sans-serif;
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .hero {
+      background: linear-gradient(125deg, var(--purple-dark), var(--purple) 58%, #7750a5);
+      color: #fff;
+      padding: 54px 24px 46px;
+    }
+
+    .hero-inner,
+    main,
+    .footer-inner {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #eadcff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 800px;
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+
+    .hero p {
+      max-width: 770px;
+      margin: 18px 0 0;
+      color: #f6f0ff;
+      font-size: 1.08rem;
+    }
+
+    main { padding: 32px 20px 58px; }
+
+    .quick-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0 0 24px;
+    }
+
+    .quick-nav a {
+      border: 1px solid #d8c8e9;
+      border-radius: 999px;
+      padding: 8px 14px;
+      color: var(--purple-dark);
+      background: #fff;
+      font-size: 0.86rem;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .card {
+      margin: 0 0 24px;
+      padding: clamp(22px, 4vw, 36px);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    h2 {
+      margin: 0 0 15px;
+      color: var(--purple-dark);
+      font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+      line-height: 1.2;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      color: var(--ink);
+      font-size: 1.05rem;
+      line-height: 1.3;
+    }
+
+    p { margin: 0 0 14px; }
+    p:last-child { margin-bottom: 0; }
+
+    .lead {
+      color: #374151;
+      font-size: 1.08rem;
+    }
+
+    .highlight {
+      margin: 20px 0 0;
+      padding: 16px 18px;
+      border-left: 5px solid var(--purple);
+      border-radius: 8px;
+      background: var(--purple-soft);
+      color: #402060;
+    }
+
+    .axes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    .axis {
+      min-height: 145px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfbfd;
+    }
+
+    .axis-tag {
+      display: inline-block;
+      margin-bottom: 10px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      color: #fff;
+      background: var(--purple);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .axis.behavioral .axis-tag { background: var(--teal); }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .step {
+      position: relative;
+      padding: 18px 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .step-number {
+      display: grid;
+      width: 32px;
+      height: 32px;
+      margin-bottom: 12px;
+      place-items: center;
+      border-radius: 50%;
+      color: #fff;
+      background: var(--purple);
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .calculation-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .calculation {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+    }
+
+    .calculation-header {
+      padding: 16px 18px;
+      color: #fff;
+      background: var(--purple);
+    }
+
+    .calculation.behavioral .calculation-header { background: var(--teal); }
+
+    .calculation-header h3 { margin: 0; color: #fff; }
+
+    .calculation-body { padding: 18px; }
+
+    .score-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .score-list li {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #edf0f4;
+    }
+
+    .score-list li:last-child { padding-bottom: 0; border: 0; }
+
+    .points {
+      flex: 0 0 auto;
+      color: var(--purple-dark);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .formula {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 10px;
+      background: #f3f4f6;
+      color: #374151;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .bands {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .band {
+      padding: 18px;
+      border-radius: 14px;
+      text-align: center;
+    }
+
+    .band strong { display: block; font-size: 1.1rem; }
+    .band.low { color: #7f1d1d; background: #fee2e2; border: 1px solid #fecaca; }
+    .band.mid { color: #854d0e; background: #fef3c7; border: 1px solid #fde68a; }
+    .band.high { color: #14532d; background: #dcfce7; border: 1px solid #bbf7d0; }
+
+    .matrix-wrap {
+      overflow-x: auto;
+      margin-top: 22px;
+      padding: 0 0 8px;
+    }
+
+    .matrix {
+      display: grid;
+      grid-template-columns: 112px repeat(3, minmax(220px, 1fr));
+      gap: 10px;
+      min-width: 820px;
+    }
+
+    .matrix-label {
+      display: grid;
+      min-height: 70px;
+      place-items: center;
+      padding: 10px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .cell {
+      min-height: 160px;
+      padding: 17px;
+      border: 2px solid transparent;
+      border-radius: 14px;
+    }
+
+    .cell small {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .cell h3 { margin-bottom: 7px; font-size: 1rem; }
+    .cell p { margin: 0; font-size: 0.88rem; line-height: 1.45; }
+
+    .c-short { color: #075985; background: #e0f2fe; border-color: #7dd3fc; }
+    .c-ready-dev { color: #5b21b6; background: #ede9fe; border-color: #c4b5fd; }
+    .c-ready { color: #166534; background: #dcfce7; border-color: #86efac; }
+    .c-directed { color: #78350f; background: #fef3c7; border-color: #fcd34d; }
+    .c-medium { color: #581c87; background: #f3e8ff; border-color: #d8b4fe; }
+    .c-tech { color: #115e59; background: #ccfbf1; border-color: #5eead4; }
+    .c-low { color: #881337; background: #ffe4e6; border-color: #fda4af; }
+    .c-specialist { color: #9a3412; background: #ffedd5; border-color: #fdba74; }
+    .c-risk { color: #854d0e; background: #fef9c3; border-color: #fde047; }
+
+    .example {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1.2fr;
+      align-items: stretch;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .example-box {
+      display: grid;
+      min-height: 118px;
+      place-items: center;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfbfd;
+      text-align: center;
+    }
+
+    .example-box strong { display: block; color: var(--purple-dark); font-size: 1.5rem; }
+    .example-box.result { color: #115e59; background: #ccfbf1; border-color: #5eead4; }
+    .example-box.result strong { color: #115e59; font-size: 1.05rem; }
+    .operator { display: grid; place-items: center; color: var(--purple); font-size: 1.5rem; font-weight: 900; }
+
+    .note {
+      margin-top: 18px;
+      padding: 17px 19px;
+      border: 1px solid #f1d38c;
+      border-radius: 12px;
+      color: #713f12;
+      background: #fffbeb;
+    }
+
+    details {
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    summary {
+      padding: 15px 18px;
+      color: var(--purple-dark);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    details p { padding: 0 18px 18px; margin: 0; }
+
+    footer {
+      padding: 25px 20px;
+      color: #e9dcf6;
+      background: #2f174a;
+      font-size: 0.86rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 860px) {
+      .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .calculation-grid { grid-template-columns: 1fr; }
+      .example { grid-template-columns: 1fr; }
+      .operator { min-height: 24px; }
+    }
+
+    @media (max-width: 620px) {
+      body { font-size: 16px; }
+      .hero { padding: 40px 20px 35px; }
+      .axes, .steps, .bands { grid-template-columns: 1fr; }
+      .card { border-radius: 14px; padding: 22px 18px; }
+      .quick-nav a { width: 100%; text-align: center; }
+    }
+
+    @media print {
+      body { background: #fff; font-size: 11pt; }
+      .hero { padding: 28px 20px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .quick-nav { display: none; }
+      main { width: 100%; padding: 18px 0; }
+      .card { box-shadow: none; break-inside: avoid; }
+      .matrix-wrap { overflow: visible; }
+      .matrix { min-width: 0; grid-template-columns: 82px repeat(3, 1fr); }
+      .cell { min-height: 130px; padding: 10px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .cell p { font-size: 8.5pt; }
+      .bands, .calculation-header, .formula, .note { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Banco de Sucessores — Avaliação de Aderência</p>
+      <h1>Como funciona o Nine Box?</h1>
+      <p>Entenda, de forma simples, como o sistema calcula a Aderência Técnica, a Aderência Comportamental e identifica o quadrante de cada participante em cada área de interesse.</p>
+    </div>
+  </header>
+
+  <main>
+    <nav class="quick-nav" aria-label="Navegação do guia">
+      <a href="#conceito">O que é</a>
+      <a href="#calculo">Como calculamos</a>
+      <a href="#faixas">Faixas de classificação</a>
+      <a href="#matriz">Os nove quadrantes</a>
+      <a href="#exemplo">Exemplo prático</a>
+      <a href="#duvidas">Dúvidas frequentes</a>
+    </nav>
+
+    <section class="card" id="conceito">
+      <h2>1. O que é o Nine Box?</h2>
+      <p class="lead">O Nine Box é uma matriz formada por nove quadrantes. Ela permite visualizar, de maneira organizada, o nível de aderência de cada participante em relação às áreas de interesse indicadas para o Banco de Sucessores.</p>
+      <p>Tradicionalmente, uma matriz Nine Box cruza desempenho e potencial. Nesta Avaliação de Aderência, a metodologia foi adaptada para cruzar os dois resultados calculados pelo sistema:</p>
+
+      <div class="axes">
+        <article class="axis">
+          <span class="axis-tag">Eixo horizontal — X</span>
+          <h3>Aderência Técnica</h3>
+          <p>Verifica a aproximação da formação, da experiência gerencial/interina e dos projetos estratégicos com a área analisada.</p>
+        </article>
+        <article class="axis behavioral">
+          <span class="axis-tag">Eixo vertical — Y</span>
+          <h3>Aderência Comportamental</h3>
+          <p>Combina a Performance — Engajamento no Banco de Sucessores — com o alinhamento do Perfil DISC ao perfil esperado para a área.</p>
+        </article>
+      </div>
+
+      <div class="highlight"><strong>Importante:</strong> o quadrante é definido pelo cruzamento das duas dimensões. A soma denominada “Aderência Total” ajuda a visualizar o resultado geral, mas não substitui a análise separada dos dois eixos.</div>
+    </section>
+
+    <section class="card" id="calculo">
+      <h2>2. Como o sistema chega ao quadrante?</h2>
+      <p>O cálculo ocorre em quatro etapas, sempre separadamente para cada área de interesse.</p>
+
+      <div class="steps">
+        <article class="step"><span class="step-number">1</span><h3>Calcula a Aderência Técnica</h3><p>Os itens validados são pontuados e convertidos para uma nota de 0 a 10.</p></article>
+        <article class="step"><span class="step-number">2</span><h3>Calcula a Aderência Comportamental</h3><p>A Performance convertida e o Perfil DISC são combinados em uma nota de 0 a 10.</p></article>
+        <article class="step"><span class="step-number">3</span><h3>Classifica as notas</h3><p>Cada nota é enquadrada nas faixas Baixa, Média ou Alta.</p></article>
+        <article class="step"><span class="step-number">4</span><h3>Realiza o cruzamento</h3><p>O encontro das duas faixas determina um dos nove quadrantes.</p></article>
+      </div>
+
+      <div class="calculation-grid">
+        <article class="calculation">
+          <div class="calculation-header"><h3>Aderência Técnica — escala de 0 a 10</h3></div>
+          <div class="calculation-body">
+            <ul class="score-list">
+              <li><span>Pós-graduação/MBA reconhecido</span><span class="points">até 40 pontos</span></li>
+              <li><span>Experiência gerencial/interina — 5 pontos por ano</span><span class="points">até 20 pontos</span></li>
+              <li><span>Projetos estratégicos da área</span><span class="points">até 20 pontos</span></li>
+            </ul>
+            <div class="formula">Total bruto: 0–80 pontos → convertido para a escala de 0–10</div>
+          </div>
+        </article>
+
+        <article class="calculation behavioral">
+          <div class="calculation-header"><h3>Aderência Comportamental — escala de 0 a 10</h3></div>
+          <div class="calculation-body">
+            <ul class="score-list">
+              <li><span>Performance — nota de Engajamento do ciclo, de 0 a 100</span><span class="points">convertida para 0–10</span></li>
+              <li><span>Perfil DISC — alinhamento dos indicadores D, I, S e C ao perfil esperado para a área</span><span class="points">nota de 0–10</span></li>
+            </ul>
+            <div class="formula">Aderência Comportamental = (Performance convertida + Perfil DISC) ÷ 2</div>
+          </div>
+        </article>
+      </div>
+
+      <div class="note"><strong>Validação dos dados:</strong> as informações e os documentos comprobatórios são analisados pelo RH/UGP. Para a pontuação oficial, são considerados os itens aprovados. Itens pendentes podem aparecer como pontuação potencial, mas não integram a nota técnica confirmada enquanto não forem aprovados.</div>
+    </section>
+
+    <section class="card" id="faixas">
+      <h2>3. Como as notas são classificadas?</h2>
+      <p>As mesmas faixas são aplicadas à Aderência Técnica e à Aderência Comportamental.</p>
+      <div class="bands">
+        <div class="band low"><strong>Baixa</strong><span>de 0 a 4,9</span></div>
+        <div class="band mid"><strong>Média</strong><span>de 5,0 a 7,4</span></div>
+        <div class="band high"><strong>Alta</strong><span>de 7,5 a 10</span></div>
+      </div>
+    </section>
+
+    <section class="card" id="matriz">
+      <h2>4. Conheça os nove quadrantes</h2>
+      <p>Na matriz abaixo, as colunas representam a <strong>Aderência Técnica</strong> e as linhas representam a <strong>Aderência Comportamental</strong>.</p>
+
+      <div class="matrix-wrap" role="region" aria-label="Matriz Nine Box" tabindex="0">
+        <div class="matrix">
+          <div class="matrix-label">Comportamental<br>↓ / Técnica →</div>
+          <div class="matrix-label">Técnica Baixa</div>
+          <div class="matrix-label">Técnica Média</div>
+          <div class="matrix-label">Técnica Alta</div>
+
+          <div class="matrix-label">Comportamental Alta</div>
+          <article class="cell c-short"><small>Tecnicamente Baixa — Comportamental Alta</small><h3>Potencial de Curto Prazo (gap técnico)</h3><p>Apresenta alta aderência comportamental, mas precisa ampliar a preparação técnica para a área.</p></article>
+          <article class="cell c-ready-dev"><small>Tecnicamente Média — Comportamental Alta</small><h3>Pronto em Desenvolvimento</h3><p>Apresenta forte aderência comportamental e desenvolvimento técnico em andamento.</p></article>
+          <article class="cell c-ready"><small>Tecnicamente Alta — Comportamental Alta</small><h3>Alta Prontidão</h3><p>Apresenta alta aderência nas duas dimensões e maior prontidão para os desafios da área.</p></article>
+
+          <div class="matrix-label">Comportamental Média</div>
+          <article class="cell c-directed"><small>Tecnicamente Baixa — Comportamental Média</small><h3>Desenvolvimento Direcionado</h3><p>Requer um plano estruturado, com prioridade para o desenvolvimento técnico.</p></article>
+          <article class="cell c-medium"><small>Tecnicamente Média — Comportamental Média</small><h3>Potencial de Médio Prazo</h3><p>Apresenta equilíbrio entre as dimensões e necessita avançar em ambas.</p></article>
+          <article class="cell c-tech"><small>Tecnicamente Alta — Comportamental Média</small><h3>Destaque Técnico, lapidar liderança</h3><p>Possui forte aderência técnica e precisa fortalecer competências comportamentais e de liderança.</p></article>
+
+          <div class="matrix-label">Comportamental Baixa</div>
+          <article class="cell c-low"><small>Tecnicamente Baixa — Comportamental Baixa</small><h3>Baixa Aderência</h3><p>Apresenta baixa aderência nas duas dimensões e demanda desenvolvimento mais amplo.</p></article>
+          <article class="cell c-specialist"><small>Tecnicamente Média — Comportamental Baixa</small><h3>Especialista Técnico sem Perfil de Liderança</h3><p>Possui conhecimento técnico intermediário, mas baixa aderência comportamental ao perfil de liderança da área.</p></article>
+          <article class="cell c-risk"><small>Tecnicamente Alta — Comportamental Baixa</small><h3>Risco de Liderança</h3><p>Apresenta forte aderência técnica, mas requer atenção e desenvolvimento no perfil comportamental.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="exemplo">
+      <h2>5. Exemplo prático</h2>
+      <p>Imagine que um participante tenha os seguintes resultados para determinada área de interesse:</p>
+      <div class="example">
+        <div class="example-box"><span>Aderência Técnica<strong>8,0</strong>Faixa Alta</span></div>
+        <div class="operator">+</div>
+        <div class="example-box"><span>Aderência Comportamental<strong>6,5</strong>Faixa Média</span></div>
+        <div class="operator">=</div>
+        <div class="example-box result"><span>Quadrante<strong>Destaque Técnico, lapidar liderança</strong></span></div>
+      </div>
+      <div class="highlight"><strong>Um resultado para cada área:</strong> o mesmo participante pode ocupar quadrantes diferentes em áreas distintas, pois sua formação, experiência, participação em projetos e aderência do Perfil DISC podem variar conforme a área analisada.</div>
+    </section>
+
+    <section class="card" id="duvidas">
+      <h2>6. Dúvidas frequentes</h2>
+      <details>
+        <summary>O Nine Box aprova ou reprova o participante?</summary>
+        <p>Não. O Nine Box é um instrumento de apoio à análise, ao desenvolvimento e às decisões de sucessão. O quadrante não deve ser interpretado, isoladamente, como aprovação ou reprovação.</p>
+      </details>
+      <details>
+        <summary>Por que posso ter um quadrante diferente em cada área?</summary>
+        <p>Porque a Aderência Técnica e o Perfil DISC são analisados em relação a cada área de interesse. As evidências e o grau de alinhamento podem variar entre as áreas.</p>
+      </details>
+      <details>
+        <summary>O resultado apresentado inicialmente é definitivo?</summary>
+        <p>As posições geradas a partir das informações declaradas são provisórias e estão sujeitas à validação, análise e comprovação documental pelo RH/UGP. A posição pode ser alterada após a conferência dos comprovantes.</p>
+      </details>
+      <details>
+        <summary>O que acontece quando faltam dados de Performance ou DISC?</summary>
+        <p>Sem os dados necessários para calcular a Aderência Comportamental, o sistema apresenta “Dados incompletos para definição do quadrante” até que as informações sejam importadas pelo RH.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span>Banco de Sucessores — Avaliação de Aderência</span>
+      <span>Material explicativo sobre o cálculo do Nine Box</span>
+    </div>
+  </footer>
+</body>
+</html>
