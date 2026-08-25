@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
-const CSV_TEMPLATE = `participantId,area,score100,date\njoao.silva@sebraeto.com.br,UGE,85,2026-05-31`;
+const CSV_TEMPLATE = `participantId,area,score100,date\njoao.silva@sebraeto.com.br,UGE,85,2026-07-31`;
 
 type ImportMode = 'xlsx' | 'csv';
 
@@ -158,7 +158,7 @@ export default function AdminImportPerformance() {
                 <span style={{ color: 'var(--text-muted)' }}>
                   O sistema lê automaticamente as colunas <strong>Pessoa</strong>, <strong>Turma</strong> e <strong>Ind. Média: Engajamento Final</strong>,
                   cruza pelo nome do participante e registra o score para cada área de interesse cadastrada.<br />
-                  <strong>Participantes BS3 são ignorados automaticamente</strong> (fora do escopo deste ciclo).
+                  Neste ciclo, o sistema processa <strong>somente participantes do BS3</strong> e registra a data de referência <strong>31/07/2026</strong>.
                 </span>
               </div>
 
@@ -246,7 +246,7 @@ export default function AdminImportPerformance() {
               {/* Modo CSV manual */}
               <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: 20, fontSize: '0.8rem', color: 'var(--purple)' }}>
                 <strong>Formato:</strong> <code>participantId,area,score100,date</code><br />
-                <strong>Exemplo:</strong> <code>joao.silva@sebraeto.com.br,UGE,85,2026-05-31</code>
+                <strong>Exemplo:</strong> <code>joao.silva@sebraeto.com.br,UGE,85,2026-07-31</code>
               </div>
 
               <button type="button" className="btn-outline" style={{ marginBottom: 20, fontSize: '0.8rem' }} onClick={downloadCsvTemplate}>
@@ -262,7 +262,7 @@ export default function AdminImportPerformance() {
                   <label className="form-label">Conteúdo CSV (cole ou edite)</label>
                   <textarea className="form-input" rows={8} value={csv}
                     onChange={(e) => setCsv(e.target.value)}
-                    placeholder="participantId,area,score100,date&#10;joao.silva@sebraeto.com.br,UGE,85,2026-05-31"
+                    placeholder="participantId,area,score100,date&#10;joao.silva@sebraeto.com.br,UGE,85,2026-07-31"
                     style={{ fontFamily: 'monospace', fontSize: '0.78rem', resize: 'vertical' }} />
                 </div>
                 {result && (
