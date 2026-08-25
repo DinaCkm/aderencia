@@ -80,11 +80,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const users: UserRecord[] = await readJsonAsync('users', []);
   const participants: ParticipantProfile[] = await readJsonAsync('participants', []);
 
-  // Índice de áreas de interesse por email (vem do formulário preenchido)
+  // Índice de áreas de interesse pelos identificadores do formulário.
+  // O e-mail é a chave principal, pois o id interno do usuário pode ser diferente
+  // do id salvo no questionário.
   const areasIndex = new Map<string, string[]>();
+  const normalizeIdentifier = (value: string | undefined) => (value || '').trim().toLowerCase();
   for (const p of participants) {
-    const id = p.id || p.email;
-    if (id && p.selectedAreas?.length) areasIndex.set(id, p.selectedAreas);
+    if (!p.selectedAreas?.length) continue;
+    for (const key of [p.email, p.id]) {
+      const normalizedKey = normalizeIdentifier(key);
+      if (normalizedKey) areasIndex.set(normalizedKey, p.selectedAreas);
+    }
   }
 
   // Índice por nome normalizado → usuário
@@ -130,8 +136,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const participantId = user.id || user.email || '';
-    // Áreas: do formulário preenchido (se já submeteu) ou vazio (ainda vai preencher)
-    const areas: string[] = areasIndex.get(participantId) ?? [];
+    // Cruzamento principal por e-mail; fallback pelo id para registros legados.
+    const areas: string[] =
+      areasIndex.get(normalizeIdentifier(user.email)) ??
+      areasIndex.get(normalizeIdentifier(participantId)) ??
+      [];
 
     if (areas.length === 0) {
       // Participante ainda não preencheu o formulário — registrar score sem área específica
@@ -146,6 +155,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       imported.push(`${rawName} → PENDING (formulário ainda não preenchido, score: ${score100}%)`);
       continue;
+    }
+
+    // Se uma importação anterior deixou o participante como PENDING por falha no
+    // cruzamento, remover esse registro antes de gravar as áreas corretas.
+    const pendingId = `${participantId}-PENDING-${date}`;
+    const pendingIdx = performance.findIndex((r) => r.id === pendingId);
+    if (pendingIdx >= 0) {
+      performance.splice(pendingIdx, 1);
+      existingIds.delete(pendingId);
     }
 
     // Criar um registro de performance para cada área de interesse
