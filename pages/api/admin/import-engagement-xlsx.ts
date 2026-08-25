@@ -23,12 +23,19 @@ function normalizeName(name: string): string {
     .trim();
 }
 
-/** Converte "99%" → 99 */
+/** Converte "99%" → 99 e percentuais numéricos do Excel (0,99) → 99 */
 function parsePct(val: unknown): number | null {
   if (val === null || val === undefined) return null;
-  const s = String(val).replace('%', '').trim();
+  const s = String(val).replace('%', '').replace(',', '.').trim();
   const n = Number(s);
-  return Number.isNaN(n) ? null : n;
+  if (Number.isNaN(n)) return null;
+
+  // O Excel pode armazenar 98% como o número 0,98.
+  if (!String(val).includes('%') && n >= 0 && n <= 1) {
+    return Math.round(n * 10000) / 100;
+  }
+
+  return n;
 }
 
 async function readRawBody(req: NextApiRequest): Promise<Buffer> {
@@ -89,7 +96,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Processar linhas de dados
-  const date = '2026-05-31'; // data de fechamento do engajamento
+  const date = '2026-07-31'; // data de fechamento do engajamento do BS3
   const performance: PerformanceRecord[] = await readJsonAsync('performance', []);
   const existingIds = new Set(performance.map((r) => r.id));
 
@@ -102,10 +109,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const rawName = String(row[colPessoa] ?? '').trim();
     if (!rawName) continue;
 
-    // Filtrar BS3 (fora do escopo deste ciclo)
+    // Neste ciclo, importar somente participantes do BS3.
+    // startsWith cobre exportações em que a data aparece junto da turma (ex.: "BS3 31/07/2026").
     const turma = colTurma >= 0 ? String(row[colTurma] ?? '').trim().toUpperCase() : '';
-    if (turma === 'BS3') {
-      skipped.push(`${rawName} (BS3 — fora do escopo)`);
+    if (colTurma >= 0 && !turma.startsWith('BS3')) {
+      skipped.push(`${rawName} (${turma || 'turma não informada'} — fora do ciclo BS3)`);
       continue;
     }
 
