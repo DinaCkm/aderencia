@@ -16,6 +16,22 @@ type AssessmentWithMeta = AreaAssessment & {
   discRecord?: DISCRecord;
 };
 
+type LeadershipFilter = 'all' | 'leaders' | 'non-leaders';
+
+const LEADERSHIP_FILTERS: { value: LeadershipFilter; label: string }[] = [
+  { value: 'all', label: 'Todos' },
+  { value: 'leaders', label: 'Líderes atuais' },
+  { value: 'non-leaders', label: 'Não líderes atuais' },
+];
+
+// O cadastro utiliza exatamente "Gerente" e "Diretor" para os cargos de gestão.
+// A normalização evita que diferenças de caixa ou espaços em dados importados
+// prejudiquem a segmentação, sem transformar a situação de liderança em pontuação.
+function isCurrentLeader(currentRole?: string) {
+  const normalizedRole = (currentRole || '').trim().toLocaleLowerCase('pt-BR');
+  return normalizedRole === 'gerente' || normalizedRole === 'diretor';
+}
+
 const QUADRANT_DESC: Record<string, string> = {
   'Tecnicamente Baixa — Comportamental Alta':    'O perfil comportamental apresenta forte aderência ao perfil de gestão esperado para esta área. A aderência técnica ainda está em desenvolvimento — com capacitação direcionada, o candidato tem grande potencial de evolução.',
   'Tecnicamente Média — Comportamental Alta':   'O perfil comportamental apresenta excelente aderência ao perfil de gestão esperado para esta área. A aderência técnica está em evolução e pode ser fortalecida com capacitação específica.',
@@ -652,6 +668,7 @@ export default function AdminNineBox() {
   const router = useRouter();
   const [report, setReport] = useState<Record<string, AssessmentWithMeta[]>>({});
   const [selectedArea, setSelectedArea] = useState<string>(OFFICIAL_AREAS[0].code);
+  const [leadershipFilter, setLeadershipFilter] = useState<LeadershipFilter>('all');
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<AssessmentWithMeta | null>(null);
 
@@ -667,9 +684,14 @@ export default function AdminNineBox() {
 
   const logout = () => { sessionStorage.clear(); router.push('/login'); };
   const areaData = report[selectedArea] || [];
+  const filteredAreaData = areaData.filter((assessment) => {
+    if (leadershipFilter === 'all') return true;
+    const currentLeader = isCurrentLeader(assessment.profile?.currentRole);
+    return leadershipFilter === 'leaders' ? currentLeader : !currentLeader;
+  });
 
   const cellParticipants = (x: string, y: string) =>
-    areaData
+    filteredAreaData
       .filter((a) => {
         const cell = getCell(a.quadrant);
         return cell && cell.x === x && cell.y === y;
@@ -733,12 +755,54 @@ export default function AdminNineBox() {
             ))}
           </div>
 
+          {/* Filtro de situação atual de liderança — altera apenas a visualização */}
+          <div style={{ marginBottom: 24, padding: '14px 16px', background: '#f8f7fc', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--purple)', marginBottom: 8 }}>
+              Situação atual de liderança
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {LEADERSHIP_FILTERS.map((filter) => {
+                const active = leadershipFilter === filter.value;
+                const count = areaData.filter((assessment) => {
+                  if (filter.value === 'all') return true;
+                  const currentLeader = isCurrentLeader(assessment.profile?.currentRole);
+                  return filter.value === 'leaders' ? currentLeader : !currentLeader;
+                }).length;
+                return (
+                  <button
+                    key={filter.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setLeadershipFilter(filter.value)}
+                    style={{
+                      padding: '7px 14px', borderRadius: 999, fontSize: '0.8rem', cursor: 'pointer',
+                      fontWeight: active ? 700 : 500,
+                      border: `1.5px solid ${active ? 'var(--purple)' : 'var(--border)'}`,
+                      background: active ? 'var(--purple)' : 'white',
+                      color: active ? 'white' : 'var(--text)',
+                    }}
+                  >
+                    {filter.label} ({count})
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ marginTop: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+              Líderes atuais: participantes cujo cargo atual é Gerente ou Diretor. Este filtro não altera notas nem quadrantes.
+            </div>
+          </div>
+
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Carregando dados...</div>
           ) : areaData.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
               <div style={{ fontSize: '2rem', marginBottom: 12 }}>📊</div>
               <p>Nenhuma avaliação processada para <strong>{selectedArea}</strong>.</p>
+            </div>
+          ) : filteredAreaData.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '2rem', marginBottom: 12 }}>🔎</div>
+              <p>Nenhum participante corresponde ao filtro selecionado em <strong>{selectedArea}</strong>.</p>
             </div>
           ) : (
             <>
@@ -803,6 +867,17 @@ export default function AdminNineBox() {
                                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                                       {p.participantName || p.participantId}
                                     </span>
+                                    <span
+                                      title={isCurrentLeader(p.profile?.currentRole) ? 'Líder atual' : 'Não líder atual'}
+                                      style={{
+                                        fontSize: '0.6rem', lineHeight: 1, padding: '3px 4px', borderRadius: 4,
+                                        background: isCurrentLeader(p.profile?.currentRole) ? '#ede9fe' : '#f1f5f9',
+                                        color: isCurrentLeader(p.profile?.currentRole) ? '#6d28d9' : '#475569',
+                                        flexShrink: 0, fontWeight: 800,
+                                      }}
+                                    >
+                                      {isCurrentLeader(p.profile?.currentRole) ? 'L' : 'NL'}
+                                    </span>
                                     <span style={{ fontSize: '0.65rem', opacity: 0.75, flexShrink: 0, fontWeight: 400 }}>
                                       T:{p.technicalScore?.toFixed(1)} B:{p.behavioralScore !== undefined ? p.behavioralScore.toFixed(1) : '?'}
                                     </span>
@@ -824,13 +899,14 @@ export default function AdminNineBox() {
               {/* Tabela de detalhamento */}
               <div style={{ marginTop: 24 }}>
                 <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--purple)', marginBottom: 12 }}>
-                  Detalhamento — {selectedArea} ({areaData.length} avaliação(ões))
+                  Detalhamento — {selectedArea} ({filteredAreaData.length} avaliação(ões))
                 </h3>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                     <thead>
                       <tr style={{ background: 'var(--gradient-soft)' }}>
                         <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Participante</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Situação atual</th>
                         <th style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--purple)', fontWeight: 700 }}>Técnica</th>
                         <th style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--purple)', fontWeight: 700 }}>Comportamental</th>
                         <th style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--purple)', fontWeight: 700 }}>Quadrante</th>
@@ -839,7 +915,7 @@ export default function AdminNineBox() {
                       </tr>
                     </thead>
                     <tbody>
-                      {areaData
+                      {filteredAreaData
                         .sort((a, b) => (b.technicalScore + (b.behavioralScore ?? 0)) - (a.technicalScore + (a.behavioralScore ?? 0)))
                         .map((a, i) => (
                           <tr key={`${a.participantId}-${a.area}`} style={{ background: i % 2 === 0 ? 'white' : 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
@@ -850,6 +926,12 @@ export default function AdminNineBox() {
                                   {a.profile.exceptionStatus === 'approved' ? '✓ Exceção aprovada' : a.profile.exceptionStatus === 'rejected' ? '✗ Exceção rejeitada' : '⚠ Exceção pendente'}
                                 </span>
                               )}
+                            </td>
+                            <td style={{ padding: '8px 12px', color: 'var(--text-muted)', fontSize: '0.76rem' }}>
+                              <span style={{ fontWeight: 700, color: isCurrentLeader(a.profile?.currentRole) ? '#6d28d9' : '#475569' }}>
+                                {isCurrentLeader(a.profile?.currentRole) ? 'Líder atual' : 'Não líder atual'}
+                              </span>
+                              <div style={{ marginTop: 2, fontSize: '0.68rem' }}>{a.profile?.currentRole || 'Cargo não informado'}</div>
                             </td>
                             <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                               <span style={{ background: 'var(--gradient-soft)', color: 'var(--purple)', borderRadius: 4, padding: '2px 8px', fontWeight: 700 }}>
