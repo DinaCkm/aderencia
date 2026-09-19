@@ -238,6 +238,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const sortable = areaEntries.map((r) => ({
       ...r,
       participantId:        r._participantId,
+      technicalAdherence:   r.technicalScore,
       behavioralAdherence:  r._behavioralAdherence,
       performanceConverted: r._performanceConverted,
       discCorrelationPct:   undefined as number | undefined,
