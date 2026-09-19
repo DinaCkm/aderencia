@@ -792,6 +792,22 @@ export default function AdminNineBox() {
             </div>
           </div>
 
+          {/* Exportar Excel */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+            <a
+              href="/api/admin/export-adherence"
+              download
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: '#5B2D8E', color: 'white', borderRadius: 8,
+                padding: '8px 18px', fontSize: '0.85rem', fontWeight: 700,
+                textDecoration: 'none', cursor: 'pointer',
+              }}
+            >
+              📥 Exportar Excel — Todas as Áreas
+            </a>
+          </div>
+
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Carregando dados...</div>
           ) : areaData.length === 0 ? (
