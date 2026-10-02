@@ -49,6 +49,8 @@ export interface ClientConfig {
   roleOptions: { group: string; options: string[] }[];
   /** Janela de preenchimento do formulário (horário de Brasília) */
   formWindow: { open: string; close: string; openLabel: string; closeLabel: string };
+  /** Pasta em /public com o comunicado e o catálogo em PDF deste cliente ('' = raiz, Sebrae/TO) */
+  docsPrefix: string;
   /** Assinatura dos e-mails enviados aos candidatos */
   emailSignature: string;
   /** Códigos de área usados nos exemplos das telas de importação */
@@ -125,6 +127,7 @@ const SEBRAE_TO: ClientConfig = {
     { group: 'Outros', options: ['Estagiário'] },
   ],
   formWindow: { open: '2026-06-01T00:01:00-03:00', close: '2026-06-15T23:59:00-03:00', openLabel: '01/06/2026 às 00h01', closeLabel: '15/06/2026 às 23h59' },
+  docsPrefix: '',
   emailSignature: 'Equipe RH/UGP — SEBRAE Tocantins',
   exampleAreas: ['UGE', 'UAF'],
   postMBAExample: 'Ex.: MBA em Auditoria (UAUD), Direito Público.',
@@ -178,6 +181,7 @@ const SEBRAE_AC: ClientConfig = {
     { group: 'Outros', options: ['Estagiário'] },
   ],
   formWindow: { open: '2026-10-02T00:00:00-03:00', close: '2026-10-15T23:59:00-03:00', openLabel: '02/10/2026', closeLabel: '15/10/2026 às 23h59' },
+  docsPrefix: '/sebrae-ac',
   emailSignature: 'Equipe de Gestão de Pessoas — SEBRAE Acre',
   exampleAreas: ['GP', 'FIN'],
   postMBAExample: 'Ex.: MBA em Auditoria (AI), Direito Público.',

@@ -52,7 +52,7 @@ export default function Login() {
           <div style={{ textAlign: 'center', margin: '12px 0 20px' }}>
             <p style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '6px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Leia antes de acessar</p>
             <a
-              href="/comunicado_aderencia.pdf"
+              href={`${CLIENT.docsPrefix}/comunicado_aderencia.pdf`}
               target="_blank"
               rel="noopener noreferrer"
               style={{

@@ -344,7 +344,7 @@ export default function MyResults() {
           </p>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 8 }}>
             Em caso de dúvida se o seu título de pós-graduação ou projeto recebeu a pontuação correta, consulte o{' '}
-            <a href="/catalogo_pontuacao.pdf" target="_blank" rel="noreferrer"
+            <a href={`${CLIENT.docsPrefix}/catalogo_pontuacao.pdf`} target="_blank" rel="noreferrer"
               style={{ color: 'var(--purple)', fontWeight: 700, textDecoration: 'underline' }}>
               📋 Catálogo de Pontuação
             </a>.
