@@ -36,6 +36,7 @@ interface ParticipantSummary {
   selectedAreas: string[];
   exceptionRequested: boolean;
   exceptionStatus: string | null;
+  exceptionAuditStatus?: 'pending' | 'approved' | 'rejected' | null;
   hasLegacyFiles?: boolean;
   hasPendingDocs?: boolean;
   validationStatus?: 'provisional' | 'validated' | 'adjusted';
@@ -1398,14 +1399,19 @@ export default function AdminAudit() {
                       📄 Docs pendentes
                     </span>
                   )}
-                  {pt.exceptionRequested && pt.exceptionStatus === 'pending' && (
+                  {pt.exceptionAuditStatus === 'pending' && (
                     <span style={{ fontSize: '0.62rem', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 3, padding: '1px 5px', color: '#92400e', fontWeight: 700 }}>
                       ⚠️ Exceção pendente
                     </span>
                   )}
-                  {pt.exceptionRequested && pt.exceptionStatus === 'approved' && (
+                  {pt.exceptionAuditStatus === 'approved' && (
                     <span style={{ fontSize: '0.62rem', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 3, padding: '1px 5px', color: '#065f46', fontWeight: 700 }}>
-                      ✓ Exceção aprovada
+                      ✓ Exceção validada
+                    </span>
+                  )}
+                  {pt.exceptionAuditStatus === 'rejected' && (
+                    <span style={{ fontSize: '0.62rem', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 3, padding: '1px 5px', color: '#991b1b', fontWeight: 700 }}>
+                      ✕ Exceção rejeitada
                     </span>
                   )}
                   {(pt.selectedAreas || []).map((a) => (
