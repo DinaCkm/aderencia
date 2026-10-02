@@ -4,13 +4,16 @@ import * as XLSX from 'xlsx';
 import type { AreaCode, DISCRecord, DiscReport } from '../../../lib/types';
 import { randomUUID } from 'crypto';
 import { calcDiscCorrelation } from '../../../lib/disc';
+import { CLIENT } from '../../../lib/client-config';
 
 export const config = { api: { bodyParser: false } };
 
+// Áreas válidas para DISC — áreas de interesse + regionais individuais do cliente desta
+// instância (lib/client-config.ts). No Sebrae/TO resulta na mesma lista de antes.
 const VALID_AREAS: AreaCode[] = [
-  'UAC','UAF','UAUD','UGE','UGOC','UGP','UMC','URC','URI','UTIC','REGIONAIS',
-  'RBP','RME','RMN','RNO','RPJ','RSG','RSU','RVA',
-];
+  ...CLIENT.officialAreas.filter((a) => !CLIENT.nonInterestCodes.includes(a.code)).map((a) => a.code),
+  ...CLIENT.regionalAreas.map((a) => a.code),
+] as AreaCode[];
 
 function norm(s: unknown): string {
   return String(s ?? '')

@@ -2,8 +2,10 @@ import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { CLIENT } from '../../lib/client-config';
 
-const CSV_TEMPLATE = `participantId,area,score10,date\njdoe,UGE,8.5,2026-05-01`;
+const DISC_EXAMPLE = `joao.silva@${CLIENT.emailDomain},${CLIENT.exampleAreas[0]},8.5,2026-05-01`;
+const CSV_TEMPLATE = `participantId,area,score10,date\njdoe,${CLIENT.exampleAreas[0]},8.5,2026-05-01`;
 
 interface ImportResult {
   success: boolean;
@@ -292,7 +294,7 @@ export default function AdminImportDisc() {
                 padding: '12px 16px', marginBottom: 20, fontSize: '0.8rem', color: 'var(--purple)',
               }}>
                 <strong>Formato:</strong> <code>participantId,area,score10,date</code><br />
-                <strong>Exemplo:</strong> <code>joao.silva@sebraeto.com.br,UGE,8.5,2026-05-01</code>
+                <strong>Exemplo:</strong> <code>{DISC_EXAMPLE}</code>
               </div>
               <button type="button" className="btn-outline" style={{ marginBottom: 20, fontSize: '0.8rem' }} onClick={downloadCsvTemplate}>
                 Baixar modelo CSV
@@ -305,7 +307,7 @@ export default function AdminImportDisc() {
                 <label className="form-label">Conteúdo CSV (cole ou edite)</label>
                 <textarea className="form-input" rows={8} value={csv}
                   onChange={(e) => setCsv(e.target.value)}
-                  placeholder="participantId,area,score10,date&#10;joao.silva@sebraeto.com.br,UGE,8.5,2026-05-01"
+                  placeholder={`participantId,area,score10,date\n${DISC_EXAMPLE}`}
                   style={{ fontFamily: 'monospace', fontSize: '0.78rem', resize: 'vertical' }} />
               </div>
               {message && (

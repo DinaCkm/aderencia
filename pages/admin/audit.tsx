@@ -11,6 +11,7 @@ import { CATALOG_ITEMS as FIXED_CATALOG_ITEMS } from '../../lib/constants';
 // CATALOG_ITEMS durante a renderização (ProjectRelabelPicker, ExceptionAssignmentPicker, etc.).
 let CATALOG_ITEMS: typeof FIXED_CATALOG_ITEMS = FIXED_CATALOG_ITEMS;
 import { bestPostMBADetail, experienceScore, TRANSVERSAL_PROJECTS } from '../../lib/business';
+import { areaLabelMap, CLIENT } from '../../lib/client-config';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 interface ItemValidation {
@@ -44,7 +45,7 @@ interface ParticipantSummary {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const AREA_LABELS: Record<string, string> = {
+const LEGACY_AREA_LABELS: Record<string, string> = {
   UAC: 'UAC — Unidade de Articulação e Competitividade',
   UAF: 'UAF — Unidade de Administração e Finanças',
   UAUD: 'UAUD — Unidade de Auditoria Interna',
@@ -57,6 +58,9 @@ const AREA_LABELS: Record<string, string> = {
   UTIC: 'UTIC — Unidade de Tecnologia da Informação',
   REGIONAIS: 'Unidades Regionais',
 };
+// No Sebrae/TO mantém o mapa acima; nos demais clientes usa as áreas de lib/client-config.ts
+const AREA_LABELS: Record<string, string> = areaLabelMap(LEGACY_AREA_LABELS, 'full');
+
 
 const STATUS_COLORS = {
   pending:  { bg: '#fef3c7', border: '#fcd34d', text: '#92400e', label: '⏳ Pendente' },
@@ -1531,7 +1535,7 @@ export default function AdminAudit() {
                     <button type="button"
                       onClick={() => openEmailModal(
                         `Análise da sua ficha — Banco de Sucessores — ${p.name}`,
-                        `Olá, ${p.name?.split(' ')[0]}!\n\nEstamos analisando sua ficha no Banco de Sucessores e precisamos de mais informações.\n\nPor favor, responda este e-mail com os esclarecimentos necessários.\n\nAtenciosamente,\nEquipe RH/UGP — SEBRAE Tocantins`
+                        `Olá, ${p.name?.split(' ')[0]}!\n\nEstamos analisando sua ficha no Banco de Sucessores e precisamos de mais informações.\n\nPor favor, responda este e-mail com os esclarecimentos necessários.\n\nAtenciosamente,\n${CLIENT.emailSignature}`
                       )}
                       style={{ fontSize: '0.78rem', background: 'white', border: '1.5px solid #0891b2', borderRadius: 7, padding: '7px 16px', cursor: 'pointer', color: '#0891b2', fontWeight: 600 }}>
                       ✉️ Solicitar informações por e-mail

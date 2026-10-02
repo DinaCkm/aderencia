@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { CLIENT } from '../lib/client-config';
 
 export default function Login() {
   const router = useRouter();
@@ -47,7 +48,7 @@ export default function Login() {
             <img src="/eco-logo.png" alt="EcoLider" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           </div>
           <h1 className="login-title">Banco de Sucessores</h1>
-          <p className="login-subtitle">Aderência · EcoLider · SEBRAE Tocantins</p>
+          <p className="login-subtitle">Aderência · EcoLider · {CLIENT.orgName}</p>
           <div style={{ textAlign: 'center', margin: '12px 0 20px' }}>
             <p style={{ fontSize: '0.72rem', color: '#6b7280', marginBottom: '6px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Leia antes de acessar</p>
             <a

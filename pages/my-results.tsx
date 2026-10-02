@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
+import { CLIENT } from '../lib/client-config';
 
 // Traduz o rótulo técnico retornado por getQuadrant() em lib/business.ts (ex.: "Tecnicamente
 // Média — Comportamental Média") para a chave amigável correspondente em QUADRANT_INFO.
@@ -315,7 +316,7 @@ export default function MyResults() {
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
             <div className="topbar-title">Banco de Sucessores — Aderência</div>
-            <div className="topbar-subtitle">SEBRAE Tocantins</div>
+            <div className="topbar-subtitle">{CLIENT.orgName}</div>
           </div>
         </div>
         <div className="topbar-actions">

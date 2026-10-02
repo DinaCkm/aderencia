@@ -7,6 +7,7 @@ import {
   dedupeItemValidations,
 } from '../../../lib/business';
 import { getEffectiveCatalogItems } from '../../../lib/catalog';
+import { CLIENT } from '../../../lib/client-config';
 import type {
   ParticipantProfile,
   AreaAssessment,
@@ -170,7 +171,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const areaOrder = [...new Set(rows.map((r) => r.area))].sort();
 
   const workbook = new ExcelJS.Workbook();
-  workbook.creator  = 'Aderência — CKM Talents / SEBRAE-TO';
+  workbook.creator  = `Aderência — CKM Talents / ${CLIENT.orgShort.toUpperCase().replace('/', '-')}`;
   workbook.created  = new Date();
 
   // ── Sheet 1 — Aderência por Área ─────────────────────────────────────────
@@ -389,7 +390,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // ── Respond ───────────────────────────────────────────────────────────────
 
   const date     = new Date().toISOString().slice(0, 10);
-  const filename = `aderencia-sebrae-to-${date}.xlsx`;
+  const filename = `aderencia-${CLIENT.fileSlug}-${date}.xlsx`;
 
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);

@@ -2,8 +2,9 @@ import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { CLIENT } from '../../lib/client-config';
 
-const TEMPLATE = `id,name,email,matrícula,unit,currentRole,selectedAreas,graduation,postMBAs,certifications,experienceMonths,positionsHeld,selectedCourses,selectedProjects,exceptionRequested,exceptionJustification,attachments,exceptionStatus\njdoe,Joao Doe,joao@sebraeto.com.br,12345,UGE,Analista,UGE;UAF,Administração,,,,,,,,,,pending`;
+const TEMPLATE = `id,name,email,matrícula,unit,currentRole,selectedAreas,graduation,postMBAs,certifications,experienceMonths,positionsHeld,selectedCourses,selectedProjects,exceptionRequested,exceptionJustification,attachments,exceptionStatus\njdoe,Joao Doe,joao@${CLIENT.emailDomain},12345,${CLIENT.exampleAreas[0]},Analista,${CLIENT.exampleAreas[0]};${CLIENT.exampleAreas[1]},Administração,,,,,,,,,,pending`;
 
 export default function AdminImportParticipants() {
   const router = useRouter();

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
+import { CLIENT } from '../../lib/client-config';
 
 interface AdminUser {
   email: string;
@@ -159,7 +160,7 @@ export default function ManageAdmins() {
       <div className="admin-topbar">
         <div>
           <div className="admin-topbar-title">Banco de Sucessores Aderência</div>
-          <div className="admin-topbar-subtitle">Painel Administrativo · SEBRAE Tocantins</div>
+          <div className="admin-topbar-subtitle">Painel Administrativo · {CLIENT.orgName}</div>
         </div>
       </div>
       <div className="admin-nav">

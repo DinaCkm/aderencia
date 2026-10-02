@@ -25,7 +25,25 @@ export type AreaCode =
   | 'RPJ'
   | 'RSG'
   | 'RSU'
-  | 'RVA';
+  | 'RVA'
+  // ── Sebrae/AC (ver lib/client-config.ts) ──
+  | 'DIRAF'
+  | 'AI'
+  | 'ASCOM'
+  | 'PM'
+  | 'AR'
+  | 'GC'
+  | 'EG'
+  | 'ALIC'
+  | 'GP'
+  | 'DAN'
+  | 'ACPC'
+  | 'FIN'
+  | 'TI'
+  | 'SN'
+  | 'ERBAP'
+  | 'ERAA'
+  | 'ERJT';
 
 export type CatalogGroup = 'postMBA' | 'course' | 'project' | 'certification' | 'unit' | 'role' | 'graduation' | 'name' | 'matrícula';
 export type CatalogClassification = 'transversal' | 'area-specific' | 'non-related';

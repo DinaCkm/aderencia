@@ -5,6 +5,7 @@ import { buildAreaAssessment, dedupeItemValidations, sortByAdherenceRanking, get
 import { getEffectiveCatalogItems } from '../../../lib/catalog';
 import type { ParticipantProfile, PerformanceRecord, DISCRecord } from '../../../lib/types';
 import type { ProfileAudit } from './audit-profile';
+import { CLIENT } from '../../../lib/client-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Ranking de Aderência por Unidade — exportação para Excel
@@ -137,7 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // ── Montagem do Excel ──────────────────────────────────────────────────────
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Banco de Sucessores Aderência — Sebrae/TO';
+  wb.creator = `Banco de Sucessores Aderência — ${CLIENT.orgShort}`;
   wb.created = new Date();
 
   // Aba 1 — Resumo Geral (todos os participantes, todas as unidades, uma linha por área de interesse)

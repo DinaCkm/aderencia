@@ -2,8 +2,10 @@ import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { CLIENT } from '../../lib/client-config';
 
-const CSV_TEMPLATE = `participantId,area,score100,date\njoao.silva@sebraeto.com.br,UGE,85,2026-07-31`;
+const PERF_EXAMPLE = `joao.silva@${CLIENT.emailDomain},${CLIENT.exampleAreas[0]},85,2026-07-31`;
+const CSV_TEMPLATE = `participantId,area,score100,date\n${PERF_EXAMPLE}`;
 
 type ImportMode = 'xlsx' | 'csv';
 
@@ -158,7 +160,9 @@ export default function AdminImportPerformance() {
                 <span style={{ color: 'var(--text-muted)' }}>
                   O sistema lê automaticamente as colunas <strong>Pessoa</strong>, <strong>Turma</strong> e <strong>Ind. Média: Engajamento Final</strong>,
                   cruza pelo nome do participante e registra o score para cada área de interesse cadastrada.<br />
-                  Neste ciclo, o sistema processa <strong>somente participantes do BS3</strong> e registra a data de referência <strong>31/07/2026</strong>.
+                  {CLIENT.engagementImport.turmaPrefix
+                    ? <>Neste ciclo, o sistema processa <strong>somente participantes do {CLIENT.engagementImport.turmaPrefix}</strong> e registra a data de referência <strong>{(CLIENT.engagementImport.date || '').split('-').reverse().join('/')}</strong>.</>
+                    : <>O sistema processa <strong>todas as turmas</strong> da planilha e registra a data de referência <strong>{CLIENT.engagementImport.date ? CLIENT.engagementImport.date.split('-').reverse().join('/') : 'do dia da importação'}</strong>.</>}
                 </span>
               </div>
 
@@ -246,7 +250,7 @@ export default function AdminImportPerformance() {
               {/* Modo CSV manual */}
               <div style={{ background: 'var(--gradient-soft)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: 20, fontSize: '0.8rem', color: 'var(--purple)' }}>
                 <strong>Formato:</strong> <code>participantId,area,score100,date</code><br />
-                <strong>Exemplo:</strong> <code>joao.silva@sebraeto.com.br,UGE,85,2026-07-31</code>
+                <strong>Exemplo:</strong> <code>{PERF_EXAMPLE}</code>
               </div>
 
               <button type="button" className="btn-outline" style={{ marginBottom: 20, fontSize: '0.8rem' }} onClick={downloadCsvTemplate}>
@@ -262,7 +266,7 @@ export default function AdminImportPerformance() {
                   <label className="form-label">Conteúdo CSV (cole ou edite)</label>
                   <textarea className="form-input" rows={8} value={csv}
                     onChange={(e) => setCsv(e.target.value)}
-                    placeholder="participantId,area,score100,date&#10;joao.silva@sebraeto.com.br,UGE,85,2026-07-31"
+                    placeholder={`participantId,area,score100,date\n${PERF_EXAMPLE}`}
                     style={{ fontFamily: 'monospace', fontSize: '0.78rem', resize: 'vertical' }} />
                 </div>
                 {result && (

@@ -1,4 +1,6 @@
 import { CatalogItem } from './types';
+import { CLIENT } from './client-config';
+import { SEBRAE_AC_CATALOG_ITEMS } from './sebrae-ac-catalog';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CATÁLOGO OFICIAL DE ITENS — gerado automaticamente a partir dos CSVs oficiais
@@ -6,7 +8,7 @@ import { CatalogItem } from './types';
 //        Catalogo_Projetos_Estrategicos_por_Area_Matriz_Operacional.csv
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] })[] = [
+const SEBRAE_TO_CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] })[] = [
   // ── GRADUAÇÕES ──────────────────────────────────────────────────────────────
   // CDE — Assessoria
   { id: 'grad-gab-administracao', label: 'Administração', group: 'graduation', classification: 'transversal', points: 20, aliases: ['Administração', 'Administração de Empresas'] },
@@ -531,46 +533,24 @@ export function calcTechnicalAdherence(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ÁREAS OFICIAIS DO SEBRAE-TO
+// CATÁLOGO E ÁREAS DO CLIENTE DESTA INSTÂNCIA (ver lib/client-config.ts)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const OFFICIAL_AREAS: { code: string; label: string }[] = [
-  // ── Diretoria e Assessorias ──────────────────────────────────────────────
-  { code: 'DIREX',   label: 'Diretoria Superintendente' },
-  { code: 'DITEC',   label: 'DITEC — Diretoria Técnica' },
-  { code: 'DAF',     label: 'DAF — Diretoria de Administração e Finanças' },
-  { code: 'CDE',     label: 'CDE — Assessoria' },
-  // ── Unidades ────────────────────────────────────────────────────────────
-  { code: 'UAC',     label: 'UAC — Unidade de Articulação e Competitividade' },
-  { code: 'UAF',     label: 'UAF — Unidade de Administração e Finanças' },
-  { code: 'UAUD',    label: 'UAUD — Unidade de Auditoria Interna' },
-  { code: 'UGE',     label: 'UGE — Unidade de Gestão Estratégica e Integridade' },
-  { code: 'UGOC',    label: 'UGOC — Unidade de Gestão Orç. Contabilidade e Finanças' },
-  { code: 'UGP',     label: 'UGP — Unidade de Gestão de Pessoas' },
-  { code: 'UMC',     label: 'UMC — Unidade de Marketing e Comunicação' },
-  { code: 'URC',     label: 'URC — Unidade de Relacionamento com o Cliente' },
-  { code: 'URI',     label: 'URI — Unidade de Relacionamento Institucional' },
-  { code: 'UTIC',    label: 'UTIC — Unidade de Tecnologia da Inform. e Comunicação de Dados' },
-  // ── Regionais (agrupadas) ────────────────────────────────────────────────
-  { code: 'REGIONAIS', label: 'Unidades Regionais' },
-];
+// Catálogo fixo do cliente ativo. O Sebrae/TO usa a lista acima; o Sebrae/AC usa
+// lib/sebrae-ac-catalog.ts. Itens criados na tela "Catálogos" continuam
+// vindo do banco (lib/catalog.ts) e se somam a esta lista.
+export const CATALOG_ITEMS: (CatalogItem & { points: number; aliases?: string[] })[] =
+  CLIENT.id === 'sebrae-ac' ? SEBRAE_AC_CATALOG_ITEMS : SEBRAE_TO_CATALOG_ITEMS;
+
+export const OFFICIAL_AREAS: { code: string; label: string }[] = CLIENT.officialAreas;
 
 // Áreas disponíveis para seleção de interesse (Step 2) — exclui Diretoria e Assessorias
 export const INTEREST_AREAS: { code: string; label: string }[] = OFFICIAL_AREAS.filter(
-  (a) => !['DIREX', 'DITEC', 'DAF', 'CDE'].includes(a.code)
+  (a) => !CLIENT.nonInterestCodes.includes(a.code)
 );
 
 // Lista completa das regionais — usada em contextos que exigem nome individual
-export const REGIONAL_AREAS: { code: string; label: string }[] = [
-  { code: 'RBP', label: 'RBP — Regional Bico do Papagaio' },
-  { code: 'RME', label: 'RME — Regional Metropolitana' },
-  { code: 'RMN', label: 'RMN — Regional Médio Norte Colinas' },
-  { code: 'RNO', label: 'RNO — Regional Norte' },
-  { code: 'RPJ', label: 'RPJ — Regional Portal do Jalapão' },
-  { code: 'RSG', label: 'RSG — Regional Serras Gerais' },
-  { code: 'RSU', label: 'RSU — Regional Sul' },
-  { code: 'RVA', label: 'RVA — Regional Vale do Araguaia' },
-];
+export const REGIONAL_AREAS: { code: string; label: string }[] = CLIENT.regionalAreas;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NINE BOX — quadrantes oficiais

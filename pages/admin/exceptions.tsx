@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ParticipantProfile } from '../../lib/types';
 import { CATALOG_ITEMS } from '../../lib/constants';
+import { areaLabelMap, CLIENT } from '../../lib/client-config';
 
-const AREA_LABELS: Record<string, string> = {
+const LEGACY_AREA_LABELS: Record<string, string> = {
   UAC: 'UAC — Articulação e Competitividade',
   UAF: 'UAF — Administração e Finanças',
   UAUD: 'UAUD — Auditoria Interna',
@@ -18,6 +19,9 @@ const AREA_LABELS: Record<string, string> = {
   UTIC: 'UTIC — Tecnologia da Informação',
   REGIONAIS: 'Unidades Regionais',
 };
+// No Sebrae/TO mantém o mapa acima; nos demais clientes usa as áreas de lib/client-config.ts
+const AREA_LABELS: Record<string, string> = areaLabelMap(LEGACY_AREA_LABELS, 'full');
+
 
 const TYPE_LABELS: Record<string, string> = {
   projeto: '📋 Projeto Estratégico',
@@ -142,7 +146,7 @@ export default function AdminExceptions() {
     const name = participant.name?.split(' ')[0] || 'participante';
     const itemName = (participant as any).exceptionItemName || participant.exceptionJustification?.substring(0, 60) || 'item solicitado';
     setEmailBody(
-      `Olá, ${name}!\n\nRecebemos sua solicitação de exceção referente ao item "${itemName}" e precisamos de mais informações para analisá-la.\n\nPor favor, responda este e-mail com:\n\n1. Documentação comprobatória (portaria, ata, certificado ou e-mail de confirmação)\n2. Descrição detalhada do seu papel e das entregas realizadas\n3. Justificativa de por que este item deve ser reconhecido na área de interesse escolhida\n\nAssim que recebermos as informações, daremos continuidade à análise.\n\nAtenciosamente,\nEquipe RH/UGP — SEBRAE Tocantins`
+      `Olá, ${name}!\n\nRecebemos sua solicitação de exceção referente ao item "${itemName}" e precisamos de mais informações para analisá-la.\n\nPor favor, responda este e-mail com:\n\n1. Documentação comprobatória (portaria, ata, certificado ou e-mail de confirmação)\n2. Descrição detalhada do seu papel e das entregas realizadas\n3. Justificativa de por que este item deve ser reconhecido na área de interesse escolhida\n\nAssim que recebermos as informações, daremos continuidade à análise.\n\nAtenciosamente,\n${CLIENT.emailSignature}`
     );
     setEmailModal({ participant });
   };

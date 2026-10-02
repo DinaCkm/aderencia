@@ -1,14 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import type { ParticipantProfile, AreaCode } from '../../../lib/types';
+import { CLIENT } from '../../../lib/client-config';
 
-// Códigos de área válidos (mesma lista de lib/constants.ts::OFFICIAL_AREAS) — mantido em
-// duplicata simples aqui para não puxar o array inteiro de labels; validação é só de segurança.
-const VALID_AREA_CODES = [
-  'DIREX', 'DITEC', 'DAF', 'CDE',
-  'UAC', 'UAF', 'UAUD', 'UGE', 'UGOC', 'UGP', 'UMC', 'URC', 'URI', 'UTIC',
-  'REGIONAIS',
-];
+// Códigos de área válidos — vêm da configuração do cliente desta instância
+// (lib/client-config.ts), a mesma usada em lib/constants.ts::OFFICIAL_AREAS.
+const VALID_AREA_CODES = CLIENT.officialAreas.map((a) => a.code);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CORREÇÃO ADMINISTRATIVA — Áreas de Interesse do candidato

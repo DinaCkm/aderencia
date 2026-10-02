@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
+import { CLIENT } from '../../lib/client-config';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: '📊' },
@@ -66,7 +67,7 @@ export default function AdminParticipants() {
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
             <div className="topbar-title">Banco de Sucessores Aderência</div>
-            <div className="topbar-subtitle">Painel Administrativo · SEBRAE Tocantins</div>
+            <div className="topbar-subtitle">Painel Administrativo · {CLIENT.orgName}</div>
           </div>
         </div>
         <div className="topbar-actions">

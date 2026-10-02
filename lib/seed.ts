@@ -4,6 +4,8 @@
  * Estes dados são inseridos apenas se a chave não existir (ON CONFLICT DO NOTHING).
  */
 
+import { CLIENT } from './client-config';
+
 export const SEED_USERS = [
   {
     "email": "admin@sebraeto.com.br",
@@ -344,8 +346,28 @@ export const SEED_USERS = [
   }
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Usuários iniciais por cliente.
+// • Sebrae/TO: mantém a lista acima (só é gravada se a chave "users" ainda não existir).
+// • Demais clientes: NENHUM usuário do Sebrae/TO entra no banco. Cria apenas o
+//   administrador inicial a partir das variáveis do Railway:
+//     ADMIN_EMAIL             → e-mail do admin
+//     ADMIN_INITIAL_PASSWORD  → senha inicial (trocar depois pela tela de admins)
+//   Sem essas variáveis, o banco começa sem usuários.
+// ─────────────────────────────────────────────────────────────────────────────
+function initialUsers(): any[] {
+  if (CLIENT.id === 'sebrae-to') return SEED_USERS;
+  const email = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+  const password = process.env.ADMIN_INITIAL_PASSWORD || '';
+  if (!email || !password) {
+    console.warn('[seed] ADMIN_EMAIL / ADMIN_INITIAL_PASSWORD não definidos — banco iniciará sem administrador.');
+    return [];
+  }
+  return [{ email, name: 'Administrador', cpf: '00000000000', role: 'admin', password }];
+}
+
 export const SEED_DATA: Record<string, any> = {
-  users: SEED_USERS,
+  users: initialUsers(),
   participants: [],
   performance: [],
   discReports: [],

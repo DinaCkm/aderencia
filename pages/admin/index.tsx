@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
+import { CLIENT } from '../../lib/client-config';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: '📊' },
@@ -184,7 +185,7 @@ export default function AdminDashboard() {
           <img className="topbar-logo" src="/eco-logo-white.png" alt="EcoLider" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
             <div className="topbar-title">Banco de Sucessores Aderência</div>
-            <div className="topbar-subtitle">Painel Administrativo · SEBRAE Tocantins</div>
+            <div className="topbar-subtitle">Painel Administrativo · {CLIENT.orgName}</div>
           </div>
         </div>
         <div className="topbar-actions">
@@ -204,7 +205,7 @@ export default function AdminDashboard() {
       <main className="container-wide" style={{ paddingTop: 96 }}>
         <div className="page-header" style={{ marginTop: '28px' }}>
           <h1>Dashboard</h1>
-          <p>Visão geral do Banco de Sucessores Aderência — SEBRAE Tocantins</p>
+          <p>Visão geral do Banco de Sucessores Aderência — {CLIENT.orgName}</p>
         </div>
 
         {/* Stats */}

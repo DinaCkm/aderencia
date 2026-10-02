@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import type { PerformanceRecord, ParticipantProfile } from '../../../lib/types';
 import * as XLSX from 'xlsx';
+import { CLIENT } from '../../../lib/client-config';
 
 interface UserRecord {
   id?: string;
@@ -102,7 +103,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Processar linhas de dados
-  const date = '2026-07-31'; // data de fechamento do engajamento do BS3
+  // Data de referência e turma vêm da configuração do cliente (lib/client-config.ts).
+  // Sebrae/TO: BS3 + 31/07/2026 (igual a antes). Outros clientes: todas as turmas + data do dia.
+  const date = CLIENT.engagementImport.date || new Date().toISOString().slice(0, 10);
+  const turmaPrefix = CLIENT.engagementImport.turmaPrefix;
   const performance: PerformanceRecord[] = await readJsonAsync('performance', []);
   const existingIds = new Set(performance.map((r) => r.id));
 
@@ -115,11 +119,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const rawName = String(row[colPessoa] ?? '').trim();
     if (!rawName) continue;
 
-    // Neste ciclo, importar somente participantes do BS3.
+    // Quando o cliente define uma turma (ex.: Sebrae/TO → BS3), importa só essa turma.
     // startsWith cobre exportações em que a data aparece junto da turma (ex.: "BS3 31/07/2026").
     const turma = colTurma >= 0 ? String(row[colTurma] ?? '').trim().toUpperCase() : '';
-    if (colTurma >= 0 && !turma.startsWith('BS3')) {
-      skipped.push(`${rawName} (${turma || 'turma não informada'} — fora do ciclo BS3)`);
+    if (turmaPrefix && colTurma >= 0 && !turma.startsWith(turmaPrefix)) {
+      skipped.push(`${rawName} (${turma || 'turma não informada'} — fora do ciclo ${turmaPrefix})`);
       continue;
     }
 

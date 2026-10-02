@@ -4,6 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { OFFICIAL_AREAS, INTEREST_AREAS, CATALOG_ITEMS } from '../lib/constants';
 import type { AreaCode, CatalogItem, ParticipantProfile } from '../lib/types';
+import { CLIENT } from '../lib/client-config';
 
 const initialProfile: ParticipantProfile = {
   id: '',
@@ -589,7 +590,7 @@ export default function ParticipantForm() {
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             <div>
               <div className="topbar-title">Banco de Sucessores — Aderência</div>
-              <div className="topbar-subtitle">SEBRAE Tocantins</div>
+              <div className="topbar-subtitle">{CLIENT.orgName}</div>
             </div>
           </div>
           <div className="topbar-actions">
@@ -764,7 +765,7 @@ export default function ParticipantForm() {
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
             <div className="topbar-title">Banco de Sucessores — Aderência</div>
-            <div className="topbar-subtitle">SEBRAE Tocantins</div>
+            <div className="topbar-subtitle">{CLIENT.orgName}</div>
           </div>
         </div>
         <div className="topbar-actions">
@@ -936,10 +937,10 @@ export default function ParticipantForm() {
                 </div>
 
                 <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 12px', opacity: 0.97 }}>
-                  O <strong>Programa de Desenvolvimento de Líderes e Sucessores</strong> é uma iniciativa estratégica do SEBRAE Tocantins voltada à preparação, valorização e desenvolvimento de talentos internos com potencial para assumir futuras posições de liderança.
+                  O <strong>Programa de Desenvolvimento de Líderes e Sucessores</strong> é uma iniciativa estratégica do {CLIENT.orgName} voltada à preparação, valorização e desenvolvimento de talentos internos com potencial para assumir futuras posições de liderança.
                 </p>
                 <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 12px', opacity: 0.97 }}>
-                  Esta etapa marca o <strong>fechamento do ciclo de desenvolvimento</strong> dos participantes do Banco de Sucessores, contemplando as turmas <strong>BS1, BS2 e BS3</strong>, conforme o cronograma definido para encerramento da temporada atual do programa.
+                  Esta etapa marca o <strong>fechamento do ciclo de desenvolvimento</strong> dos participantes do Banco de Sucessores{CLIENT.cohorts.length > 0 && <>, contemplando as turmas <strong>{CLIENT.cohorts.map(([t]) => t).join(', ').replace(/, ([^,]*)$/, ' e $1')}</strong>, conforme o cronograma definido para encerramento da temporada atual do programa</>}.
                 </p>
                 <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 12px', opacity: 0.97 }}>
                   Ao longo da jornada, os participantes vivenciaram ações voltadas ao autoconhecimento, ampliação do repertório de liderança, mentorias, trilhas de aprendizagem, entregas práticas, projetos aplicados e fortalecimento da prontidão para sucessão.
@@ -949,12 +950,13 @@ export default function ParticipantForm() {
                 </p>
 
                 {/* Cronograma de fechamento */}
+                {CLIENT.cohorts.length > 0 && (
                 <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: 8, padding: '14px 18px', marginBottom: 16 }}>
                   <div style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     &#128197; Cronograma de Fechamento
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-                    {[['BS1','30/06/2026'],['BS2','30/05/2026'],['BS3','30/07/2026']].map(([turma, data]) => (
+                    {CLIENT.cohorts.map(([turma, data]) => (
                       <div key={turma} style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 6, padding: '8px 12px', textAlign: 'center' }}>
                         <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{turma}</div>
                         <div style={{ fontSize: '0.72rem', opacity: 0.85, marginTop: 2 }}>Fechamento em</div>
@@ -966,19 +968,20 @@ export default function ParticipantForm() {
                     Após esse fechamento, será calculado o <strong>Índice de Aderência</strong> de cada participante às áreas indicadas.
                   </p>
                 </div>
+                )}
 
                 <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 12px', opacity: 0.97 }}>
                   Neste formulário, você poderá indicar até <strong>três áreas de interesse</strong> nas quais deseja ser considerado como possível sucessor. Para cada área escolhida, será calculado o seu <strong>Índice de Aderência</strong>, considerando critérios como formação acadêmica, experiência profissional, cursos realizados, participação em projetos, perfil comportamental e desempenho no programa de desenvolvimento.
                 </p>
                 <p style={{ fontSize: '0.82rem', lineHeight: 1.75, margin: '0 0 20px', opacity: 0.97 }}>
-                  A avaliação de aderência <strong>não possui caráter eliminatório</strong>. Ela representa uma fotografia do momento atual do participante e tem como finalidade apoiar a continuidade do seu desenvolvimento, oferecendo clareza sobre pontos fortes, oportunidades de evolução e caminhos possíveis para futuras posições de liderança. O resultado será disponibilizado com o detalhamento dos critérios utilizados no cálculo, reforçando a transparência do processo e o compromisso do SEBRAE Tocantins com o desenvolvimento de seus líderes e sucessores.
+                  A avaliação de aderência <strong>não possui caráter eliminatório</strong>. Ela representa uma fotografia do momento atual do participante e tem como finalidade apoiar a continuidade do seu desenvolvimento, oferecendo clareza sobre pontos fortes, oportunidades de evolução e caminhos possíveis para futuras posições de liderança. O resultado será disponibilizado com o detalhamento dos critérios utilizados no cálculo, reforçando a transparência do processo e o compromisso do {CLIENT.orgName} com o desenvolvimento de seus líderes e sucessores.
                 </p>
 
                 {/* Assinatura */}
                 <div style={{ borderTop: '1px solid rgba(255,255,255,0.25)', paddingTop: 14, display: 'flex', justifyContent: 'flex-end', gap: 24, flexWrap: 'wrap' }}>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '0.7rem', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Realização</div>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 700 }}>UGP — SEBRAE Tocantins</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700 }}>{CLIENT.programOwner}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '0.7rem', opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Parceria</div>
@@ -1472,7 +1475,7 @@ export default function ParticipantForm() {
                     Vale <strong>somente para a área correspondente</strong> e com pontuação maior.
                   </p>
                   <p style={{ fontSize: '0.7rem', color: '#7c3aed', marginTop: 4, fontStyle: 'italic' }}>
-                    Ex.: MBA em Auditoria (UAUD), Direito Público.
+                    {CLIENT.postMBAExample}
                   </p>
                 </div>
               </div>
@@ -2100,7 +2103,7 @@ export default function ParticipantForm() {
                   <p style={{ margin: '0 0 10px' }}>A base metodológica utilizada está no próprio modelo de avaliação de aderência, que prevê a análise da experiência profissional, da participação em projetos estratégicos da área, das entregas práticas e da aplicação dos aprendizados ao longo da jornada de desenvolvimento.</p>
                   <p style={{ margin: '0 0 10px' }}>Como a avaliação de aderência será realizada por área de interesse, os projetos também foram organizados por área, permitindo uma análise mais objetiva, transparente e coerente com a natureza de atuação de cada unidade.</p>
                   <p style={{ margin: '0 0 10px' }}>A lista <strong>não deve ser entendida como uma relação exaustiva ou definitiva</strong>, mas como uma estrutura inicial de padronização para reduzir subjetividade no preenchimento e na análise. Caso o participante tenha atuado em projeto relevante que não esteja listado, poderá registrá-lo no campo destinado a exceções, para análise posterior pela equipe responsável.</p>
-                  <p style={{ margin: '0 0 10px' }}>Será considerado projeto relevante para fins de aderência aquele que apresentar relação com a área de interesse escolhida, com a atuação institucional do SEBRAE Tocantins ou com competências relevantes para liderança, gestão, inovação, melhoria de processos, desenvolvimento de pessoas, atendimento, governança ou resultados institucionais.</p>
+                  <p style={{ margin: '0 0 10px' }}>Será considerado projeto relevante para fins de aderência aquele que apresentar relação com a área de interesse escolhida, com a atuação institucional do {CLIENT.orgName} ou com competências relevantes para liderança, gestão, inovação, melhoria de processos, desenvolvimento de pessoas, atendimento, governança ou resultados institucionais.</p>
                   <p style={{ margin: '0 0 6px', fontWeight: 700 }}>O simples registro de um projeto não garante pontuação automática.</p>
                   <p style={{ margin: '0 0 10px' }}>A análise considerará a relação do projeto com a área escolhida, o papel desempenhado pelo participante e a contribuição da iniciativa para os resultados institucionais.</p>
                   <p style={{ margin: '0 0 6px', fontWeight: 700 }}>Critério utilizado para organização dos projetos</p>

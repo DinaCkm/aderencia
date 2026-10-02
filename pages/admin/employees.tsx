@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { ParticipantProfile } from '../../lib/types';
 import { CATALOG_ITEMS as FIXED_CATALOG_ITEMS } from '../../lib/constants';
 import { TRANSVERSAL_PROJECTS, buildMbaAnalysis, buildProjAnalysis, dedupeItemValidations } from '../../lib/business';
+import { CLIENT } from '../../lib/client-config';
 // Ver comentário equivalente em pages/admin/audit.tsx — CATALOG_ITEMS é atualizado em runtime
 // com o catálogo completo (fixo + itens customizados) buscado via /api/admin/catalogs.
 let CATALOG_ITEMS: typeof FIXED_CATALOG_ITEMS = FIXED_CATALOG_ITEMS;
@@ -1014,7 +1015,7 @@ export default function AdminEmployees() {
               <div className="form-group">
                 <label className="form-label">E-mail corporativo *</label>
                 <input className="form-input" type="email" value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)} placeholder="joao@sebraeto.com.br" />
+                  onChange={(e) => setNewEmail(e.target.value)} placeholder={`joao@${CLIENT.emailDomain}`} />
               </div>
               <div className="form-group">
                 <label className="form-label">CPF (será a senha de acesso) *</label>

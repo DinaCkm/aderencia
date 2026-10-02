@@ -4,6 +4,7 @@ import Head from 'next/head';
 import type { ParticipantProfile } from '../../lib/types';
 import { CATALOG_ITEMS as FIXED_CATALOG_ITEMS } from '../../lib/constants';
 import { TRANSVERSAL_PROJECTS, buildMbaAnalysis, buildProjAnalysis, dedupeItemValidations } from '../../lib/business';
+import { areaLabelMap, CLIENT } from '../../lib/client-config';
 // Ver comentário equivalente em pages/admin/audit.tsx — CATALOG_ITEMS é atualizado em runtime
 // com o catálogo completo (fixo + itens customizados) buscado via /api/admin/catalogs.
 let CATALOG_ITEMS: typeof FIXED_CATALOG_ITEMS = FIXED_CATALOG_ITEMS;
@@ -47,7 +48,7 @@ interface ProfileData {
   audit?: ProfileAuditData;
 }
 
-const AREA_LABELS: Record<string, string> = {
+const LEGACY_AREA_LABELS: Record<string, string> = {
   UAUD: 'Unidade de Auditoria Interna',
   UGE: 'Unidade de Gestão Estratégica',
   UGOC: 'Unidade de Governança e Conformidade',
@@ -61,6 +62,9 @@ const AREA_LABELS: Record<string, string> = {
   UGFIN: 'Unidade de Gestão Financeira',
   UGRE: 'Unidade de Gestão Regional',
 };
+// No Sebrae/TO mantém o mapa acima; nos demais clientes usa as áreas de lib/client-config.ts
+const AREA_LABELS: Record<string, string> = areaLabelMap(LEGACY_AREA_LABELS, 'name');
+
 
 export default function PrintProfile() {
   const router = useRouter();
@@ -722,7 +726,7 @@ export default function PrintProfile() {
 
         {/* ── Rodapé ── */}
         <div style={{ marginTop: 32, paddingTop: 12, borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#9ca3af' }}>
-          <span>Banco de Sucessores Aderência — SEBRAE Tocantins</span>
+          <span>Banco de Sucessores Aderência — {CLIENT.orgName}</span>
           <span>Gerado em {new Date().toLocaleString('pt-BR')}</span>
         </div>
 

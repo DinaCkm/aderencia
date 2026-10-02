@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { OFFICIAL_AREAS } from '../lib/constants';
+import { CLIENT } from '../lib/client-config';
 
 // Definição das 9 células do Nine Box
 const GRID_CELLS: { x: string; y: string; label: string; color: string; bg: string; border: string }[] = [
@@ -105,7 +106,7 @@ export default function NineBoxPublic() {
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
             <div className="topbar-title">Banco de Sucessores — Aderência</div>
-            <div className="topbar-subtitle">SEBRAE Tocantins</div>
+            <div className="topbar-subtitle">{CLIENT.orgName}</div>
           </div>
         </div>
         <div className="topbar-actions" style={{ gap: 10 }}>
