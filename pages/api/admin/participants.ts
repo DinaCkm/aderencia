@@ -22,6 +22,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const participants = await readJsonAsync<ParticipantProfile[]>('participants', []);
     const participantsArray = Array.isArray(participants) ? participants : [];
 
+    // Status da auditoria salvo separadamente. Ler aqui permite que a lista lateral da
+    // auditoria mostre o estado da ficha sem precisar abrir participante por participante.
+    // Mantemos fallback para validationStatus do próprio perfil para cobrir registros legados.
+    const profileAudits = await readJsonAsync<any[]>('profile_audits', []);
+    const auditsArray = Array.isArray(profileAudits) ? profileAudits : [];
+    const auditsByParticipantId = new Map<string, any>();
+    for (const audit of auditsArray) {
+      if (audit?.participantId) auditsByParticipantId.set(audit.participantId, audit);
+    }
+
     const participantsByEmail = new Map<string, ParticipantProfile>();
     for (const p of participantsArray) {
       if (p.email) participantsByEmail.set(p.email.toLowerCase(), p);
@@ -49,6 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Cruzar: para cada usuário, verificar se já preencheu o formulário
     const merged = collaborators.map((u: any) => {
       const p = participantsByEmail.get((u.email || '').toLowerCase());
+      const audit = p ? auditsByParticipantId.get(p.id) : undefined;
       const emailLower = (u.email || '').toLowerCase();
       const dbKeys = proofFilesInDB.get(emailLower) ?? new Set<string>();
 
@@ -190,6 +201,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         role: u.role || 'colaborador',
         lastSignedIn: u.lastSignedIn || null,
         formStatus: p ? 'preenchido' : u.lastSignedIn ? 'pendente' : 'nao_acessou',
+        validationStatus: audit?.overallStatus ?? p?.validationStatus ?? 'provisional',
+        validatedAt: audit?.auditedAt ?? p?.validatedAt ?? null,
         matrícula: p?.matrícula ?? u.matrícula ?? null,
         unit: p?.currentArea ?? null,
         selectedAreas: p?.selectedAreas ?? [],
