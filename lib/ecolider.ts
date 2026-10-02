@@ -146,3 +146,17 @@ export async function diagnoseEmails(emails: string[]): Promise<any[]> {
     users: (urows || []).filter((r: any) => r.email === email),
   }));
 }
+
+/** Lista (sem credenciais) de quem a sincronização traria e de qual tabela vem: alunos ou users. */
+export async function listEcoliderSources(): Promise<any[]> {
+  if (!ecoliderEnabled()) return [];
+  const like = `%${CLIENT.ecolider!.programNameLike}%`;
+  const [a]: any[] = await getPool().query(BASE_SQL + ' ORDER BY a.name', [like]);
+  const [u]: any[] = await getPool().query(
+    "SELECT u.name, LOWER(u.email) AS email, u.role, u.alunoId, u.consultorId FROM users u JOIN programs p ON p.id = u.programId " +
+    "WHERE u.isActive = 1 AND u.role <> 'admin' AND u.email IS NOT NULL AND u.cpf IS NOT NULL AND u.cpf <> '' AND p.name LIKE ? ORDER BY u.name",
+    [like]
+  );
+  const alunoEmails = new Set((a || []).map((r: any) => String(r.email || '').toLowerCase()));
+  return (u || []).filter((r: any) => !alunoEmails.has(r.email)).map((r: any) => ({ name: r.name, email: r.email, role: r.role, alunoId: r.alunoId, consultorId: r.consultorId }));
+}
