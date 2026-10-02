@@ -869,6 +869,30 @@ export default function AdminEmployees() {
     loadEmployees();
   }, [router]);
 
+  // Sincronização com o EcoLíder (clientes com CLIENT.ecolider, ex.: Sebrae/AC)
+  const [syncing, setSyncing] = useState(false);
+  const syncEcolider = async () => {
+    setSyncing(true);
+    try {
+      const prev = await fetch('/api/admin/ecolider-sync').then((r) => r.json());
+      if (prev.error) { notify(prev.error, 'error'); return; }
+      const ok = window.confirm(
+        `EcoLíder: ${prev.total} participantes ativos do programa.\n` +
+        `${prev.novos.length} novos e ${prev.atualizados.length} com acesso atualizado.\n\n` +
+        'Nada é apagado e o EcoLíder não é alterado. Confirmar a sincronização?'
+      );
+      if (!ok) return;
+      const r = await fetch('/api/admin/ecolider-sync', { method: 'POST' }).then((x) => x.json());
+      if (r.error) { notify(r.error, 'error'); return; }
+      notify(`Sincronizado: ${r.novos} novos, ${r.atualizados} atualizados (${r.total} no EcoLíder).`);
+      loadEmployees();
+    } catch {
+      notify('Não foi possível sincronizar com o EcoLíder.', 'error');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const loadEmployees = () => {
     setLoading(true);
     fetch('/api/admin/employees')
@@ -984,10 +1008,17 @@ export default function AdminEmployees() {
               {employees.length} empregado{employees.length !== 1 ? 's' : ''} cadastrado{employees.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <button className="btn-primary" onClick={() => { setShowForm((v) => !v); setMsg(''); }}
-            style={{ fontSize: '0.82rem' }}>
-            {showForm ? '✕ Cancelar' : '+ Novo empregado'}
-          </button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {CLIENT.ecolider && (
+              <button className="btn-outline" onClick={syncEcolider} disabled={syncing} style={{ fontSize: '0.82rem' }}>
+                {syncing ? 'Sincronizando...' : '⟳ Sincronizar com EcoLíder'}
+              </button>
+            )}
+            <button className="btn-primary" onClick={() => { setShowForm((v) => !v); setMsg(''); }}
+              style={{ fontSize: '0.82rem' }}>
+              {showForm ? '✕ Cancelar' : '+ Novo empregado'}
+            </button>
+          </div>
         </div>
 
         {/* Mensagem de feedback */}

@@ -24,7 +24,7 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const body = isAdmin ? { email, password, role: 'admin' } : { email, cpf: cpf.replace(/\D/g, ''), role: 'participant' };
+    const body = isAdmin ? { email, password, role: 'admin' } : { email, cpf: CLIENT.ecolider ? cpf.trim() : cpf.replace(/\D/g, ''), role: 'participant' };
     const res = await fetch('/api/auth/login', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -83,8 +83,12 @@ export default function Login() {
             </div>
             {!isAdmin ? (
               <div className="form-group">
-                <label className="form-label">CPF</label>
-                <input className="form-input" type="text" value={cpf} onChange={(e) => setCpf(formatCpf(e.target.value))} required placeholder="000.000.000-00" autoComplete="off" inputMode="numeric" />
+                <label className="form-label">{CLIENT.ecolider ? 'CPF ou ID de acesso do EcoLíder' : 'CPF'}</label>
+                {CLIENT.ecolider ? (
+                  <input className="form-input" type="text" value={cpf} onChange={(e) => setCpf(e.target.value)} required placeholder="o mesmo que você usa no EcoLíder" autoComplete="off" />
+                ) : (
+                  <input className="form-input" type="text" value={cpf} onChange={(e) => setCpf(formatCpf(e.target.value))} required placeholder="000.000.000-00" autoComplete="off" inputMode="numeric" />
+                )}
               </div>
             ) : (
               <div className="form-group">
@@ -99,7 +103,9 @@ export default function Login() {
           </form>
 
           <p style={{ textAlign: 'center', fontSize: '0.75rem', color: '#9ca3af', marginTop: '24px' }}>
-            Participantes: use seu e-mail corporativo e CPF.<br />
+            {CLIENT.ecolider
+              ? <>Participantes: use o mesmo e-mail e o mesmo CPF ou ID de acesso da plataforma EcoLíder ({CLIENT.ecolider.platformUrl}).<br /></>
+              : <>Participantes: use seu e-mail corporativo e CPF.<br /></>}
             Em caso de dúvidas, contate o RH.
           </p>
 

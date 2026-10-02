@@ -54,6 +54,17 @@ export interface ClientConfig {
    * Lista vazia = o bloco "Cronograma de Fechamento" não aparece.
    */
   cohorts: [string, string][];
+  /**
+   * Login do participante pelo acesso do EcoLíder (mesmo e-mail + CPF ou ID de acesso).
+   * null = login próprio do Aderência (e-mail + CPF cadastrado aqui).
+   * Requer a variável ECOLIDER_MYSQL_URL (somente leitura no banco do EcoLíder).
+   */
+  ecolider: {
+    /** Filtro do programa no EcoLíder: programs.name LIKE '%<valor>%' */
+    programNameLike: string;
+    /** Endereço da plataforma, mostrado na tela de login */
+    platformUrl: string;
+  } | null;
   /** Importação de engajamento (Ecossistema do Bem) */
   engagementImport: {
     /** Só importa linhas cuja Turma começa com este prefixo (null = todas as turmas) */
@@ -105,6 +116,7 @@ const SEBRAE_TO: ClientConfig = {
   exampleAreas: ['UGE', 'UAF'],
   postMBAExample: 'Ex.: MBA em Auditoria (UAUD), Direito Público.',
   cohorts: [['BS1', '30/06/2026'], ['BS2', '30/05/2026'], ['BS3', '30/07/2026']],
+  ecolider: null,
   engagementImport: { turmaPrefix: 'BS3', date: '2026-07-31' },
 };
 
@@ -150,6 +162,7 @@ const SEBRAE_AC: ClientConfig = {
   exampleAreas: ['GP', 'FIN'],
   postMBAExample: 'Ex.: MBA em Auditoria (AI), Direito Público.',
   cohorts: [],
+  ecolider: { programNameLike: 'Acre', platformUrl: 'ecolider.ecodobem.com' },
   engagementImport: { turmaPrefix: null, date: null },
 };
 
