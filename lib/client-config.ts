@@ -174,7 +174,7 @@ const SEBRAE_AC: ClientConfig = {
   hrUnit: 'GP',
   roleOptions: [
     { group: 'Cargos Técnicos', options: ['Analista Técnico I', 'Analista Técnico II', 'Analista Técnico III', 'Assistente I', 'Assistente II'] },
-    { group: 'Cargos de Gestão e Assessoria', options: ['Coordenador(a)', 'Gerente', 'Assessor(a)', 'Diretor'] },
+    { group: 'Cargos de Gestão e Assessoria', options: ['Coordenador(a)', 'Gerente', 'Assessor(a)', 'Chefe de Gabinete', 'Diretor'] },
     { group: 'Outros', options: ['Estagiário'] },
   ],
   formWindow: { open: '2026-10-02T00:00:00-03:00', close: '2026-10-15T23:59:00-03:00', openLabel: '02/10/2026', closeLabel: '15/10/2026 às 23h59' },
