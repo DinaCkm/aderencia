@@ -147,7 +147,7 @@ export default function NineBoxPublic() {
               As posições exibidas neste Nine Box são <strong>provisórias</strong> e foram geradas
               automaticamente com base nas informações declaradas pelos próprios participantes.
               Todos os dados estão sujeitos à <strong>validação, análise e comprovação documental
-              pelo RH/UGP</strong> antes de qualquer decisão oficial. A posição final pode ser
+              pelo RH/{CLIENT.hrUnit}</strong> antes de qualquer decisão oficial. A posição final pode ser
               alterada após a conferência dos comprovantes entregues.
             </p>
           </div>

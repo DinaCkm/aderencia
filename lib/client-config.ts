@@ -43,6 +43,12 @@ export interface ClientConfig {
   nonInterestCodes: string[];
   /** Regionais individuais */
   regionalAreas: AreaDef[];
+  /** Sigla da área de Gestão de Pessoas citada nos textos ao candidato (ex.: "UGP", "GP") */
+  hrUnit: string;
+  /** Opções do campo "Cargo / Função atual" do formulário */
+  roleOptions: { group: string; options: string[] }[];
+  /** Janela de preenchimento do formulário (horário de Brasília) */
+  formWindow: { open: string; close: string; openLabel: string; closeLabel: string };
   /** Assinatura dos e-mails enviados aos candidatos */
   emailSignature: string;
   /** Códigos de área usados nos exemplos das telas de importação */
@@ -112,6 +118,13 @@ const SEBRAE_TO: ClientConfig = {
     { code: 'RSU', label: 'RSU — Regional Sul' },
     { code: 'RVA', label: 'RVA — Regional Vale do Araguaia' },
   ],
+  hrUnit: 'UGP',
+  roleOptions: [
+    { group: 'Cargos Técnicos', options: ['Analista Técnico I', 'Analista Técnico II', 'Analista Técnico III', 'Assistente I', 'Assistente II'] },
+    { group: 'Cargos de Gestão', options: ['Gerente', 'Diretor'] },
+    { group: 'Outros', options: ['Estagiário'] },
+  ],
+  formWindow: { open: '2026-06-01T00:01:00-03:00', close: '2026-06-15T23:59:00-03:00', openLabel: '01/06/2026 às 00h01', closeLabel: '15/06/2026 às 23h59' },
   emailSignature: 'Equipe RH/UGP — SEBRAE Tocantins',
   exampleAreas: ['UGE', 'UAF'],
   postMBAExample: 'Ex.: MBA em Auditoria (UAUD), Direito Público.',
@@ -158,6 +171,13 @@ const SEBRAE_AC: ClientConfig = {
     { code: 'ERAA', label: 'ERAA — Escritório Regional do Alto Acre' },
     { code: 'ERJT', label: 'ERJT — Escritório Regional do Juruá, Tarauacá e Envira' },
   ],
+  hrUnit: 'GP',
+  roleOptions: [
+    { group: 'Cargos Técnicos', options: ['Analista Técnico I', 'Analista Técnico II', 'Analista Técnico III', 'Assistente I', 'Assistente II'] },
+    { group: 'Cargos de Gestão e Assessoria', options: ['Coordenador(a)', 'Gerente', 'Assessor(a)', 'Diretor'] },
+    { group: 'Outros', options: ['Estagiário'] },
+  ],
+  formWindow: { open: '2026-10-02T00:00:00-03:00', close: '2026-10-15T23:59:00-03:00', openLabel: '02/10/2026', closeLabel: '15/10/2026 às 23h59' },
   emailSignature: 'Equipe de Gestão de Pessoas — SEBRAE Acre',
   exampleAreas: ['GP', 'FIN'],
   postMBAExample: 'Ex.: MBA em Auditoria (AI), Direito Público.',

@@ -176,7 +176,7 @@ function ProofSelector({ itemLabel, email, proofMode, proofFiles, proofLinks, on
             checked={mode === 'ugp-knows'}
             onChange={() => onChange('ugp-knows')}
             style={{ accentColor: 'var(--cyan)', width: 13, height: 13 }} />
-          ✓ A UGP já tem conhecimento
+          ✓ A {CLIENT.hrUnit} já tem conhecimento
         </label>
         <label style={{
           display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
@@ -349,8 +349,9 @@ function InfoTooltip({ content }: { content: React.ReactNode }) {
   );
 }
 // Janela de acesso: 01/06/2026 00:01 até 15/06/2026 23:59 (horário de Brasília)
-const OPEN_DATE  = new Date('2026-06-01T00:01:00-03:00');
-const CLOSE_DATE = new Date('2026-06-15T23:59:00-03:00');
+// Datas por cliente (lib/client-config.ts → formWindow)
+const OPEN_DATE  = new Date(CLIENT.formWindow.open);
+const CLOSE_DATE = new Date(CLIENT.formWindow.close);
 
 export default function ParticipantForm() {
   const router = useRouter();
@@ -606,7 +607,7 @@ export default function ParticipantForm() {
               </div>
               <p style={{ fontSize: '0.78rem', color: '#78350f', lineHeight: 1.6, margin: 0 }}>
                 Sua pontuação e posição no Nine Box estão disponíveis agora, mas são <strong>provisórias</strong>.
-                A confirmação definitiva ocorrerá após a <strong>checagem dos documentos</strong> enviados ou validação pela UGP.
+                A confirmação definitiva ocorrerá após a <strong>checagem dos documentos</strong> enviados ou validação pela {CLIENT.hrUnit}.
                 Você será notificado quando sua pontuação for confirmada.
               </p>
             </div>
@@ -693,7 +694,7 @@ export default function ParticipantForm() {
                     📎 {pendencias.length} {pendencias.length === 1 ? 'item pendente de comprovação' : 'itens pendentes de comprovação'}
                   </div>
                   <p style={{ fontSize: '0.76rem', color: '#7c2d12', marginBottom: 10, lineHeight: 1.5 }}>
-                    Os itens abaixo ainda precisam de atenção. Clique em <strong>Editar formulário</strong> para corrigi-los antes da validação pela UGP:
+                    Os itens abaixo ainda precisam de atenção. Clique em <strong>Editar formulário</strong> para corrigi-los antes da validação pela {CLIENT.hrUnit}:
                   </p>
                   <ul style={{ margin: 0, paddingLeft: 18, fontSize: '0.76rem', color: '#7c2d12', lineHeight: 1.8 }}>
                     {pendencias.map((p, i) => <li key={i}>{p}</li>)}
@@ -736,7 +737,7 @@ export default function ParticipantForm() {
             Sistema ainda não está aberto
           </h2>
           <p style={{ color: '#555', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: 20 }}>
-            O preenchimento do formulário estará disponível a partir de <strong>01/06/2026 às 00h01</strong> (horário de Brasília). Aguarde a abertura do sistema e tente novamente na data indicada.
+            O preenchimento do formulário estará disponível a partir de <strong>{CLIENT.formWindow.openLabel}</strong> (horário de Brasília). Aguarde a abertura do sistema e tente novamente na data indicada.
           </p>
           <a href="https://ckmtalents.com.br/fale-conosco/" target="_blank" rel="noreferrer"
             style={{
@@ -837,8 +838,8 @@ export default function ParticipantForm() {
               </div>
               <p style={{ fontSize: '0.82rem', color: '#7f1d1d', lineHeight: 1.6, margin: 0 }}>
                 {isAfterDeadline
-                  ? (<>O prazo para preenchimento encerrou em <strong>15/06/2026 às 23h59</strong>. Você pode <strong>visualizar seus dados e pontuação</strong>, mas não é mais possível adicionar, remover ou alterar informações. Em caso de dúvidas, entre em contato com a UGP ou a CKM Talents.</>) 
-                  : (<>O período de preenchimento foi encerrado pela administração. Você pode <strong>visualizar seus dados e pontuação</strong>, mas não é possível adicionar, remover ou alterar informações. Em caso de dúvidas, entre em contato com a UGP.</>)
+                  ? (<>O prazo para preenchimento encerrou em <strong>{CLIENT.formWindow.closeLabel}</strong>. Você pode <strong>visualizar seus dados e pontuação</strong>, mas não é mais possível adicionar, remover ou alterar informações. Em caso de dúvidas, entre em contato com a {CLIENT.hrUnit} ou a CKM Talents.</>) 
+                  : (<>O período de preenchimento foi encerrado pela administração. Você pode <strong>visualizar seus dados e pontuação</strong>, mas não é possível adicionar, remover ou alterar informações. Em caso de dúvidas, entre em contato com a {CLIENT.hrUnit}.</>)
                 }
               </p>
             </div>
@@ -1007,7 +1008,7 @@ export default function ParticipantForm() {
                 <p style={{ margin: '0 0 4px' }}>Fórmula: <strong>Nota Técnica = (Soma dos pontos ÷ 80) × 10</strong></p>
                 <p style={{ margin: '0 0 8px', fontSize: '0.72rem', color: '#94a3b8' }}>Graduação e Cursos Extracurriculares são dados complementares e não entram na pontuação.</p>
                 <p style={{ margin: '0 0 4px', fontWeight: 700 }}>Aderência Comportamental (nota 0–10)</p>
-                <p style={{ margin: 0 }}>Calculada como média entre o Perfil DISC (0–10) e a Performance no programa (0–100 convertida para 0–10). Esses dados são inseridos pela equipe de RH/UGP.</p>
+                <p style={{ margin: 0 }}>Calculada como média entre o Perfil DISC (0–10) e a Performance no programa (0–100 convertida para 0–10). Esses dados são inseridos pela equipe de RH/{CLIENT.hrUnit}.</p>
               </CalcTutorial>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div className="form-group">
@@ -1031,21 +1032,11 @@ export default function ParticipantForm() {
                   <select className="form-input" value={profile.currentRole}
                     onChange={(e) => setProfile((p) => ({ ...p, currentRole: e.target.value }))} required>
                     <option value="">Selecione seu cargo...</option>
-                    <optgroup label="Cargos Técnicos">
-                      <option>Analista Técnico I</option>
-                      <option>Analista Técnico II</option>
-                      <option>Analista Técnico III</option>
-                      <option>Assistente I</option>
-                      <option>Assistente II</option>
-                    </optgroup>
-                    <optgroup label="Cargos de Gestão">
-                      <option>Gerente</option>
-                      <option>Diretor</option>
-                    </optgroup>
-                    <optgroup label="Outros">
-                      <option>Estagiário</option>
-                      
-                    </optgroup>
+                    {CLIENT.roleOptions.map((g) => (
+                      <optgroup key={g.group} label={g.group}>
+                        {g.options.map((o) => <option key={o}>{o}</option>)}
+                      </optgroup>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -1659,7 +1650,7 @@ export default function ParticipantForm() {
                 <p style={{ margin: 0, marginBottom: 6 }}>São formações de desenvolvimento continuado — diferentes de Pós/MBA. Incluem cursos, workshops, treinamentos e certificações profissionais realizados fora do ambiente acadêmico formal.</p>
                 <p style={{ margin: 0, marginBottom: 6 }}><strong>Requisito mínimo:</strong> o curso deve ter <strong>no mínimo 16 horas</strong> de carga horária para ser considerado válido para registro. Cursos com menos de 16h serão desconsiderados automaticamente.</p>
                 <p style={{ margin: 0, marginBottom: 6 }}>Para cada curso selecionado, informe a carga horária e indique como vai comprová-lo (documento ou conhecimento da UGP).</p>
-                <p style={{ margin: 0 }}>A validação final é feita pelo RH/UGP. Cursos não listados podem ser registrados no campo de exceção da última etapa.</p>
+                <p style={{ margin: 0 }}>A validação final é feita pelo RH/{CLIENT.hrUnit}. Cursos não listados podem ser registrados no campo de exceção da última etapa.</p>
               </div>
 
               {/* Transversal vs específico */}
@@ -1950,7 +1941,7 @@ export default function ParticipantForm() {
 
               {/* Definição didática */}
               <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.78rem', color: '#92400e' }}>
-                <strong>O que são cursos estratégicos?</strong> São formações de desenvolvimento continuado — diferentes de Pós/MBA. Incluem cursos, workshops, treinamentos e certificações profissionais. Para pontuar, o curso deve ter <strong>no mínimo 16 horas</strong>. A validação final é feita pelo RH/UGP.
+                <strong>O que são cursos estratégicos?</strong> São formações de desenvolvimento continuado — diferentes de Pós/MBA. Incluem cursos, workshops, treinamentos e certificações profissionais. Para pontuar, o curso deve ter <strong>no mínimo 16 horas</strong>. A validação final é feita pelo RH/{CLIENT.hrUnit}.
               </div>
 
               {/* Transversal vs específico */}
@@ -2129,7 +2120,7 @@ export default function ParticipantForm() {
               <div style={{ background: '#f0f9ff', border: '1.5px solid #7dd3fc', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
                 <p style={{ margin: 0, marginBottom: 6, fontWeight: 700 }}>O que são projetos estratégicos?</p>
                 <p style={{ margin: 0, marginBottom: 6 }}>São iniciativas institucionais formais da organização nas quais você participou como membro, líder ou colaborador.</p>
-                <p style={{ margin: 0 }}>Selecione até <strong>3 projetos</strong> em que participou e indique como vai comprová-los. A validação final é feita pelo RH/UGP.</p>
+                <p style={{ margin: 0 }}>Selecione até <strong>3 projetos</strong> em que participou e indique como vai comprová-los. A validação final é feita pelo RH/{CLIENT.hrUnit}.</p>
               </div>
 
               <div className="form-group">
@@ -2248,7 +2239,7 @@ export default function ParticipantForm() {
 
                 {profile.exceptionRequested && profile.exceptionStatus === 'approved' && (profile as any).exceptionApprovalJustification && (
                   <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 10, padding: '16px 18px', marginTop: 8, marginBottom: 8 }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#15803d', marginBottom: 6 }}>✅ Exceção aprovada pela UGP</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#15803d', marginBottom: 6 }}>✅ Exceção aprovada pela {CLIENT.hrUnit}</div>
                     <p style={{ fontSize: '0.78rem', color: '#166534', lineHeight: 1.6, margin: 0 }}>
                       {(profile as any).exceptionApprovalJustification}
                     </p>
@@ -2257,9 +2248,9 @@ export default function ParticipantForm() {
 
                 {profile.exceptionRequested && profile.exceptionStatus === 'rejected' && (
                   <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 10, padding: '16px 18px', marginTop: 8, marginBottom: 8 }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#dc2626', marginBottom: 6 }}>❌ Exceção não aprovada pela UGP</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#dc2626', marginBottom: 6 }}>❌ Exceção não aprovada pela {CLIENT.hrUnit}</div>
                     <p style={{ fontSize: '0.78rem', color: '#991b1b', lineHeight: 1.6, margin: 0 }}>
-                      Sua solicitação de exceção não foi aprovada. Entre em contato com a UGP para mais informações.
+                      Sua solicitação de exceção não foi aprovada. Entre em contato com a {CLIENT.hrUnit} para mais informações.
                     </p>
                   </div>
                 )}
@@ -2268,7 +2259,7 @@ export default function ParticipantForm() {
                   <div style={{ background: '#fefce8', border: '1.5px solid #fde68a', borderRadius: 10, padding: '16px 18px', marginTop: 4 }}>
                     <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#92400e', marginBottom: 6 }}>&#9888; Solicitação de Análise de Exceção</div>
                     <p style={{ fontSize: '0.78rem', color: '#78350f', lineHeight: 1.6, marginBottom: 14 }}>
-                      Preencha os campos abaixo com o máximo de detalhes possível. Sua solicitação será analisada pelo RH/UGP antes da pontuação final ser confirmada.
+                      Preencha os campos abaixo com o máximo de detalhes possível. Sua solicitação será analisada pelo RH/{CLIENT.hrUnit} antes da pontuação final ser confirmada.
                       <strong> Quanto mais detalhada for sua descrição, maior a chance de o item ser reconhecido.</strong>
                     </p>
 

@@ -381,8 +381,8 @@ export default function MyResults() {
               <div>
                 <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#92400e', marginBottom: 4 }}>⚠ Pontuação Provisória</div>
                 <p style={{ fontSize: '0.78rem', color: '#78350f', lineHeight: 1.6, margin: 0 }}>
-                  Sua pontuação e posição no Nine Box são <strong>provisórias</strong> e estão sujeitas à confirmação pelo RH/UGP após a checagem dos documentos comprobatórios enviados.
-                  Itens marcados como <em>"A UGP já tem conhecimento"</em> serão validados diretamente pela equipe. Itens com upload de documento aguardam análise.
+                  Sua pontuação e posição no Nine Box são <strong>provisórias</strong> e estão sujeitas à confirmação pelo RH/{CLIENT.hrUnit} após a checagem dos documentos comprobatórios enviados.
+                  Itens marcados como <em>"A {CLIENT.hrUnit} já tem conhecimento"</em> serão validados diretamente pela equipe. Itens com upload de documento aguardam análise.
                   Você será informado quando sua pontuação for <strong>confirmada definitivamente</strong>.
                 </p>
               </div>
@@ -395,7 +395,7 @@ export default function MyResults() {
                   ✅ Pontuação {overallStatus === 'adjusted' ? 'Ajustada' : 'Definitiva'}
                 </div>
                 <p style={{ fontSize: '0.78rem', color: '#166534', lineHeight: 1.6, margin: 0 }}>
-                  A auditoria dos seus documentos comprobatórios já foi concluída pelo RH/UGP. A pontuação e a posição no Nine Box exibidas abaixo são <strong>definitivas</strong>.
+                  A auditoria dos seus documentos comprobatórios já foi concluída pelo RH/{CLIENT.hrUnit}. A pontuação e a posição no Nine Box exibidas abaixo são <strong>definitivas</strong>.
                 </p>
               </div>
             </div>
@@ -538,7 +538,7 @@ export default function MyResults() {
                   {r.excludedItems?.length > 0 && (
                     <div style={{ marginTop: 12, background: '#fef2f2', borderRadius: 8, padding: '12px 14px', border: '1.5px solid #fca5a5' }}>
                       <div style={{ color: '#991b1b', fontWeight: 700, fontSize: '0.82rem', marginBottom: 6 }}>
-                        ⚠️ Itens não considerados na pontuação — rejeitados pela UGP
+                        ⚠️ Itens não considerados na pontuação — rejeitados pela {CLIENT.hrUnit}
                       </div>
                       {r.excludedItems.map((ex: any, idx: number) => (
                         <div key={idx} style={{ fontSize: '0.78rem', color: '#7f1d1d', marginBottom: idx < r.excludedItems.length - 1 ? 8 : 0, lineHeight: 1.5 }}>
