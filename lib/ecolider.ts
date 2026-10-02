@@ -8,6 +8,7 @@
 //   • credencial normalizada = sem "." e "-"
 //   • aluno com CPF → só entra pelo CPF; aluno sem CPF → entra pelo externalId
 //   • só alunos ativos e com login liberado (isActive = 1 e canLogin = 1)
+//   • também aceita o cadastro de usuário (users: e-mail + cpf), como o passo 1 do EcoLíder
 //
 // Este módulo NUNCA escreve no banco do EcoLíder.
 // Variável de ambiente: ECOLIDER_MYSQL_URL
@@ -50,6 +51,19 @@ const BASE_SQL =
   'JOIN programs p ON p.id = a.programId ' +
   'WHERE a.isActive = 1 AND a.canLogin = 1 AND a.email IS NOT NULL AND p.name LIKE ?';
 
+// O EcoLíder também aceita login pela tabela `users` (passo 1 de authenticateByEmailCpf):
+// e-mail + users.cpf (que guarda o CPF ou o ID de acesso já normalizado).
+const USERS_SQL =
+  'SELECT u.name, u.email, u.cpf FROM users u ' +
+  'JOIN programs p ON p.id = u.programId ' +
+  "WHERE u.isActive = 1 AND u.role <> 'admin' AND u.email IS NOT NULL AND u.cpf IS NOT NULL AND u.cpf <> '' AND p.name LIKE ?";
+
+function userToAluno(row: any): EcoliderAluno | null {
+  const credential = normalizeCredential(String(row.cpf || ''));
+  if (!row.email || !credential) return null;
+  return { name: String(row.name || '').trim(), email: String(row.email).trim().toLowerCase(), credential };
+}
+
 function toAluno(row: any): EcoliderAluno | null {
   const cpf = String(row.cpf || '').replace(/\D/g, '');
   const ext = String(row.externalId || '').trim();
@@ -74,6 +88,13 @@ export async function findEcoliderAluno(email: string, rawCredential: string): P
     const ok = cpf ? cpf === norm.replace(/\D/g, '') && /^\d+$/.test(norm) : ext !== '' && (ext === norm || ext === raw);
     if (ok) return toAluno(row);
   }
+  const [urows]: any[] = await getPool().query(
+    USERS_SQL + ' AND LOWER(u.email) = ? LIMIT 5',
+    [`%${CLIENT.ecolider!.programNameLike}%`, String(email).trim().toLowerCase()]
+  );
+  for (const row of urows || []) {
+    if (normalizeCredential(String(row.cpf || '')) === norm) return userToAluno(row);
+  }
   return null;
 }
 
@@ -89,5 +110,13 @@ export async function listEcoliderAlunos(): Promise<EcoliderAluno[]> {
     seen.add(a.email);
     out.push(a);
   }
+  const [urows]: any[] = await getPool().query(USERS_SQL + ' ORDER BY u.name', [`%${CLIENT.ecolider!.programNameLike}%`]);
+  for (const row of urows || []) {
+    const a = userToAluno(row);
+    if (!a || seen.has(a.email)) continue;
+    seen.add(a.email);
+    out.push(a);
+  }
+  out.sort((x, y) => x.name.localeCompare(y.name, 'pt-BR'));
   return out;
 }
