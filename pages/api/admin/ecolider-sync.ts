@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { readJsonAsync, writeJsonAsync } from '../../../lib/db';
 import { CLIENT } from '../../../lib/client-config';
-import { ecoliderEnabled, listEcoliderAlunos } from '../../../lib/ecolider';
+import { ecoliderEnabled, listEcoliderAlunos, diagnoseEmails } from '../../../lib/ecolider';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Sincronizar participantes com o EcoLíder (somente leitura lá)
@@ -14,6 +14,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!CLIENT.ecolider) return res.status(404).json({ error: 'Este cliente não usa o acesso do EcoLíder.' });
   if (!ecoliderEnabled()) return res.status(503).json({ error: 'ECOLIDER_MYSQL_URL não configurada no Railway.' });
   if (req.method !== 'GET' && req.method !== 'POST') return res.status(405).end();
+
+  // ?check=email1,email2 → diagnóstico da situação desses e-mails no EcoLíder (sem credenciais)
+  if (req.method === 'GET' && typeof req.query.check === 'string') {
+    try {
+      return res.status(200).json({ diagnostico: await diagnoseEmails(req.query.check.split(',')) });
+    } catch (err: any) {
+      return res.status(502).json({ error: err?.message || 'erro' });
+    }
+  }
 
   let alunos;
   try {

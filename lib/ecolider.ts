@@ -120,3 +120,29 @@ export async function listEcoliderAlunos(): Promise<EcoliderAluno[]> {
   out.sort((x, y) => x.name.localeCompare(y.name, 'pt-BR'));
   return out;
 }
+
+/**
+ * Diagnóstico (sem credenciais): situação de e-mails no EcoLíder — ativo, login liberado,
+ * programa, e se tem CPF/ID cadastrado. Usado para entender quem não aparece na sincronização.
+ */
+export async function diagnoseEmails(emails: string[]): Promise<any[]> {
+  if (!ecoliderEnabled() || emails.length === 0) return [];
+  const list = emails.map((e) => e.trim().toLowerCase()).filter(Boolean).slice(0, 50);
+  const [arows]: any[] = await getPool().query(
+    'SELECT LOWER(a.email) AS email, a.isActive, a.canLogin, p.name AS program, ' +
+    "(a.cpf IS NOT NULL AND a.cpf <> '') AS temCpf, (a.externalId IS NOT NULL AND a.externalId <> '') AS temId " +
+    'FROM alunos a LEFT JOIN programs p ON p.id = a.programId WHERE LOWER(a.email) IN (?)',
+    [list]
+  );
+  const [urows]: any[] = await getPool().query(
+    'SELECT LOWER(u.email) AS email, u.isActive, u.role, p.name AS program, ' +
+    "(u.cpf IS NOT NULL AND u.cpf <> '') AS temCredencial " +
+    'FROM users u LEFT JOIN programs p ON p.id = u.programId WHERE LOWER(u.email) IN (?)',
+    [list]
+  );
+  return list.map((email) => ({
+    email,
+    alunos: (arows || []).filter((r: any) => r.email === email),
+    users: (urows || []).filter((r: any) => r.email === email),
+  }));
+}
