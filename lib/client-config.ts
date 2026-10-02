@@ -171,7 +171,21 @@ const CLIENTS: Record<ClientId, ClientConfig> = {
   'sebrae-ac': SEBRAE_AC,
 };
 
-const rawId = (process.env.NEXT_PUBLIC_CLIENT_ID || 'sebrae-to').trim().toLowerCase() as ClientId;
+// Endereço do site → cliente. No navegador, o cliente é identificado pelo endereço
+// (não depende de a variável ter sido embutida no build). No servidor, vale a variável.
+const HOST_TO_CLIENT: Array<[RegExp, ClientId]> = [
+  [/^aderencia-ac\./i, 'sebrae-ac'],
+  [/^aderencia\./i, 'sebrae-to'],
+];
+
+function clientFromHost(): ClientId | null {
+  if (typeof window === 'undefined' || !window.location) return null;
+  const host = window.location.hostname || '';
+  for (const [re, id] of HOST_TO_CLIENT) if (re.test(host)) return id;
+  return null;
+}
+
+const rawId = (clientFromHost() || (process.env.NEXT_PUBLIC_CLIENT_ID || 'sebrae-to').trim().toLowerCase()) as ClientId;
 
 export const CLIENT: ClientConfig = CLIENTS[rawId] ?? SEBRAE_TO;
 
