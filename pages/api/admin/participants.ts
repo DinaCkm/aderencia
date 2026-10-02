@@ -161,6 +161,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return false;
       }
 
+      // Situação ATUAL da exceção na auditoria. O campo p.exceptionStatus pertence ao
+      // fluxo legado de aprovação global da exceção e pode permanecer "pending" mesmo depois
+      // de o auditor validar os itens individualmente em profile_audits.
+      //
+      // Regra:
+      // - se já existem decisões item a item, elas prevalecem;
+      // - se algum item ainda não tem decisão (ou está pending), a exceção fica pendente;
+      // - sem decisões no fluxo novo, preserva o status legado como fallback.
+      let exceptionAuditStatus: 'pending' | 'approved' | 'rejected' | null = null;
+      if (p && (p.exceptionRequested || p.exceptionJustification || (p.exceptionItems || []).length > 0)) {
+        const structuredItems = p.exceptionItems || [];
+        const exceptionKeys = structuredItems.length > 0
+          ? structuredItems.map((_, i) => `excecao-${i}`)
+          : ['excecao-legado'];
+
+        const validations = Array.isArray(audit?.itemValidations) ? audit.itemValidations : [];
+        const latestForKey = (itemKey: string) => {
+          const matches = validations.filter((v: any) => v?.itemKey === itemKey);
+          if (matches.length === 0) return undefined;
+          return matches.reduce((latest: any, current: any) =>
+            (current?.validatedAt || '') >= (latest?.validatedAt || '') ? current : latest
+          );
+        };
+
+        const currentDecisions = exceptionKeys.map((key) => latestForKey(key));
+        const hasCurrentDecision = currentDecisions.some(Boolean);
+
+        if (hasCurrentDecision) {
+          const statuses = currentDecisions.map((decision) => decision?.status || 'pending');
+          if (statuses.some((status) => status === 'pending')) {
+            exceptionAuditStatus = 'pending';
+          } else if (statuses.some((status) => status === 'rejected')) {
+            exceptionAuditStatus = 'rejected';
+          } else if (statuses.every((status) => status === 'approved')) {
+            exceptionAuditStatus = 'approved';
+          }
+        } else {
+          exceptionAuditStatus = p.exceptionStatus ?? 'pending';
+        }
+      }
+
       let hasPendingDocs = false;
       if (p) {
         const keysToCheck: string[] = [];
@@ -208,6 +249,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         selectedAreas: p?.selectedAreas ?? [],
         exceptionRequested: p?.exceptionRequested ?? false,
         exceptionStatus: p?.exceptionStatus ?? null,
+        exceptionAuditStatus,
         hasLegacyFiles,
         hasPendingDocs,
       };
