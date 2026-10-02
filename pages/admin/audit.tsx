@@ -38,6 +38,8 @@ interface ParticipantSummary {
   exceptionStatus: string | null;
   hasLegacyFiles?: boolean;
   hasPendingDocs?: boolean;
+  validationStatus?: 'provisional' | 'validated' | 'adjusted';
+  validatedAt?: string | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -886,6 +888,7 @@ export default function AdminAudit() {
   const router = useRouter();
   const [participants, setParticipants] = useState<ParticipantSummary[]>([]);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'validated' | 'adjusted' | 'provisional'>('all');
   const [selected, setSelected] = useState<{ profile: ParticipantProfile; audit: ProfileAudit } | null>(null);
   const [loading, setLoading] = useState(false);
   // Força um novo render depois que o catálogo completo (fixo + custom) é carregado da API,
@@ -1012,7 +1015,15 @@ export default function AdminAudit() {
         return;
       }
       setPendingBlock(null);
-      setSelected((prev) => prev ? { ...prev, audit: { ...prev.audit, overallStatus: status as any, overallNote, auditedAt: new Date().toISOString() } } : prev);
+      const auditedAt = new Date().toISOString();
+      setSelected((prev) => prev ? { ...prev, audit: { ...prev.audit, overallStatus: status as any, overallNote, auditedAt } } : prev);
+      // Reflete imediatamente a conclusão também na lista lateral, sem exigir F5 nem
+      // reabrir a ficha. O backend já persiste o mesmo status no perfil/auditoria.
+      setParticipants((prev) => prev.map((pt) =>
+        pt.email === selected.profile.email
+          ? { ...pt, validationStatus: status as ParticipantSummary['validationStatus'], validatedAt: auditedAt }
+          : pt
+      ));
       setSaving(false);
       showToast(`Ficha marcada como "${status}"!`);
     } catch {
@@ -1249,8 +1260,19 @@ export default function AdminAudit() {
     link.click();
   };
 
-  const filtered = participants.filter(
-    (p) => p.formStatus === 'preenchido' &&
+  const filledParticipants = participants.filter((p) => p.formStatus === 'preenchido');
+  const auditCounts = filledParticipants.reduce(
+    (acc, pt) => {
+      const status = pt.validationStatus || 'provisional';
+      acc[status] += 1;
+      return acc;
+    },
+    { validated: 0, adjusted: 0, provisional: 0 }
+  );
+
+  const filtered = filledParticipants.filter(
+    (p) =>
+      (statusFilter === 'all' || (p.validationStatus || 'provisional') === statusFilter) &&
       (p.name.toLowerCase().includes(search.toLowerCase()) ||
        p.email.toLowerCase().includes(search.toLowerCase()))
   );
@@ -1297,8 +1319,43 @@ export default function AdminAudit() {
               onChange={(e) => setSearch(e.target.value)}
               style={{ width: '100%', padding: '7px 10px', fontSize: '0.78rem', border: '1.5px solid #e2e8f0', borderRadius: 7, outline: 'none' }}
             />
-            <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 6 }}>
-              {filtered.length} candidato(s) com ficha preenchida
+            <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: 8, lineHeight: 1.45 }}>
+              <strong>{filledParticipants.length}</strong> preenchida(s) ·
+              {' '}<span style={{ color: '#15803d', fontWeight: 700 }}>{auditCounts.validated} validada(s)</span> ·
+              {' '}<span style={{ color: '#b45309', fontWeight: 700 }}>{auditCounts.adjusted} ajustada(s)</span> ·
+              {' '}<span style={{ color: '#64748b', fontWeight: 700 }}>{auditCounts.provisional} em auditoria</span>
+            </div>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 8 }}>
+              {([
+                ['all', 'Todas'],
+                ['validated', '✓ Validadas'],
+                ['adjusted', '⚠ Ajustadas'],
+                ['provisional', '⏳ Em auditoria'],
+              ] as const).map(([value, label]) => {
+                const active = statusFilter === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setStatusFilter(value)}
+                    style={{
+                      fontSize: '0.62rem',
+                      fontWeight: 700,
+                      padding: '3px 7px',
+                      borderRadius: 5,
+                      cursor: 'pointer',
+                      border: active ? '1.5px solid #7c3aed' : '1px solid #e2e8f0',
+                      background: active ? '#ede9fe' : 'white',
+                      color: active ? '#5b21b6' : '#64748b',
+                    }}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ fontSize: '0.66rem', color: '#94a3b8', marginTop: 6 }}>
+              Exibindo {filtered.length} ficha(s)
             </div>
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -1316,6 +1373,21 @@ export default function AdminAudit() {
                 <div style={{ fontWeight: 600, fontSize: '0.82rem', color: '#1e293b' }}>{pt.name}</div>
                 <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{pt.email}</div>
                 <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
+                  {(pt.validationStatus || 'provisional') === 'validated' && (
+                    <span style={{ fontSize: '0.62rem', background: '#d1fae5', border: '1px solid #6ee7b7', borderRadius: 3, padding: '1px 5px', color: '#065f46', fontWeight: 800 }}>
+                      ✓ Ficha validada{pt.validatedAt ? ` · ${new Date(pt.validatedAt).toLocaleDateString('pt-BR')}` : ''}
+                    </span>
+                  )}
+                  {(pt.validationStatus || 'provisional') === 'adjusted' && (
+                    <span style={{ fontSize: '0.62rem', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 3, padding: '1px 5px', color: '#92400e', fontWeight: 800 }}>
+                      ⚠ Ficha ajustada{pt.validatedAt ? ` · ${new Date(pt.validatedAt).toLocaleDateString('pt-BR')}` : ''}
+                    </span>
+                  )}
+                  {(pt.validationStatus || 'provisional') === 'provisional' && (
+                    <span style={{ fontSize: '0.62rem', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: 3, padding: '1px 5px', color: '#475569', fontWeight: 700 }}>
+                      ⏳ Em auditoria
+                    </span>
+                  )}
                   {pt.hasLegacyFiles && (
                     <span style={{ fontSize: '0.62rem', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 3, padding: '1px 5px', color: '#991b1b', fontWeight: 700 }}>
                       📧 Reenviar docs
