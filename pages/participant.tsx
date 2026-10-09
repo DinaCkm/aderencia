@@ -366,6 +366,10 @@ export default function ParticipantForm() {
   const [dateBlock, setDateBlock] = useState<'before' | 'after' | null>(null);
   const [projectAreaAlert, setProjectAreaAlert] = useState(false); // projetos sem área vinculada
   const [processClosed, setProcessClosed] = useState(false); // processo encerrado pelo admin
+  const [hasSubmission, setHasSubmission] = useState(false); // já existe formulário enviado no servidor
+  const [showChecklist, setShowChecklist] = useState(false); // checklist de documentos antes de começar
+  const [draftSaving, setDraftSaving] = useState(false);
+  const [draftMsg, setDraftMsg] = useState('');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -421,6 +425,7 @@ export default function ParticipantForm() {
         if (data?.profile) {
           // Dados já submetidos no servidor — usa eles e limpa rascunho antigo
           const saved = data.profile as ParticipantProfile;
+          setHasSubmission(true);
           sessionStorage.removeItem('aderenciaDraft');
           sessionStorage.removeItem('aderenciaStep');
           setProfile(saved);
@@ -435,7 +440,20 @@ export default function ParticipantForm() {
             }
           }
         } else {
-          // Nenhum dado no servidor — tentar restaurar rascunho local
+          // Nenhum formulário enviado — 1º tenta o rascunho salvo no servidor ("Salvar e continuar depois")
+          return fetch(`/api/participant/draft?email=${encodeURIComponent(email)}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null)
+            .then((d) => {
+              const sd = d?.draft;
+              if (sd?.profile && (sd.profile.email === email || sd.profile.id === email)) {
+                setProfile({ ...sd.profile, id: email, email } as ParticipantProfile);
+                if (sd.step) setStep(Number(sd.step) || 1);
+                setDraftMsg(`Você continuou de onde parou (rascunho salvo em ${new Date(sd.savedAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}).`);
+                return;
+              }
+              if (CLIENT.id === 'sebrae-ac') setShowChecklist(true);
+          // Sem rascunho no servidor — tentar restaurar rascunho local
           const draft = sessionStorage.getItem('aderenciaDraft');
           if (draft) {
             try {
@@ -443,6 +461,7 @@ export default function ParticipantForm() {
               // Só usa o rascunho se for do mesmo usuário
               if (saved.id === email || saved.email === email) {
                 setProfile(saved);
+                setShowChecklist(false);
                 const savedStep = sessionStorage.getItem('aderenciaStep');
                 if (savedStep) setStep(parseInt(savedStep, 10));
                 if (saved.selectedProjects && saved.selectedProjects.length > 0) {
@@ -463,6 +482,7 @@ export default function ParticipantForm() {
           } else {
             setProfile((prev) => ({ ...prev, id: email, email, name: name || '' }));
           }
+            });
         }
       })
       .catch(() => {
@@ -548,6 +568,30 @@ export default function ParticipantForm() {
       ...p,
       proofLinks: { ...(p.proofLinks || {}), [itemLabel]: link },
     }));
+  };
+
+  // "Salvar e continuar depois": grava o que já foi preenchido (sem validar) no servidor
+  const saveDraft = async () => {
+    if (!profile.email) return;
+    setDraftSaving(true);
+    setDraftMsg('');
+    try {
+      const res = await fetch('/api/participant/draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile, step }),
+      });
+      if (res.ok) {
+        setDraftMsg('Rascunho salvo! Você pode sair agora e voltar quando tiver os documentos — entre com o mesmo e-mail e tudo o que preencheu estará aqui.');
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setDraftMsg(d.error || 'Não foi possível salvar o rascunho. Tente novamente.');
+      }
+    } catch {
+      setDraftMsg('Erro de conexão ao salvar o rascunho. Tente novamente.');
+    } finally {
+      setDraftSaving(false);
+    }
   };
 
   const doSubmit = async () => {
@@ -921,7 +965,29 @@ export default function ParticipantForm() {
             title="Prazo encerrado — não é possível alterar informações"
           />
         )}
-        <form onSubmit={handleSubmit}>
+        {/* ── CHECKLIST DE DOCUMENTOS (antes de começar) ── */}
+        {showChecklist && !isReadOnly && !hasSubmission && (
+          <ChecklistDocumentos
+            hrUnit={CLIENT.hrUnit}
+            onStart={() => { setShowChecklist(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          />
+        )}
+
+        {/* ── SALVAR E CONTINUAR DEPOIS ── */}
+        {!showChecklist && !isReadOnly && !hasSubmission && (
+          <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 10, padding: '10px 14px', marginBottom: 14, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: '0.78rem', color: '#115e59', flex: '1 1 260px', lineHeight: 1.5 }}>
+              Falta algum documento? Salve o que já preencheu e volte depois para anexar.
+            </span>
+            <button type="button" onClick={saveDraft} disabled={draftSaving}
+              style={{ background: '#0d9488', color: 'white', border: 'none', borderRadius: 8, padding: '8px 14px', fontWeight: 700, fontSize: '0.8rem', cursor: draftSaving ? 'wait' : 'pointer' }}>
+              {draftSaving ? 'Salvando...' : '💾 Salvar e continuar depois'}
+            </button>
+            {draftMsg && <div style={{ flexBasis: '100%', fontSize: '0.76rem', color: '#115e59', fontWeight: 600 }}>{draftMsg}</div>}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} style={{ display: showChecklist && !isReadOnly && !hasSubmission ? 'none' : undefined }}>
 
           {/* ── STEP 1: DADOS BASICOS ── */}
           {step === 1 && (
@@ -1400,10 +1466,10 @@ export default function ParticipantForm() {
                   if (profile.graduation === '__outro__' && !(profile as any).graduationException?.trim()) { setStatus('Preencha o campo de exceção com o nome e descrição do seu curso.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                   if (profile.graduation !== '__outro__') {
                     const mode = profile.proofMode[`grad:${profile.graduation}`];
-                    if (!mode) { setStatus('Selecione como vai comprovar sua graduação (A UGP já tem conhecimento ou Enviar documento).'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                    if (!mode) { setStatus(`Selecione como vai comprovar sua graduação (Já entreguei à ${CLIENT.hrUnit}/RH ou Ainda não entreguei — anexar documento).`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                     const hasFile = isValidFile(profile.proofFiles[`grad:${profile.graduation}`]);
                     const hasLink = !!(profile.proofLinks || {})[`grad:${profile.graduation}`];
-                    if (mode === 'upload' && !hasFile && !hasLink) { setStatus('Você selecionou "Enviar documento" para a graduação — escolha o arquivo ou cole um link do Google Drive antes de continuar.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                    if (mode === 'upload' && !hasFile && !hasLink) { setStatus('Você selecionou "Enviar documento" para a graduação — escolha o arquivo ou cole um link do Google Drive antes de continuar. Se ainda não tem o arquivo, clique em “💾 Salvar e continuar depois” e volte quando tiver.'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                   }
                   if ((profile as any).graduation2HasField) {
                     if (!(profile as any).graduation2) { setStatus('Selecione a área da 2ª graduação.'); return; }
@@ -1411,7 +1477,7 @@ export default function ParticipantForm() {
                     if ((profile as any).graduation2 === '__outro2__' && !(profile as any).graduation2Exception?.trim()) { setStatus('Preencha o campo de exceção da 2ª graduação.'); return; }
                     if ((profile as any).graduation2 !== '__outro2__') {
                       const mode2 = profile.proofMode[`grad2:${(profile as any).graduation2CourseName?.trim() || (profile as any).graduation2}`];
-                      if (!mode2) { setStatus('Selecione como vai comprovar a 2ª graduação (A UGP já tem conhecimento ou Enviar documento).'); return; }
+                      if (!mode2) { setStatus(`Selecione como vai comprovar a 2ª graduação (Já entreguei à ${CLIENT.hrUnit}/RH ou Ainda não entreguei — anexar documento).`); return; }
                     }
                   }
                   setStatus(''); setStep(4);
@@ -1628,7 +1694,7 @@ export default function ParticipantForm() {
                       if (!mode) { setStatus(`Selecione como vai comprovar o Título ${i + 1}: "${b.name}".`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                       const hasFile = isValidFile(profile.proofFiles[key]);
                       const hasLink = !!(profile.proofLinks || {})[key];
-                      if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`Você selecionou "Enviar documento" para o Título ${i + 1} — escolha o arquivo antes de continuar.`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                      if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`Você selecionou "Enviar documento" para o Título ${i + 1} — escolha o arquivo antes de continuar. Se ainda não tem o arquivo, clique em “💾 Salvar e continuar depois” e volte quando tiver.`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                     }
                   }
                   setStatus(''); setStep(5);
@@ -1669,7 +1735,7 @@ export default function ParticipantForm() {
                 <p style={{ margin: 0, marginBottom: 8, fontWeight: 700 }}>O que são cursos extracurriculares?</p>
                 <p style={{ margin: 0, marginBottom: 6 }}>São formações de desenvolvimento continuado — diferentes de Pós/MBA. Incluem cursos, workshops, treinamentos e certificações profissionais realizados fora do ambiente acadêmico formal.</p>
                 <p style={{ margin: 0, marginBottom: 6 }}><strong>Requisito mínimo:</strong> o curso deve ter <strong>no mínimo 16 horas</strong> de carga horária para ser considerado válido para registro. Cursos com menos de 16h serão desconsiderados automaticamente.</p>
-                <p style={{ margin: 0, marginBottom: 6 }}>Para cada curso selecionado, informe a carga horária e indique como vai comprová-lo (documento ou conhecimento da UGP).</p>
+                <p style={{ margin: 0, marginBottom: 6 }}>Para cada curso selecionado, informe a carga horária e indique como vai comprová-lo (documento anexado ou já entregue à {CLIENT.hrUnit}/RH).</p>
                 <p style={{ margin: 0 }}>A validação final é feita pelo RH/{CLIENT.hrUnit}. Cursos não listados podem ser registrados no campo de exceção da última etapa.</p>
               </div>
 
@@ -1865,7 +1931,7 @@ export default function ParticipantForm() {
                       if (!mode) { setStatus(`Selecione como vai comprovar o Curso ${i + 1}: "${c.name}".`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                       const hasFile = isValidFile(profile.proofFiles[key]);
                       const hasLink = !!(profile.proofLinks || {})[key];
-                      if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`Você selecionou "Enviar documento" para o Curso ${i + 1} — escolha o arquivo antes de continuar.`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                      if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`Você selecionou "Enviar documento" para o Curso ${i + 1} — escolha o arquivo antes de continuar. Se ainda não tem o arquivo, clique em “💾 Salvar e continuar depois” e volte quando tiver.`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                     }
                   }
                   setStatus(''); setStep(6);
@@ -2073,7 +2139,7 @@ export default function ParticipantForm() {
                     if (!mode) { setStatus(`Selecione como vai comprovar o curso: "${item}".`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                     const hasFile = isValidFile(profile.proofFiles[key]);
                     const hasLink = !!(profile.proofLinks || {})[key];
-                    if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar.`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+                    if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`Você selecionou "Enviar documento" para "${item}" — escolha o arquivo antes de continuar. Se ainda não tem o arquivo, clique em “💾 Salvar e continuar depois” e volte quando tiver.`); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
                   }
                   setStatus(''); setStep(6);
                 }}>Próximo →</button>
@@ -2482,7 +2548,7 @@ export default function ParticipantForm() {
                     if (!mode) { setStatus(`⚠ Selecione como vai comprovar o projeto: "${item}"`); return; }
                     const hasFile = isValidFile(profile.proofFiles[key]);
                     const hasLink = !!(profile.proofLinks || {})[key];
-                    if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`⚠ Você selecionou "Enviar documento" para: "${item}". Escolha o arquivo antes de enviar.`); return; }
+                    if (mode === 'upload' && !hasFile && !hasLink) { setStatus(`⚠ Você selecionou "Enviar documento" para: "${item}". Escolha o arquivo antes de enviar. Se ainda não tem o arquivo, clique em “💾 Salvar e continuar depois” e volte quando tiver.`); return; }
                   }
                   setStatus('');
                   doSubmit();
@@ -2498,5 +2564,49 @@ export default function ParticipantForm() {
         </div>{/* fim do div maxWidth 760 */}
       </main>
     </>
+  );
+}
+
+// Checklist exibido antes do 1º preenchimento: a pessoa confere se tem os documentos em mãos.
+function ChecklistDocumentos({ hrUnit, onStart }: { hrUnit: string; onStart: () => void }) {
+  const itens = [
+    'Diploma ou certificado de conclusão da graduação (PDF ou foto legível)',
+    'Certificados de pós-graduação, MBA ou especialização concluídos até 31/12/2025 (até 3)',
+    'Certificados de cursos extracurriculares com a carga horária (até 3)',
+    'Comprovantes de participação em projetos: portaria, ata com seu nome, termo de participação ou declaração do gestor (até 3)',
+    'Sua matrícula e as datas de início e fim dos cargos/funções que exerceu',
+  ];
+  const [marcados, setMarcados] = useState<boolean[]>(itens.map(() => false));
+  const todos = marcados.every(Boolean);
+  return (
+    <div className="section-card" style={{ marginBottom: 18 }}>
+      <h2 style={{ fontSize: '1.05rem', margin: '0 0 6px', color: 'var(--purple)' }}>Antes de começar: separe seus documentos</h2>
+      <p style={{ fontSize: '0.84rem', lineHeight: 1.6, margin: '0 0 12px', color: 'var(--text)' }}>
+        Para cada formação ou projeto informado, você vai indicar se o documento <strong>já foi entregue à {hrUnit}/RH</strong> ou <strong>anexar uma cópia digitalizada</strong>.
+        Confira se você tem em mãos (ou já entregou à {hrUnit}/RH):
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+        {itens.map((txt, i) => (
+          <label key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: '0.84rem', lineHeight: 1.5, cursor: 'pointer', padding: '8px 10px', borderRadius: 8, border: `1.5px solid ${marcados[i] ? '#14b8a6' : 'var(--border)'}`, background: marcados[i] ? '#f0fdfa' : 'white' }}>
+            <input type="checkbox" checked={marcados[i]} style={{ marginTop: 3, width: 18, height: 18, flexShrink: 0 }}
+              onChange={() => setMarcados((m) => m.map((v, j) => (j === i ? !v : v)))} />
+            <span>{txt}</span>
+          </label>
+        ))}
+      </div>
+      <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: '0 0 14px', lineHeight: 1.5 }}>
+        Marque também os itens que não se aplicam a você (por exemplo, se não tem pós-graduação).
+        Se faltar algum documento, você pode começar mesmo assim e usar o botão <strong>“💾 Salvar e continuar depois”</strong> para voltar quando tiver o arquivo — até o fim do prazo.
+      </p>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <button type="button" className="btn-primary" disabled={!todos} onClick={onStart}
+          style={{ minWidth: 220, opacity: todos ? 1 : 0.5, cursor: todos ? 'pointer' : 'not-allowed' }}>
+          Tenho tudo — começar o preenchimento
+        </button>
+        <button type="button" className="btn-outline" onClick={onStart}>
+          Começar mesmo assim
+        </button>
+      </div>
+    </div>
   );
 }
