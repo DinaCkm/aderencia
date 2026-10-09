@@ -33,8 +33,13 @@ function getPool(): any {
   if (!pool) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const mysql = require('mysql2/promise');
+    // ECOLIDER_MYSQL_HOST / ECOLIDER_MYSQL_PORT (opcionais) substituem host e porta da URL —
+    // permite trocar o endpoint público do EcoLíder sem reescrever a senha.
+    const url = new URL(String(process.env.ECOLIDER_MYSQL_URL));
+    if (process.env.ECOLIDER_MYSQL_HOST) url.hostname = process.env.ECOLIDER_MYSQL_HOST;
+    if (process.env.ECOLIDER_MYSQL_PORT) url.port = process.env.ECOLIDER_MYSQL_PORT;
     pool = mysql.createPool({
-      uri: process.env.ECOLIDER_MYSQL_URL,
+      uri: url.toString(),
       connectionLimit: 2,
       connectTimeout: 10000,
     });
