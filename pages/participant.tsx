@@ -28,6 +28,7 @@ const initialProfile: ParticipantProfile = {
   proofFiles: {},
   selectedProjects: [],
   projectAreaMap: {},
+  projectDetails: {},
   exceptionRequested: false,
   exceptionJustification: '',
   attachments: [],
@@ -163,7 +164,7 @@ function ProofSelector({ itemLabel, email, proofMode, proofFiles, proofLinks, on
 
   return (
     <div style={{ padding: '8px 12px 10px', background: '#f8fafc', borderTop: '1px solid var(--border)' }}>
-      <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>Como comprovar este item:</p>
+      <p style={{ fontSize: '0.76rem', color: '#334155', marginBottom: 8, lineHeight: 1.6 }}><strong>Como comprovar:</strong> se você já entregou este diploma, certificado ou documento à {CLIENT.hrUnit}/RH, não precisa anexá-lo novamente. Se ainda não entregou, selecione a opção de envio e anexe uma cópia. A {CLIENT.hrUnit}/RH poderá conferir a informação declarada.</p>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <label style={{
@@ -176,7 +177,7 @@ function ProofSelector({ itemLabel, email, proofMode, proofFiles, proofLinks, on
             checked={mode === 'ugp-knows'}
             onChange={() => onChange('ugp-knows')}
             style={{ accentColor: 'var(--cyan)', width: 13, height: 13 }} />
-          ✓ A {CLIENT.hrUnit} já tem conhecimento
+          Já entreguei este documento à {CLIENT.hrUnit}/RH
         </label>
         <label style={{
           display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
@@ -188,7 +189,7 @@ function ProofSelector({ itemLabel, email, proofMode, proofFiles, proofLinks, on
             checked={mode === 'upload'}
             onChange={() => onChange('upload')}
             style={{ accentColor: 'var(--purple)', width: 13, height: 13 }} />
-          📎 Enviar documento
+          Ainda não entreguei — anexar documento
         </label>
       </div>
 
@@ -925,6 +926,24 @@ export default function ParticipantForm() {
           {/* ── STEP 1: DADOS BASICOS ── */}
           {step === 1 && (
             <div className="section-card">
+              {CLIENT.id === 'sebrae-ac' && (
+                <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', padding: '16px', borderRadius: 12, marginBottom: 18 }}>
+                  <h2 style={{ fontSize: '1rem', margin: '0 0 8px' }}>Antes de começar: orientações de preenchimento</h2>
+                  <p style={{ fontSize: '0.82rem', lineHeight: 1.6, margin: '0 0 10px' }}>
+                    Confira as instruções para informar seus diplomas e certificados, detalhar a participação em projetos e anexar comprovantes.
+                    Um documento que já foi entregue à {CLIENT.hrUnit}/RH não precisa ser enviado novamente, mas poderá ser conferido pela equipe.
+                  </p>
+                  <video
+                    controls
+                    preload="none"
+                    playsInline
+                    poster={`${CLIENT.docsPrefix}/video_orientacoes.jpg`}
+                    src={process.env.NEXT_PUBLIC_ADERENCIA_AC_VIDEO_URL || `${CLIENT.docsPrefix}/video_orientacoes.mp4`}
+                    style={{ width: '100%', maxWidth: 640, borderRadius: 8, display: 'block', background: '#0f172a' }}
+                  />
+                  <p style={{ fontSize: '0.72rem', color: '#64748b', margin: '6px 0 0' }}>Vídeo de orientações (3 min). Se preferir, leia as orientações disponíveis em cada etapa.</p>
+                </div>
+              )}
               {/* Card de boas-vindas */}
               <div style={{
                 background: 'linear-gradient(135deg, #5B2D8E 0%, #0891b2 100%)',
@@ -2120,7 +2139,7 @@ export default function ParticipantForm() {
               <div style={{ background: '#f0f9ff', border: '1.5px solid #7dd3fc', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
                 <p style={{ margin: 0, marginBottom: 6, fontWeight: 700 }}>O que são projetos estratégicos?</p>
                 <p style={{ margin: 0, marginBottom: 6 }}>São iniciativas institucionais formais da organização nas quais você participou como membro, líder ou colaborador.</p>
-                <p style={{ margin: 0 }}>Selecione até <strong>3 projetos</strong> em que participou e indique como vai comprová-los. A validação final é feita pelo RH/{CLIENT.hrUnit}.</p>
+                <p style={{ margin: 0 }}>Selecione até <strong>3 projetos</strong> em que participou, detalhe suas contribuições e indique como comprová-las. A validação final é feita pelo RH/{CLIENT.hrUnit}.</p>
               </div>
 
               <div className="form-group">
@@ -2207,6 +2226,44 @@ export default function ParticipantForm() {
                                 ⚠ Selecione a área de interesse para este projeto
                               </p>
                             )}
+                          </div>
+                        )}
+                        {selected && CLIENT.id === 'sebrae-ac' && (
+                          <div style={{ padding: '12px', background: '#fff', borderTop: '1px solid var(--border)' }}>
+                            <p style={{ fontWeight: 700, fontSize: '0.82rem' }}>Detalhe sua participação neste projeto</p>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>Informe sua atuação real, com linguagem simples. Essas informações serão avaliadas pela {CLIENT.hrUnit}/RH.</p>
+                            {(() => {
+                              const d = profile.projectDetails?.[o.label] || {};
+                              const change = (field: 'startPeriod' | 'endPeriod' | 'role' | 'activities' | 'results' | 'supervisor', value: string) => setProfile(prev => ({
+                                ...prev, projectDetails: { ...(prev.projectDetails || {}), [o.label]: { ...(prev.projectDetails?.[o.label] || {}), [field]: value } },
+                              }));
+                              return (
+                                <div style={{ display: 'grid', gap: 10 }}>
+                                  <label style={{ fontSize: '0.76rem' }}>Início da participação (mês/ano)
+                                    <input type="month" value={d.startPeriod || ''} onChange={e => change('startPeriod', e.target.value)} disabled={isReadOnly} style={{ display: 'block', width: '100%', padding: 8 }} />
+                                  </label>
+                                  <label style={{ fontSize: '0.76rem' }}>Fim da participação (mês/ano)
+                                    <input type="month" value={d.endPeriod || ''} onChange={e => change('endPeriod', e.target.value)} disabled={isReadOnly} style={{ display: 'block', width: '100%', padding: 8 }} />
+                                  </label>
+                                  <label style={{ fontSize: '0.76rem' }}>Seu papel no projeto
+                                    <select value={d.role || ''} onChange={e => change('role', e.target.value)} disabled={isReadOnly} style={{ display: 'block', width: '100%', padding: 8 }}>
+                                      <option value="">Selecione sua atuação</option>
+                                      <option>Líder ou coordenador</option><option>Integrante da equipe</option><option>Apoio técnico ou operacional</option><option>Outra participação</option>
+                                    </select>
+                                  </label>
+                                  <label style={{ fontSize: '0.76rem' }}>Quais atividades você realizou?
+                                    <textarea rows={3} value={d.activities || ''} onChange={e => change('activities', e.target.value)} disabled={isReadOnly} placeholder="Ex.: participei do diagnóstico, organizei informações e elaborei propostas." style={{ display: 'block', width: '100%', padding: 8 }} />
+                                  </label>
+                                  <label style={{ fontSize: '0.76rem' }}>Quais resultados ou entregas tiveram sua contribuição?
+                                    <textarea rows={3} value={d.results || ''} onChange={e => change('results', e.target.value)} disabled={isReadOnly} placeholder="Ex.: revisão de procedimentos e entrega do relatório final." style={{ display: 'block', width: '100%', padding: 8 }} />
+                                  </label>
+                                  <label style={{ fontSize: '0.76rem' }}>Gestor que pode confirmar sua participação (opcional)
+                                    <input value={d.supervisor || ''} onChange={e => change('supervisor', e.target.value)} disabled={isReadOnly} placeholder="Nome do gestor ou responsável" style={{ display: 'block', width: '100%', padding: 8 }} />
+                                  </label>
+                                </div>
+                              );
+                            })()}
+                            <p style={{ fontSize: '0.75rem', lineHeight: 1.6, padding: 10, background: '#eff6ff', borderRadius: 8, marginTop: 12 }}><strong>O que é comprovante de projeto?</strong> É um registro que identifica sua participação: portaria de designação, ata com seu nome, relatório institucional, termo de participação ou declaração do gestor. Documentos que citam somente o projeto podem ser insuficientes. Se já entregou à {CLIENT.hrUnit}/RH, marque essa condição abaixo; se não, anexe o comprovante.</p>
                           </div>
                         )}
                         {selected && (
