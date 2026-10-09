@@ -926,6 +926,22 @@ export default function ParticipantForm() {
           {/* ── STEP 1: DADOS BASICOS ── */}
           {step === 1 && (
             <div className="section-card">
+              {CLIENT.id === 'sebrae-ac' && (
+                <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', padding: '16px', borderRadius: 12, marginBottom: 18 }}>
+                  <h2 style={{ fontSize: '1rem', margin: '0 0 8px' }}>Antes de começar: orientações de preenchimento</h2>
+                  <p style={{ fontSize: '0.82rem', lineHeight: 1.6, margin: '0 0 10px' }}>
+                    Confira as instruções para informar seus diplomas e certificados, detalhar a participação em projetos e anexar comprovantes.
+                    Um documento que já foi entregue à UGP/RH não precisa ser enviado novamente, mas poderá ser conferido pela equipe.
+                  </p>
+                  {process.env.NEXT_PUBLIC_ADERENCIA_AC_VIDEO_URL ? (
+                    <a href={process.env.NEXT_PUBLIC_ADERENCIA_AC_VIDEO_URL} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '9px 14px', borderRadius: 8, background: '#5B2D8E', color: 'white', fontWeight: 700, fontSize: '0.82rem', textDecoration: 'none' }}>
+                      Assistir ao vídeo de orientações
+                    </a>
+                  ) : (
+                    <p style={{ fontSize: '0.75rem', color: '#475569', margin: 0 }}>Leia as orientações disponíveis em cada etapa do questionário.</p>
+                  )}
+                </div>
+              )}
               {/* Card de boas-vindas */}
               <div style={{
                 background: 'linear-gradient(135deg, #5B2D8E 0%, #0891b2 100%)',
