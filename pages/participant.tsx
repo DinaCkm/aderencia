@@ -2210,6 +2210,44 @@ export default function ParticipantForm() {
                             )}
                           </div>
                         )}
+                        {selected && CLIENT.id === 'sebrae-ac' && (
+                          <div style={{ padding: '12px', background: '#fff', borderTop: '1px solid var(--border)' }}>
+                            <p style={{ fontWeight: 700, fontSize: '0.82rem' }}>Detalhe sua participação neste projeto</p>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>Informe sua atuação real, com linguagem simples. Essas informações serão avaliadas pela UGP/RH.</p>
+                            {(() => {
+                              const d = profile.projectDetails?.[o.label] || {};
+                              const change = (field: 'startPeriod' | 'endPeriod' | 'role' | 'activities' | 'results' | 'supervisor', value: string) => setProfile(prev => ({
+                                ...prev, projectDetails: { ...(prev.projectDetails || {}), [o.label]: { ...(prev.projectDetails?.[o.label] || {}), [field]: value } },
+                              }));
+                              return (
+                                <div style={{ display: 'grid', gap: 10 }}>
+                                  <label style={{ fontSize: '0.76rem' }}>Início da participação (mês/ano)
+                                    <input type="month" value={d.startPeriod || ''} onChange={e => change('startPeriod', e.target.value)} disabled={isReadOnly} style={{ display: 'block', width: '100%', padding: 8 }} />
+                                  </label>
+                                  <label style={{ fontSize: '0.76rem' }}>Fim da participação (mês/ano)
+                                    <input type="month" value={d.endPeriod || ''} onChange={e => change('endPeriod', e.target.value)} disabled={isReadOnly} style={{ display: 'block', width: '100%', padding: 8 }} />
+                                  </label>
+                                  <label style={{ fontSize: '0.76rem' }}>Seu papel no projeto
+                                    <select value={d.role || ''} onChange={e => change('role', e.target.value)} disabled={isReadOnly} style={{ display: 'block', width: '100%', padding: 8 }}>
+                                      <option value="">Selecione sua atuação</option>
+                                      <option>Líder ou coordenador</option><option>Integrante da equipe</option><option>Apoio técnico ou operacional</option><option>Outra participação</option>
+                                    </select>
+                                  </label>
+                                  <label style={{ fontSize: '0.76rem' }}>Quais atividades você realizou?
+                                    <textarea rows={3} value={d.activities || ''} onChange={e => change('activities', e.target.value)} disabled={isReadOnly} placeholder="Ex.: participei do diagnóstico, organizei informações e elaborei propostas." style={{ display: 'block', width: '100%', padding: 8 }} />
+                                  </label>
+                                  <label style={{ fontSize: '0.76rem' }}>Quais resultados ou entregas tiveram sua contribuição?
+                                    <textarea rows={3} value={d.results || ''} onChange={e => change('results', e.target.value)} disabled={isReadOnly} placeholder="Ex.: revisão de procedimentos e entrega do relatório final." style={{ display: 'block', width: '100%', padding: 8 }} />
+                                  </label>
+                                  <label style={{ fontSize: '0.76rem' }}>Gestor que pode confirmar sua participação (opcional)
+                                    <input value={d.supervisor || ''} onChange={e => change('supervisor', e.target.value)} disabled={isReadOnly} placeholder="Nome do gestor ou responsável" style={{ display: 'block', width: '100%', padding: 8 }} />
+                                  </label>
+                                </div>
+                              );
+                            })()}
+                            <p style={{ fontSize: '0.75rem', lineHeight: 1.6, padding: 10, background: '#eff6ff', borderRadius: 8, marginTop: 12 }}><strong>O que é comprovante de projeto?</strong> É um registro que identifica sua participação: portaria de designação, ata com seu nome, relatório institucional, termo de participação ou declaração do gestor. Documentos que citam somente o projeto podem ser insuficientes. Se já entregou à UGP/RH, marque essa condição abaixo; se não, anexe o comprovante.</p>
+                          </div>
+                        )}
                         {selected && (
                           <ProofSelector
                             email={profile.email}
