@@ -164,7 +164,7 @@ function ProofSelector({ itemLabel, email, proofMode, proofFiles, proofLinks, on
 
   return (
     <div style={{ padding: '8px 12px 10px', background: '#f8fafc', borderTop: '1px solid var(--border)' }}>
-      <p style={{ fontSize: '0.76rem', color: '#334155', marginBottom: 8, lineHeight: 1.6 }}><strong>Como comprovar:</strong> se você já entregou este diploma, certificado ou documento à {CLIENT.hrUnit}/RH, não precisa anexá-lo novamente. Se ainda não entregou, selecione a opção de envio e anexe uma cópia. A UGP/RH poderá conferir a informação declarada.</p>
+      <p style={{ fontSize: '0.76rem', color: '#334155', marginBottom: 8, lineHeight: 1.6 }}><strong>Como comprovar:</strong> se você já entregou este diploma, certificado ou documento à {CLIENT.hrUnit}/RH, não precisa anexá-lo novamente. Se ainda não entregou, selecione a opção de envio e anexe uma cópia. A {CLIENT.hrUnit}/RH poderá conferir a informação declarada.</p>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <label style={{
@@ -931,7 +931,7 @@ export default function ParticipantForm() {
                   <h2 style={{ fontSize: '1rem', margin: '0 0 8px' }}>Antes de começar: orientações de preenchimento</h2>
                   <p style={{ fontSize: '0.82rem', lineHeight: 1.6, margin: '0 0 10px' }}>
                     Confira as instruções para informar seus diplomas e certificados, detalhar a participação em projetos e anexar comprovantes.
-                    Um documento que já foi entregue à UGP/RH não precisa ser enviado novamente, mas poderá ser conferido pela equipe.
+                    Um documento que já foi entregue à {CLIENT.hrUnit}/RH não precisa ser enviado novamente, mas poderá ser conferido pela equipe.
                   </p>
                   {process.env.NEXT_PUBLIC_ADERENCIA_AC_VIDEO_URL ? (
                     <a href={process.env.NEXT_PUBLIC_ADERENCIA_AC_VIDEO_URL} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '9px 14px', borderRadius: 8, background: '#5B2D8E', color: 'white', fontWeight: 700, fontSize: '0.82rem', textDecoration: 'none' }}>
@@ -2229,7 +2229,7 @@ export default function ParticipantForm() {
                         {selected && CLIENT.id === 'sebrae-ac' && (
                           <div style={{ padding: '12px', background: '#fff', borderTop: '1px solid var(--border)' }}>
                             <p style={{ fontWeight: 700, fontSize: '0.82rem' }}>Detalhe sua participação neste projeto</p>
-                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>Informe sua atuação real, com linguagem simples. Essas informações serão avaliadas pela UGP/RH.</p>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>Informe sua atuação real, com linguagem simples. Essas informações serão avaliadas pela {CLIENT.hrUnit}/RH.</p>
                             {(() => {
                               const d = profile.projectDetails?.[o.label] || {};
                               const change = (field: 'startPeriod' | 'endPeriod' | 'role' | 'activities' | 'results' | 'supervisor', value: string) => setProfile(prev => ({
@@ -2261,7 +2261,7 @@ export default function ParticipantForm() {
                                 </div>
                               );
                             })()}
-                            <p style={{ fontSize: '0.75rem', lineHeight: 1.6, padding: 10, background: '#eff6ff', borderRadius: 8, marginTop: 12 }}><strong>O que é comprovante de projeto?</strong> É um registro que identifica sua participação: portaria de designação, ata com seu nome, relatório institucional, termo de participação ou declaração do gestor. Documentos que citam somente o projeto podem ser insuficientes. Se já entregou à UGP/RH, marque essa condição abaixo; se não, anexe o comprovante.</p>
+                            <p style={{ fontSize: '0.75rem', lineHeight: 1.6, padding: 10, background: '#eff6ff', borderRadius: 8, marginTop: 12 }}><strong>O que é comprovante de projeto?</strong> É um registro que identifica sua participação: portaria de designação, ata com seu nome, relatório institucional, termo de participação ou declaração do gestor. Documentos que citam somente o projeto podem ser insuficientes. Se já entregou à {CLIENT.hrUnit}/RH, marque essa condição abaixo; se não, anexe o comprovante.</p>
                           </div>
                         )}
                         {selected && (

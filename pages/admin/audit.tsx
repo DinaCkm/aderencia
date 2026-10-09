@@ -1929,6 +1929,21 @@ export default function AdminAudit() {
                             onPick={(newLabel) => saveProjectRelabel(projItemKey, newLabel)}
                           />
                         )}
+                        {(() => {
+                          // Detalhamento declarado pelo participante (Sebrae/AC): período, papel, atividades, resultados, gestor
+                          const det = (p as any).projectDetails?.[proj];
+                          if (!det || !Object.values(det).some((v) => String(v || '').trim())) return null;
+                          const fmt = (m?: string) => (m && /^\d{4}-\d{2}$/.test(m) ? `${m.slice(5, 7)}/${m.slice(0, 4)}` : m || '—');
+                          return (
+                            <div style={{ fontSize: '0.74rem', color: '#334155', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 10px', marginBottom: 6, lineHeight: 1.55 }}>
+                              <div style={{ fontWeight: 700, color: '#1e3a8a', marginBottom: 4 }}>📝 Participação declarada</div>
+                              <div><strong>Período:</strong> {fmt(det.startPeriod)} a {fmt(det.endPeriod)}{det.role ? <> · <strong>Papel:</strong> {det.role}</> : null}</div>
+                              {det.activities ? <div style={{ whiteSpace: 'pre-wrap' }}><strong>Atividades:</strong> {det.activities}</div> : null}
+                              {det.results ? <div style={{ whiteSpace: 'pre-wrap' }}><strong>Resultados:</strong> {det.results}</div> : null}
+                              {det.supervisor ? <div><strong>Gestor que pode confirmar:</strong> {det.supervisor}</div> : null}
+                            </div>
+                          );
+                        })()}
                         {p.projectAreaMap?.[proj] ? (
                           <div style={{ fontSize: '0.72rem', color: '#5b21b6', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                             🎯 Área de aplicação: {AREA_LABELS[p.projectAreaMap[proj]] || p.projectAreaMap[proj]}
