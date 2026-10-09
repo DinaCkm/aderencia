@@ -28,6 +28,7 @@ const initialProfile: ParticipantProfile = {
   proofFiles: {},
   selectedProjects: [],
   projectAreaMap: {},
+  projectDetails: {},
   exceptionRequested: false,
   exceptionJustification: '',
   attachments: [],
@@ -163,7 +164,7 @@ function ProofSelector({ itemLabel, email, proofMode, proofFiles, proofLinks, on
 
   return (
     <div style={{ padding: '8px 12px 10px', background: '#f8fafc', borderTop: '1px solid var(--border)' }}>
-      <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600 }}>Como comprovar este item:</p>
+      <p style={{ fontSize: '0.76rem', color: '#334155', marginBottom: 8, lineHeight: 1.6 }}><strong>Como comprovar:</strong> se você já entregou este diploma, certificado ou documento à {CLIENT.hrUnit}/RH, não precisa anexá-lo novamente. Se ainda não entregou, selecione a opção de envio e anexe uma cópia. A UGP/RH poderá conferir a informação declarada.</p>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <label style={{
@@ -176,7 +177,7 @@ function ProofSelector({ itemLabel, email, proofMode, proofFiles, proofLinks, on
             checked={mode === 'ugp-knows'}
             onChange={() => onChange('ugp-knows')}
             style={{ accentColor: 'var(--cyan)', width: 13, height: 13 }} />
-          ✓ A {CLIENT.hrUnit} já tem conhecimento
+          Já entreguei este documento à {CLIENT.hrUnit}/RH
         </label>
         <label style={{
           display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
@@ -188,7 +189,7 @@ function ProofSelector({ itemLabel, email, proofMode, proofFiles, proofLinks, on
             checked={mode === 'upload'}
             onChange={() => onChange('upload')}
             style={{ accentColor: 'var(--purple)', width: 13, height: 13 }} />
-          📎 Enviar documento
+          Ainda não entreguei — anexar documento
         </label>
       </div>
 
@@ -2120,7 +2121,7 @@ export default function ParticipantForm() {
               <div style={{ background: '#f0f9ff', border: '1.5px solid #7dd3fc', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.78rem', color: '#0369a1', lineHeight: 1.7 }}>
                 <p style={{ margin: 0, marginBottom: 6, fontWeight: 700 }}>O que são projetos estratégicos?</p>
                 <p style={{ margin: 0, marginBottom: 6 }}>São iniciativas institucionais formais da organização nas quais você participou como membro, líder ou colaborador.</p>
-                <p style={{ margin: 0 }}>Selecione até <strong>3 projetos</strong> em que participou e indique como vai comprová-los. A validação final é feita pelo RH/{CLIENT.hrUnit}.</p>
+                <p style={{ margin: 0 }}>Selecione até <strong>3 projetos</strong> em que participou, detalhe suas contribuições e indique como comprová-las. A validação final é feita pelo RH/{CLIENT.hrUnit}.</p>
               </div>
 
               <div className="form-group">
