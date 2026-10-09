@@ -897,7 +897,11 @@ export default function AdminEmployees() {
     setLoading(true);
     fetch('/api/admin/employees')
       .then((r) => r.json())
-      .then((d) => { setEmployees(d.employees || []); setLoading(false); })
+      .then((d) => {
+        const list = [...(d.employees || [])].sort((a: Employee, b: Employee) =>
+          String(a.name || a.email).localeCompare(String(b.name || b.email), 'pt-BR', { sensitivity: 'base' }));
+        setEmployees(list); setLoading(false);
+      })
       .catch(() => setLoading(false));
   };
 
