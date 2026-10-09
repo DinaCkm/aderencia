@@ -115,13 +115,9 @@ export async function listEcoliderAlunos(): Promise<EcoliderAluno[]> {
     seen.add(a.email);
     out.push(a);
   }
-  const [urows]: any[] = await getPool().query(USERS_SQL + ' ORDER BY u.name', [`%${CLIENT.ecolider!.programNameLike}%`]);
-  for (const row of urows || []) {
-    const a = userToAluno(row);
-    if (!a || seen.has(a.email)) continue;
-    seen.add(a.email);
-    out.push(a);
-  }
+  // A sincronização traz só os ALUNOS do programa. Cadastros que existem apenas na tabela
+  // users (ex.: e-mail alternativo da mesma pessoa) não entram na lista — mas continuam
+  // conseguindo fazer login, que confere as duas tabelas (findEcoliderAluno).
   out.sort((x, y) => x.name.localeCompare(y.name, 'pt-BR'));
   return out;
 }
