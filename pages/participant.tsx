@@ -933,13 +933,15 @@ export default function ParticipantForm() {
                     Confira as instruções para informar seus diplomas e certificados, detalhar a participação em projetos e anexar comprovantes.
                     Um documento que já foi entregue à {CLIENT.hrUnit}/RH não precisa ser enviado novamente, mas poderá ser conferido pela equipe.
                   </p>
-                  {process.env.NEXT_PUBLIC_ADERENCIA_AC_VIDEO_URL ? (
-                    <a href={process.env.NEXT_PUBLIC_ADERENCIA_AC_VIDEO_URL} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', padding: '9px 14px', borderRadius: 8, background: '#5B2D8E', color: 'white', fontWeight: 700, fontSize: '0.82rem', textDecoration: 'none' }}>
-                      Assistir ao vídeo de orientações
-                    </a>
-                  ) : (
-                    <p style={{ fontSize: '0.75rem', color: '#475569', margin: 0 }}>Leia as orientações disponíveis em cada etapa do questionário.</p>
-                  )}
+                  <video
+                    controls
+                    preload="none"
+                    playsInline
+                    poster={`${CLIENT.docsPrefix}/video_orientacoes.jpg`}
+                    src={process.env.NEXT_PUBLIC_ADERENCIA_AC_VIDEO_URL || `${CLIENT.docsPrefix}/video_orientacoes.mp4`}
+                    style={{ width: '100%', maxWidth: 640, borderRadius: 8, display: 'block', background: '#0f172a' }}
+                  />
+                  <p style={{ fontSize: '0.72rem', color: '#64748b', margin: '6px 0 0' }}>Vídeo de orientações (3 min). Se preferir, leia as orientações disponíveis em cada etapa.</p>
                 </div>
               )}
               {/* Card de boas-vindas */}
