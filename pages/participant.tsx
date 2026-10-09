@@ -1242,7 +1242,8 @@ export default function ParticipantForm() {
                       const gradProofKeyCheck = profile.graduation === '__outro__'
                         ? `grad:${(profile as any).graduationCourseName?.trim() || '__outro__'}`
                         : `grad:${profile.graduation}`;
-                      const isLocked = !!(profile.proofMode || {})[gradProofKeyCheck];
+                      // Só trava quando a chave da comprovação depende do nome (curso "Outro") e o nome já foi digitado
+                      const isLocked = profile.graduation === '__outro__' && !!(profile as any).graduationCourseName?.trim() && !!(profile.proofMode || {})[gradProofKeyCheck];
                       return isLocked ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <input
@@ -1553,7 +1554,7 @@ export default function ParticipantForm() {
                         {/* Nome conforme certificado */}
                         <div style={{ marginBottom: 8 }}>
                           <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Nome completo conforme consta no certificado{idx === 0 ? ' *' : ''}</label>
-                          {(profile.proofMode || {})[proofKey] ? (
+                          {(mba.name || '').trim() && (profile.proofMode || {})[proofKey] ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <input
                                 type="text"
@@ -1798,7 +1799,7 @@ export default function ParticipantForm() {
                         {/* Nome do curso */}
                         <div style={{ marginBottom: 8 }}>
                           <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Nome do curso conforme consta no certificado *</label>
-                          {(profile.proofMode || {})[`curso5_${idx}:${course.name}`] ? (
+                          {(course.name || '').trim() && (profile.proofMode || {})[`curso5_${idx}:${course.name}`] ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <input
                                 type="text"
