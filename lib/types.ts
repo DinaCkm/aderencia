@@ -88,6 +88,7 @@ export interface ParticipantProfile {
   // Projetos estratégicos — entram no cálculo (máx. 3 selecionados)
   selectedProjects: string[];
   projectAreaMap: Record<string, AreaCode>; // projeto → área de interesse escolhida
+  projectDetails?: Record<string, { startPeriod?: string; endPeriod?: string; role?: string; activities?: string; results?: string; supervisor?: string }>;
   exceptionRequested: boolean;
   exceptionJustification: string;  // legado — campo livre geral
   exceptionItems?: ExceptionItem[]; // novo — lista estruturada de questionamentos
