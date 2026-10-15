@@ -2324,8 +2324,13 @@ export default function ParticipantForm() {
                                   <label style={{ fontSize: '0.76rem' }}>Quais resultados ou entregas tiveram sua contribuição?
                                     <textarea rows={3} value={d.results || ''} onChange={e => change('results', e.target.value)} disabled={isReadOnly} placeholder="Ex.: revisão de procedimentos e entrega do relatório final." style={{ display: 'block', width: '100%', padding: 8 }} />
                                   </label>
-                                  <label style={{ fontSize: '0.76rem' }}>Gestor que pode confirmar sua participação (opcional)
-                                    <input value={d.supervisor || ''} onChange={e => change('supervisor', e.target.value)} disabled={isReadOnly} placeholder="Nome do gestor ou responsável" style={{ display: 'block', width: '100%', padding: 8 }} />
+                                  <label style={{ fontSize: '0.76rem' }}>Responsável que pode confirmar sua participação no projeto (opcional)
+                                    <p style={{ fontSize: '0.73rem', color: '#475569', lineHeight: 1.55, margin: '5px 0 8px' }}>
+                                      Informe o nome de quem acompanhou sua participação e pode confirmar as atividades realizadas.
+                                      Pode ser o coordenador do projeto, responsável técnico ou gestor da área.
+                                      Essa pessoa não precisa ocupar cargo formal de gerência. A indicação é complementar e não substitui o comprovante solicitado.
+                                    </p>
+                                    <input value={d.supervisor || ''} onChange={e => change('supervisor', e.target.value)} disabled={isReadOnly} placeholder="Nome do coordenador, responsável técnico ou gestor" style={{ display: 'block', width: '100%', padding: 8 }} />
                                   </label>
                                 </div>
                               );
